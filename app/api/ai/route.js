@@ -18,6 +18,7 @@ export async function POST(request) {
       )
   
       const data = await res.json()
+      console.log('Gemini response:', JSON.stringify(data))
       const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Yanıt alınamadı.'
       return Response.json({ reply })
   
