@@ -15,7 +15,7 @@ async function sendWelcomeEmail(email, name, licenseKey) {
     },
     body: JSON.stringify({
       from: 'BurnRate OS <onboarding@resend.dev>',
-      to: email,
+      to: 'ardadurek1@gmail.com',
       subject: '🔥 BurnRate OS — Lisans Anahtarın Hazır!',
       html: `
         <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:40px 20px;background:#08080e;color:#f0f0f8">
