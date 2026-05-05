@@ -3,7 +3,7 @@ export async function POST(request) {
       const { message, context } = await request.json()
   
       const res = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyB7vHwUa1X330gvkPP3_RND0vS-gz0AoXo',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyB7vHwUa1X330gvkPP3_RND0vS-gz0AoXo',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
