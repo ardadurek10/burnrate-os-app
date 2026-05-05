@@ -18,6 +18,7 @@ export async function POST(request) {
       })
   
       const data = await res.json()
+      console.log('Anthropic data:', JSON.stringify(data))
       const reply = data.content?.[0]?.text || 'Yanıt alınamadı.'
       return Response.json({ reply })
   
