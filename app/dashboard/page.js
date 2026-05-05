@@ -558,6 +558,26 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
 
 function InvestmentsPage({ theme, investments, setInvestments }) {
   const [adding, setAdding] = useState(false)
+  const [prices, setPrices] = useState({})
+const [loadingPrices, setLoadingPrices] = useState(false)
+
+async function fetchPrices() {
+  setLoadingPrices(true)
+  const updated = {}
+  for (const inv of investments) {
+    try {
+      const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
+      const data = await res.json()
+      if (data.price) updated[inv.symbol] = parseFloat(data.price)
+    } catch {}
+  }
+  setPrices(updated)
+  setLoadingPrices(false)
+}
+
+useEffect(() => {
+  if (investments.length > 0) fetchPrices()
+}, [investments.length])
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
 
   function addInv() {
@@ -658,7 +678,8 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           <tbody>
             {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet</td></tr>
             : investments.map((inv,i)=>{
-              const val=inv.shares*inv.currentPrice, cost=inv.shares*inv.buyPrice, gain=val-cost, gp=((gain/cost)*100).toFixed(1)
+              const livePrice = prices[inv.symbol] || inv.currentPrice
+const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
               return (
                 <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                   <td style={{padding:'12px 0',...VAL,color:theme.text,fontWeight:600}}>{inv.symbol}</td>
@@ -666,7 +687,10 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
                   <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:inv.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:inv.type==='crypto'?'#fde68a':'#6ee7b7'}}>{inv.type}</span></td>
                   <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
                   <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
-                  <td style={{padding:'12px 0',...VAL,color:'#f5f5f7',fontSize:'13px'}}>${inv.currentPrice.toFixed(2)}</td>
+                  <td style={{padding:'12px 0',...VAL,color:'#f5f5f7',fontSize:'13px'}}>
+  {loadingPrices ? '...' : `$${(prices[inv.symbol] || inv.currentPrice).toFixed(2)}`}
+  {prices[inv.symbol] && <span style={{fontSize:'9px',marginLeft:'4px',color:'rgba(255,255,255,0.3)'}}>LIVE</span>}
+</td>
                   <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px',fontWeight:500}}>${val.toFixed(2)}</td>
                   <td style={{padding:'12px 0',...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:500}}>{gain>=0?'+':''}${gain.toFixed(2)} ({gp}%)</td>
                   <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
@@ -699,7 +723,15 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
   return (
     <div style={{padding:'40px'}}>
       <PageHeader theme={theme} title="💰 Balance & Savings" subtitle="Track income and your savings rate."
-        action={<AddBtn theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
+        action={<AddBtn action={
+          <div style={{display:'flex',gap:'10px'}}>
+            <button onClick={fetchPrices} disabled={loadingPrices}
+              style={{padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:500,background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.6)',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>
+              {loadingPrices ? '⟳ Loading...' : '⟳ Refresh Prices'}
+            </button>
+            <AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />
+          </div>
+        }theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
 
       <Card style={{padding:'32px',marginBottom:'24px',background:`linear-gradient(135deg,${theme.bg},rgba(0,0,0,0))`}}>
         <div style={{...TIP,marginBottom:'8px'}}>Net Balance</div>
