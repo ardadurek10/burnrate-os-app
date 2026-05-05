@@ -10,7 +10,7 @@ export async function POST(request) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-opus-4-6',
+        model: 'claude-sonnet-4-20250514',
           max_tokens: 1024,
           system: `Sen BurnRate OS'un AI finansal danışmanısın. Dijital girişimciler, freelancer'lar ve öğrenciler için çalışıyorsun. Kullanıcının finansal verilerine göre kısa, net ve aksiyona dönüştürülebilir tavsiyeler ver. Türkçe cevap ver. Maksimum 3 paragraf. Kullanıcı verisi: ${context}`,
           messages: [{ role: 'user', content: message }]
