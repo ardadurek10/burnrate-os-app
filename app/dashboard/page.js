@@ -679,7 +679,7 @@ useEffect(() => {
             {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet</td></tr>
             : investments.map((inv,i)=>{
               const livePrice = prices[inv.symbol] || inv.currentPrice
-const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
+const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost, gp=((gain/cost)*100).toFixed(1)
               return (
                 <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                   <td style={{padding:'12px 0',...VAL,color:theme.text,fontWeight:600}}>{inv.symbol}</td>
