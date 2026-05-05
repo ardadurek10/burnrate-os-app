@@ -77,7 +77,7 @@ export default function Dashboard() {
           <div style={{width:'28px', height:'28px', borderRadius:'8px', background:'linear-gradient(135deg,#7c3aed,#4c1d95)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px'}}>🔥</div>
           <div style={{color:'#f5f5f7', fontSize:'15px', fontWeight:600, letterSpacing:'-0.3px'}}>BurnRate OS</div>
         </div>
-        <div style={{color:'rgba(255,255,255,0.3)', fontSize:'11px', fontFamily:'SF Mono,monospace'}}>{user?.name || user?.email?.split('@')[0] || ''}</div>
+        <div style={{color:'rgba(255,255,255,0.3)', fontSize:'11px', fontFamily:'SF Mono,monospace'}}>{user?.name || user?.email?.split('@')[0] || 'User'}</div>
       </div>
 
       <div className="app-shell" style={{display:'flex', flex:1}}>
@@ -119,8 +119,8 @@ export default function Dashboard() {
 
           <div style={{borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'16px'}}>
             <div style={{paddingLeft:'8px', marginBottom:'10px'}}>
-              <div style={{color:'#f5f5f7', fontSize:'13px', fontWeight:500}}>{user.name || 'User'}</div>
-              <div style={{color:'rgba(255,255,255,0.28)', fontSize:'10px', fontFamily:'SF Mono,monospace', marginTop:'2px'}}>{user.email}</div>
+              <div style={{color:'#f5f5f7', fontSize:'13px', fontWeight:500}}>{user?.name || 'User'}</div>
+              <div style={{color:'rgba(255,255,255,0.28)', fontSize:'10px', fontFamily:'SF Mono,monospace', marginTop:'2px'}}>{user?.email || ''}</div>
             </div>
             <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
               style={{width:'100%', textAlign:'left', padding:'6px 8px', borderRadius:'8px', fontSize:'12px', color:'rgba(255,255,255,0.28)', background:'transparent', border:'none', cursor:'pointer'}}>
