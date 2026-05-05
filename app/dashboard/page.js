@@ -1,5 +1,4 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { supabaseQuery, supabaseInsert, supabaseDelete } from '../lib/supabase'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
@@ -46,7 +45,7 @@ export default function Dashboard() {
       { id:2, symbol:'BTC', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
     ])
   }
-
+  if (typeof window === 'undefined') return null
   if (!user) return (
     <div style={{background:'#0a0a0f', fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif', minHeight:'100vh', display:'flex', flexDirection:'column'}}>
 
