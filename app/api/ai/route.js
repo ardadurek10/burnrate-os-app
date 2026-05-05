@@ -25,4 +25,4 @@ export async function POST(request) {
     } catch (error) {
       return Response.json({ reply: 'Sunucu hatası: ' + error.message })
     }
-  }
+  } 
