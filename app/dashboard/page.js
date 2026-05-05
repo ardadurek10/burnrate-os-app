@@ -71,6 +71,7 @@ export default function Dashboard() {
           { id: 'subscriptions', icon: '⚔️', label: 'Subscriptions' },
           { id: 'spending', icon: '🩸', label: 'Harcamalar' },
           { id: 'balance', icon: '📡', label: 'Bakiye' },
+          { id: 'ai', icon: '🤖', label: 'AI Danışman' },
         ].map((item) => (
           <button
             key={item.id}
@@ -137,6 +138,9 @@ export default function Dashboard() {
             userId={user.id}
             onRefresh={() => loadData(user.id)}
           />
+        )}
+        {page === 'ai' && (
+          <AIPage user={user} subs={subs} expenses={expenses} income={income} />
         )}
       </div>
     </div>
@@ -919,4 +923,63 @@ function BalancePage({
       </div>
     </div>
   );
+}
+function AIPage({ user, subs, expenses, income }) {
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: 'Merhaba! Ben senin finansal danışmanınım. Harcamalar, subscriptionlar veya tasarruf hedeflerin hakkında soru sorabilirsin.' }
+  ])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function sendMessage() {
+    if (!input.trim() || loading) return
+    const userMsg = input.trim()
+    setInput('')
+    setMessages(prev => [...prev, { role: 'user', text: userMsg }])
+    setLoading(true)
+
+    const context = `Subscriptionlar: ${subs.map(s => s.name + ' $' + s.cost + '/ay durum:' + s.status).join(', ') || 'yok'}. Harcamalar: ${expenses.map(e => e.description + ' $' + e.amount).join(', ') || 'yok'}. Gelir: ${income.map(i => i.source + ' $' + i.amount).join(', ') || 'yok'}.`
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg, context })
+      })
+      const data = await res.json()
+      setMessages(prev => [...prev, { role: 'ai', text: data.reply || 'Bir hata oluştu.' }])
+    } catch {
+      setMessages(prev => [...prev, { role: 'ai', text: 'Bağlantı hatası. Tekrar dene.' }])
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-white">🤖 AI Finansal Danışman</h1>
+        <p className="text-gray-400 text-sm">Verilerini analiz edip kişisel tavsiyeler ver.</p>
+      </div>
+      <div className="bg-[#111118] border border-white/10 rounded-xl overflow-hidden">
+        <div className="h-96 overflow-y-auto p-4 flex flex-col gap-3">
+          {messages.map((m, i) => (
+            <div key={i} className={`max-w-xs p-3 rounded-xl text-sm ${m.role === 'user' ? 'bg-purple-600/20 border border-purple-500/30 self-end text-white' : 'bg-[#1c1c2a] border border-white/10 self-start text-gray-300'}`}>
+              {m.text}
+            </div>
+          ))}
+          {loading && <div className="bg-[#1c1c2a] border border-white/10 self-start p-3 rounded-xl text-sm text-gray-400">Düşünüyor...</div>}
+        </div>
+        <div className="border-t border-white/10 p-3 flex gap-2">
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendMessage()}
+            placeholder="Hangi subscriptionı kesmeliyim?"
+            className="flex-1 bg-[#1c1c2a] border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-purple-500"
+          />
+          <button onClick={sendMessage} disabled={loading} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50">↑</button>
+        </div>
+      </div>
+    </div>
+  )
 }
