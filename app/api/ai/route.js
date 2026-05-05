@@ -10,19 +10,25 @@ export async function POST(request) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-20250514',
           max_tokens: 1024,
-          system: `Sen BurnRate OS'un AI finansal danışmanısın. Dijital girişimciler, freelancer'lar ve öğrenciler için çalışıyorsun. Kullanıcının finansal verilerine göre kısa, net ve aksiyona dönüştürülebilir tavsiyeler ver. Türkçe cevap ver. Maksimum 3 paragraf. Kullanıcı verisi: ${context}`,
+          system: `Sen BurnRate OS'un AI finansal danışmanısın. Türkçe cevap ver. Kısa ve net ol. Kullanıcı verisi: ${context}`,
           messages: [{ role: 'user', content: message }]
         })
       })
   
       const data = await res.json()
-      const reply = data.content?.[0]?.text || 'Bir hata oluştu, tekrar dene.'
+      console.log('Anthropic response:', JSON.stringify(data))
+      
+      if (data.error) {
+        return Response.json({ reply: 'API hatası: ' + data.error.message })
+      }
   
+      const reply = data.content?.[0]?.text || 'Yanıt alınamadı.'
       return Response.json({ reply })
   
     } catch (error) {
-      return Response.json({ error: error.message }, { status: 500 })
+      console.error('AI route error:', error)
+      return Response.json({ reply: 'Sunucu hatası: ' + error.message })
     }
   }
