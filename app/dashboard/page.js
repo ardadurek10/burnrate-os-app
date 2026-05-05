@@ -3,7 +3,14 @@ import { useState, useEffect } from 'react'
 import { supabaseQuery, supabaseInsert, supabaseDelete } from '../lib/supabase'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
-const COLORS = ['#8b5cf6', '#a78bfa', '#6d28d9', '#c4b5fd', '#4c1d95']
+const THEMES = {
+  dashboard:     { accent:'#7c3aed', bg:'rgba(124,58,237,0.08)',  border:'rgba(124,58,237,0.25)',  text:'#c4b5fd',  chart:['#7c3aed','#a78bfa','#6d28d9','#ddd6fe','#4c1d95'] },
+  subscriptions: { accent:'#ef4444', bg:'rgba(239,68,68,0.08)',   border:'rgba(239,68,68,0.25)',   text:'#fca5a5',  chart:['#ef4444','#f87171','#dc2626','#fecaca','#b91c1c'] },
+  spending:      { accent:'#f59e0b', bg:'rgba(245,158,11,0.08)',  border:'rgba(245,158,11,0.25)',  text:'#fde68a',  chart:['#f59e0b','#fbbf24','#d97706','#fef3c7','#92400e'] },
+  investments:   { accent:'#10b981', bg:'rgba(16,185,129,0.08)',  border:'rgba(16,185,129,0.25)',  text:'#6ee7b7',  chart:['#10b981','#34d399','#059669','#a7f3d0','#065f46'] },
+  balance:       { accent:'#06b6d4', bg:'rgba(6,182,212,0.08)',   border:'rgba(6,182,212,0.25)',   text:'#67e8f9',  chart:['#06b6d4','#22d3ee','#0891b2','#cffafe','#164e63'] },
+  ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.08)',  border:'rgba(139,92,246,0.25)',  text:'#ddd6fe',  chart:['#8b5cf6','#a78bfa','#7c3aed','#ede9fe','#4c1d95'] },
+}
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
@@ -34,182 +41,217 @@ export default function Dashboard() {
     setExpenses(Array.isArray(e) ? e : [])
     setIncome(Array.isArray(i) ? i : [])
     setInvestments([
-      { symbol: 'AAPL', name: 'Apple Inc.', shares: 2, buyPrice: 150, currentPrice: 189, type: 'stock' },
-      { symbol: 'BTC', name: 'Bitcoin', shares: 0.01, buyPrice: 40000, currentPrice: 62000, type: 'crypto' },
+      { id:1, symbol:'AAPL', name:'Apple Inc.', shares:2, buyPrice:150, currentPrice:189, type:'stock' },
+      { id:2, symbol:'BTC', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
     ])
   }
 
   if (!user) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'#0a0a0f'}}>
-      <div className="text-white text-sm" style={{fontFamily:'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif'}}>Loading...</div>
+      <div style={{color:'rgba(255,255,255,0.4)', fontSize:'14px', fontFamily:'SF Pro Display,-apple-system,sans-serif'}}>Loading...</div>
     </div>
   )
 
-  const totalIncome = income.reduce((a, i) => a + Number(i.amount), 0)
-  const totalExp = expenses.reduce((a, e) => a + Number(e.amount), 0)
-  const totalSubs = subs.reduce((a, s) => a + Number(s.cost), 0)
+  const totalIncome = income.reduce((a,i) => a+Number(i.amount), 0)
+  const totalExp = expenses.reduce((a,e) => a+Number(e.amount), 0)
+  const totalSubs = subs.reduce((a,s) => a+Number(s.cost), 0)
   const netBal = totalIncome - totalExp - totalSubs
   const deadSubs = subs.filter(s => s.status === 'dead')
-  const totalInvestmentValue = investments.reduce((a, inv) => a + (inv.shares * inv.currentPrice), 0)
-  const totalInvestmentCost = investments.reduce((a, inv) => a + (inv.shares * inv.buyPrice), 0)
-  const investmentGain = totalInvestmentValue - totalInvestmentCost
+  const totalInvValue = investments.reduce((a,inv) => a+(inv.shares*inv.currentPrice), 0)
+  const totalInvCost = investments.reduce((a,inv) => a+(inv.shares*inv.buyPrice), 0)
+  const invGain = totalInvValue - totalInvCost
+
+  const theme = THEMES[page] || THEMES.dashboard
 
   const navItems = [
-    { id: 'dashboard', icon: '⚡', label: 'Overview' },
-    { id: 'subscriptions', icon: '⚔️', label: 'Subscriptions' },
-    { id: 'spending', icon: '💸', label: 'Spending' },
-    { id: 'investments', icon: '📈', label: 'Investments' },
-    { id: 'balance', icon: '💰', label: 'Balance' },
+    { id:'dashboard',     icon:'⚡', label:'Overview' },
+    { id:'subscriptions', icon:'⚔️', label:'Subscriptions' },
+    { id:'spending',      icon:'💸', label:'Spending' },
+    { id:'investments',   icon:'📈', label:'Investments' },
+    { id:'balance',       icon:'💰', label:'Balance' },
   ]
 
   return (
-    <div className="min-h-screen flex" style={{background:'#0a0a0f', fontFamily:'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif'}}>
+    <div className="min-h-screen flex" style={{background:'#0a0a0f', fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif'}}>
+
       {/* SIDEBAR */}
-      <div className="flex flex-col py-8 px-4" style={{width:'220px', background:'rgba(255,255,255,0.02)', borderRight:'1px solid rgba(255,255,255,0.06)', backdropFilter:'blur(20px)'}}>
+      <div className="flex flex-col py-8 px-4" style={{width:'220px', background:'rgba(255,255,255,0.018)', borderRight:'1px solid rgba(255,255,255,0.06)', flexShrink:0}}>
         <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="flex items-center justify-center text-lg rounded-xl" style={{width:'36px', height:'36px', background:'linear-gradient(135deg, #7c3aed, #4c1d95)'}}>🔥</div>
+          <div className="flex items-center justify-center text-lg rounded-xl" style={{width:'36px',height:'36px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',flexShrink:0}}>🔥</div>
           <div>
-            <div className="font-semibold text-sm" style={{color:'#f5f5f7', letterSpacing:'-0.3px'}}>BurnRate OS</div>
-            <div className="text-xs" style={{color:'rgba(255,255,255,0.35)', fontFamily:'SF Mono, monospace'}}>command center</div>
+            <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
+            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:'SF Mono,monospace'}}>command center</div>
           </div>
         </div>
 
-        <nav className="flex flex-col gap-1 flex-1">
-          {navItems.map(item => (
-            <button key={item.id} onClick={() => setPage(item.id)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-all duration-200"
-              style={{
-                background: page === item.id ? 'linear-gradient(135deg, rgba(124,58,237,0.25), rgba(76,29,149,0.15))' : 'transparent',
-                color: page === item.id ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
-                border: page === item.id ? '1px solid rgba(124,58,237,0.3)' : '1px solid transparent',
-              }}>
-              <span style={{fontSize:'15px'}}>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
+        <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
+          {navItems.map(item => {
+            const t = THEMES[item.id]
+            const active = page === item.id
+            return (
+              <button key={item.id} onClick={() => setPage(item.id)}
+                style={{
+                  display:'flex', alignItems:'center', gap:'10px',
+                  padding:'9px 12px', borderRadius:'10px',
+                  fontSize:'13px', fontWeight:500, textAlign:'left',
+                  background: active ? t.bg : 'transparent',
+                  color: active ? t.text : 'rgba(255,255,255,0.38)',
+                  border: active ? `1px solid ${t.border}` : '1px solid transparent',
+                  cursor:'pointer', transition:'all 0.18s',
+                }}>
+                <span style={{fontSize:'15px'}}>{item.icon}</span>
+                {item.label}
+              </button>
+            )
+          })}
         </nav>
 
-        {/* AI ADVISOR SPECIAL */}
-        <div className="mt-4 mb-6">
+        {/* AI ADVISOR */}
+        <div style={{marginBottom:'16px'}}>
           <button onClick={() => setPage('ai')}
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
             style={{
-              background: page === 'ai' ? 'linear-gradient(135deg, #7c3aed, #4c1d95)' : 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(76,29,149,0.1))',
-              color: '#e9d5ff',
-              border: '1px solid rgba(124,58,237,0.4)',
+              width:'100%', display:'flex', alignItems:'center', gap:'10px',
+              padding:'11px 12px', borderRadius:'12px',
+              background: page==='ai' ? 'linear-gradient(135deg,#7c3aed,#4c1d95)' : 'rgba(124,58,237,0.1)',
+              color: page==='ai' ? '#fff' : '#c4b5fd',
+              border: '1px solid rgba(124,58,237,0.35)',
+              cursor:'pointer', transition:'all 0.18s',
             }}>
             <span style={{fontSize:'16px'}}>🤖</span>
-            <div className="text-left">
-              <div style={{fontSize:'13px'}}>AI Advisor</div>
-              <div style={{fontSize:'10px', color:'rgba(233,213,255,0.5)', fontFamily:'SF Mono, monospace'}}>powered by claude</div>
+            <div style={{textAlign:'left'}}>
+              <div style={{fontSize:'13px',fontWeight:600}}>AI Advisor</div>
+              <div style={{fontSize:'10px',color: page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:'SF Mono,monospace'}}>powered by claude</div>
             </div>
           </button>
         </div>
 
-        <div style={{borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'16px'}}>
-          <div className="px-2 mb-3">
-            <div className="text-xs font-medium" style={{color:'#f5f5f7'}}>{user.name || 'User'}</div>
-            <div className="text-xs" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>{user.email}</div>
+        <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'16px'}}>
+          <div style={{padding:'0 8px',marginBottom:'10px'}}>
+            <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
+            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',marginTop:'2px'}}>{user.email}</div>
           </div>
-          <button onClick={() => { localStorage.clear(); window.location.href = '/login' }}
-            className="w-full text-left px-2 py-1.5 rounded-lg text-xs transition-all"
-            style={{color:'rgba(255,255,255,0.3)'}}>
+          <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
+            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'none',cursor:'pointer'}}>
             Sign out →
           </button>
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-auto">
-        {page === 'dashboard' && <OverviewPage netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} investmentGain={investmentGain} totalInvestmentValue={totalInvestmentValue} />}
-        {page === 'subscriptions' && <SubsPage subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page === 'spending' && <SpendingPage expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page === 'investments' && <InvestmentsPage investments={investments} setInvestments={setInvestments} />}
-        {page === 'balance' && <BalancePage income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page === 'ai' && <AIPage user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
+      {/* MAIN */}
+      <div style={{flex:1,overflowY:'auto'}}>
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} />}
+        {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
+        {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
+        {page==='investments'   && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} />}
+        {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
+        {page==='ai'            && <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
       </div>
     </div>
   )
 }
 
-// ─── CARD COMPONENT ───
-function Card({ children, className = '', style = {} }) {
-  return (
-    <div className={className} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'16px', ...style}}>
-      {children}
-    </div>
-  )
+// ── SHARED COMPONENTS ──────────────────────────────────────────────
+
+function Card({ children, style={} }) {
+  return <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',...style}}>{children}</div>
 }
 
-// ─── STAT CARD ───
-function StatCard({ label, value, sub, color = '#c4b5fd', icon }) {
+function StatCard({ label, value, sub, color, icon, accent }) {
   return (
     <Card style={{padding:'20px'}}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="text-xs uppercase tracking-widest" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>{label}</div>
-        {icon && <span style={{fontSize:'18px', opacity:0.6}}>{icon}</span>}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
+        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
+        {icon && <span style={{fontSize:'18px',opacity:0.65}}>{icon}</span>}
       </div>
-      <div className="text-2xl font-semibold" style={{color, letterSpacing:'-0.5px'}}>{value}</div>
-      {sub && <div className="text-xs mt-1" style={{color:'rgba(255,255,255,0.3)'}}>{sub}</div>}
+      <div style={{color:color||'#f5f5f7',fontSize:'24px',fontWeight:600,letterSpacing:'-0.5px',lineHeight:1}}>{value}</div>
+      {sub && <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginTop:'6px'}}>{sub}</div>}
     </Card>
   )
 }
 
-// ─── OVERVIEW PAGE ───
-function OverviewPage({ netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, investmentGain, totalInvestmentValue }) {
-  const sr = totalIncome > 0 ? Math.round(((totalIncome - totalExp - totalSubs) / totalIncome) * 100) : 0
+function PageHeader({ theme, title, subtitle, action }) {
+  return (
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'32px'}}>
+      <div>
+        <h1 style={{color:theme.text,fontSize:'24px',fontWeight:600,letterSpacing:'-0.5px',margin:0,marginBottom:'4px'}}>{title}</h1>
+        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0}}>{subtitle}</p>
+      </div>
+      {action}
+    </div>
+  )
+}
 
-  const spendingData = [
-    { name: 'Subscriptions', value: totalSubs, color: '#7c3aed' },
-    { name: 'Expenses', value: totalExp, color: '#a78bfa' },
-    { name: 'Saved', value: Math.max(0, netBal), color: '#4c1d95' },
+function AddBtn({ theme, label, onClick }) {
+  return (
+    <button onClick={onClick} style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:500,background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,color:'#fff',border:'none',cursor:'pointer'}}>
+      {label}
+    </button>
+  )
+}
+
+const TIP = {fontFamily:'SF Mono,monospace',fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
+const VAL = {fontFamily:'SF Mono,monospace'}
+
+function TH({ children }) {
+  return <th style={{...TIP,textAlign:'left',paddingBottom:'12px',borderBottom:'1px solid rgba(255,255,255,0.06)',fontWeight:400}}>{children}</th>
+}
+
+const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'10px',color:'#f5f5f7',fontSize:'12px'}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────
+
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue }) {
+  const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
+
+  const pieData = [
+    { name:'Subscriptions', value:totalSubs },
+    { name:'Expenses',      value:totalExp },
+    { name:'Saved',         value:Math.max(0, netBal) },
   ].filter(d => d.value > 0)
 
-  const barData = expenses.slice(-6).map(e => ({ name: e.description?.slice(0,8), amount: Number(e.amount) }))
+  const barData = expenses.slice(-6).map((e,i) => ({ name:e.description?.slice(0,8)||`#${i+1}`, amount:Number(e.amount) }))
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1" style={{color:'#f5f5f7', letterSpacing:'-0.5px'}}>Good morning ☀️</h1>
-        <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Here's your financial snapshot for today.</p>
+    <div style={{padding:'40px'}}>
+      <div style={{marginBottom:'32px'}}>
+        <h1 style={{color:theme.text,fontSize:'26px',fontWeight:600,letterSpacing:'-0.5px',margin:0,marginBottom:'4px'}}>Good morning ☀️</h1>
+        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0}}>Here's your financial snapshot.</p>
       </div>
 
       {deadSubs.length > 0 && (
-        <div className="flex items-start gap-3 p-4 rounded-2xl mb-6" style={{background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)'}}>
+        <div style={{display:'flex',gap:'12px',padding:'14px 18px',borderRadius:'14px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',marginBottom:'24px'}}>
           <span>⚠️</span>
           <div>
-            <div className="text-sm font-medium" style={{color:'#fca5a5'}}>Dead subscriptions detected</div>
-            <div className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.4)'}}>
-              {deadSubs.map(s => s.name).join(', ')} — wasting ${deadSubs.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo
-            </div>
+            <div style={{color:'#fca5a5',fontSize:'13px',fontWeight:500}}>{deadSubs.length} dead subscription{deadSubs.length>1?'s':''} detected</div>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px'}}>{deadSubs.map(s=>s.name).join(', ')} — wasting ${deadSubs.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo</div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal >= 0 ? '↑ Positive' : '↓ In the red'} color={netBal >= 0 ? '#86efac' : '#fca5a5'} icon="💰" />
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+        <StatCard label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
         <StatCard label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subs" color="#fca5a5" icon="🔥" />
-        <StatCard label="Savings Rate" value={`${sr}%`} sub={sr >= 30 ? 'Excellent' : sr >= 15 ? 'Good' : 'Needs work'} color={sr >= 30 ? '#86efac' : sr >= 15 ? '#fde68a' : '#fca5a5'} icon="📊" />
-        <StatCard label="Portfolio" value={`$${totalInvestmentValue.toFixed(0)}`} sub={investmentGain >= 0 ? `+$${investmentGain.toFixed(0)} gain` : `-$${Math.abs(investmentGain).toFixed(0)} loss`} color={investmentGain >= 0 ? '#86efac' : '#fca5a5'} icon="📈" />
+        <StatCard label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent':sr>=15?'Good':'Needs work'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
+        <StatCard label="Portfolio" value={`$${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Spending Breakdown</div>
-          {spendingData.length > 0 ? (
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Spending Breakdown</div>
+          {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
-                <Pie data={spendingData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">
-                  {spendingData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={48} outerRadius={78} paddingAngle={4} dataKey="value">
+                  {pieData.map((_,i) => <Cell key={i} fill={theme.chart[i]} />)}
                 </Pie>
-                <Tooltip formatter={(v) => `$${v.toFixed(2)}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
+                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
-          ) : <div className="h-44 flex items-center justify-center text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No data yet</div>}
-          <div className="flex gap-4 justify-center mt-2">
-            {spendingData.map((d,i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs" style={{color:'rgba(255,255,255,0.4)'}}>
-                <div style={{width:'8px', height:'8px', borderRadius:'50%', background:d.color}}></div>
+          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data yet</div>}
+          <div style={{display:'flex',gap:'16px',justifyContent:'center',marginTop:'8px'}}>
+            {pieData.map((d,i) => (
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'rgba(255,255,255,0.35)'}}>
+                <div style={{width:'8px',height:'8px',borderRadius:'50%',background:theme.chart[i]}}></div>
                 {d.name}
               </div>
             ))}
@@ -217,58 +259,51 @@ function OverviewPage({ netBal, totalSubs, totalExp, deadSubs, subs, expenses, t
         </Card>
 
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Recent Expenses</div>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Recent Expenses</div>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={barData} barSize={20}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)', fontSize:10}} axisLine={false} tickLine={false} />
-                <YAxis tick={{fill:'rgba(255,255,255,0.3)', fontSize:10}} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => `$${v}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
-                <Bar dataKey="amount" fill="url(#barGrad)" radius={[4,4,0,0]} />
-                <defs>
-                  <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7c3aed" />
-                    <stop offset="100%" stopColor="#4c1d95" />
-                  </linearGradient>
-                </defs>
+              <BarChart data={barData} barSize={18}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false} />
+                <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false} />
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} />
+                <Bar dataKey="amount" radius={[4,4,0,0]}>
+                  {barData.map((_,i) => <Cell key={i} fill={THEMES.spending.chart[i%5]} />)}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <div className="h-44 flex items-center justify-center text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No expenses yet</div>}
+          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</div>}
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-3" style={{color:'rgba(255,255,255,0.6)'}}>⚔️ Top Subscriptions</div>
-          {subs.length === 0 ? <div className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No subscriptions yet</div> :
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'14px'}}>⚔️ Top Subscriptions</div>
+          {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No subscriptions yet</div> :
             subs.slice(0,4).map(s => (
-              <div key={s.id} className="flex justify-between items-center py-2.5" style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+              <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                 <div>
-                  <div className="text-sm" style={{color:'#f5f5f7'}}>{s.name}</div>
-                  <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{s.category}</div>
+                  <div style={{color:'#f5f5f7',fontSize:'13px'}}>{s.name}</div>
+                  <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px'}}>{s.category}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium" style={{color:'#fca5a5', fontFamily:'SF Mono, monospace'}}>${Number(s.cost).toFixed(2)}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                    background: s.status==='dead' ? 'rgba(239,68,68,0.15)' : s.status==='warn' ? 'rgba(251,191,36,0.15)' : 'rgba(134,239,172,0.15)',
-                    color: s.status==='dead' ? '#fca5a5' : s.status==='warn' ? '#fde68a' : '#86efac'
-                  }}>{s.status}</span>
+                <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                  <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>${Number(s.cost).toFixed(2)}</span>
+                  <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7'}}>{s.status}</span>
                 </div>
               </div>
             ))}
         </Card>
 
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-3" style={{color:'rgba(255,255,255,0.6)'}}>💸 Recent Spending</div>
-          {expenses.length === 0 ? <div className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No expenses yet</div> :
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'14px'}}>💸 Recent Spending</div>
+          {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</div> :
             expenses.slice(0,4).map(e => (
-              <div key={e.id} className="flex justify-between items-center py-2.5" style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+              <div key={e.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                 <div>
-                  <div className="text-sm" style={{color:'#f5f5f7'}}>{e.description}</div>
-                  <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{e.expense_date || '—'}</div>
+                  <div style={{color:'#f5f5f7',fontSize:'13px'}}>{e.description}</div>
+                  <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px'}}>{e.expense_date||'—'}</div>
                 </div>
-                <span className="text-sm font-medium" style={{color:'#fca5a5', fontFamily:'SF Mono, monospace'}}>-${Number(e.amount).toFixed(2)}</span>
+                <span style={{color:THEMES.spending.text,fontSize:'13px',...VAL}}>-${Number(e.amount).toFixed(2)}</span>
               </div>
             ))}
         </Card>
@@ -277,624 +312,502 @@ function OverviewPage({ netBal, totalSubs, totalExp, deadSubs, subs, expenses, t
   )
 }
 
-// ─── SUBSCRIPTIONS PAGE ───
-function SubsPage({ subs, userId, onRefresh }) {
-  const [form, setForm] = useState({ name:'', cost:'', category:'SaaS / Tools', days_since_used:'0', notes:'' })
+// ── SUBSCRIPTIONS ─────────────────────────────────────────────────
+
+function SubsPage({ theme, subs, userId, onRefresh }) {
+  const [form, setForm] = useState({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
   const [adding, setAdding] = useState(false)
 
   async function addSub() {
-    if (!form.name || !form.cost) return
-    const days = parseInt(form.days_since_used) || 0
-    const status = days === 0 ? 'keep' : days < 30 ? 'keep' : days < 60 ? 'warn' : 'dead'
-    await supabaseInsert('subscriptions', { ...form, cost: parseFloat(form.cost), days_since_used: days, status, user_id: userId })
-    setForm({ name:'', cost:'', category:'SaaS / Tools', days_since_used:'0', notes:'' })
-    setAdding(false)
-    onRefresh()
+    if (!form.name||!form.cost) return
+    const days = parseInt(form.days_since_used)||0
+    const status = days===0?'keep':days<30?'keep':days<60?'warn':'dead'
+    await supabaseInsert('subscriptions',{...form,cost:parseFloat(form.cost),days_since_used:days,status,user_id:userId})
+    setForm({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
+    setAdding(false); onRefresh()
   }
+  async function del(id) { await supabaseDelete('subscriptions',id); onRefresh() }
 
-  async function deleteSub(id) { await supabaseDelete('subscriptions', id); onRefresh() }
-
-  const total = subs.reduce((a,s) => a + Number(s.cost), 0)
-  const dead = subs.filter(s => s.status === 'dead')
-  const deadWaste = dead.reduce((a,s) => a + Number(s.cost), 0)
-
-  const categoryData = [...new Set(subs.map(s => s.category))].map(cat => ({
-    name: cat, value: subs.filter(s => s.category === cat).reduce((a,s) => a+Number(s.cost), 0)
-  }))
+  const total = subs.reduce((a,s)=>a+Number(s.cost),0)
+  const dead = subs.filter(s=>s.status==='dead')
+  const catData = [...new Set(subs.map(s=>s.category))].map(c=>({name:c,value:subs.filter(s=>s.category===c).reduce((a,s)=>a+Number(s.cost),0)}))
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1" style={{color:'#f5f5f7', letterSpacing:'-0.5px'}}>⚔️ Subscription Guillotine</h1>
-          <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Track every recurring charge. Kill the dead ones.</p>
-        </div>
-        <button onClick={() => setAdding(!adding)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>
-          + Add Subscription
-        </button>
-      </div>
+    <div style={{padding:'40px'}}>
+      <PageHeader theme={theme} title="⚔️ Subscription Guillotine" subtitle="Track every recurring charge. Kill the dead ones."
+        action={<AddBtn theme={theme} label="+ Add Subscription" onClick={()=>setAdding(!adding)} />} />
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <StatCard label="Monthly Cost" value={`$${total.toFixed(2)}`} color="#fca5a5" icon="💸" />
-        <StatCard label="Dead Tools" value={dead.length} sub={`$${deadWaste.toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
-        <StatCard label="Worth Keeping" value={subs.filter(s=>s.status==='keep').length} color="#86efac" icon="✅" />
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
+        <StatCard label="Monthly Cost" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard label="Dead Tools" value={dead.length} sub={`$${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
+        <StatCard label="Worth Keeping" value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
 
       {adding && (
-        <Card style={{padding:'24px', marginBottom:'20px', border:'1px solid rgba(124,58,237,0.3)'}}>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+        <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+            {[['Service Name','name','text','Shopify, Claude Pro...'],['Monthly Cost ($)','cost','number','29.00'],['Days Since Last Used','days_since_used','number','0 = used today']].map(([label,key,type,ph])=>(
+              <div key={key}>
+                <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
+                <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} placeholder={ph}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box'}} />
+              </div>
+            ))}
             <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Service Name</label>
-              <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Shopify, Claude Pro..." className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Monthly Cost ($)</label>
-              <input type="number" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} placeholder="29.00" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Days Since Last Used</label>
-              <input type="number" value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} placeholder="0 = used today" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Category</label>
-              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}}>
-                {['SaaS / Tools','AI Tools','Marketing','Storage','Design','Productivity','Other'].map(c=><option key={c} style={{background:'#1a1a2e'}}>{c}</option>)}
+              <div style={{...TIP,marginBottom:'6px'}}>Category</div>
+              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none'}}>
+                {['SaaS / Tools','AI Tools','Marketing','Storage','Design','Productivity','Other'].map(c=><option key={c} style={{background:'#12121c'}}>{c}</option>)}
               </select>
             </div>
           </div>
-          <div className="flex justify-end gap-3">
-            <button onClick={()=>setAdding(false)} className="px-4 py-2 rounded-xl text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Cancel</button>
-            <button onClick={addSub} className="px-4 py-2 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>Save</button>
+          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer'}}>Cancel</button>
+            <button onClick={addSub} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:500,background:`linear-gradient(135deg,${theme.accent},${theme.accent}99)`,color:'#fff',border:'none',cursor:'pointer'}}>Save</button>
           </div>
         </Card>
       )}
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="col-span-2">
-          <Card>
-            <div className="p-6">
-              <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>All Subscriptions</div>
-              <table className="w-full">
-                <thead>
-                  <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                    {['Service','Cost/mo','Category','Last Used','Status',''].map(h => (
-                      <th key={h} className="text-left pb-3 text-xs uppercase" style={{color:'rgba(255,255,255,0.25)', fontFamily:'SF Mono, monospace', fontSize:'10px', letterSpacing:'1px'}}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {subs.length === 0 ? (
-                    <tr><td colSpan={6} className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.2)'}}>No subscriptions yet. Add your first one.</td></tr>
-                  ) : subs.map(s => (
-                    <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                      <td className="py-3.5 text-sm font-medium" style={{color:'#f5f5f7'}}>{s.name}</td>
-                      <td className="py-3.5 text-sm font-medium" style={{color:'#fca5a5', fontFamily:'SF Mono, monospace'}}>${Number(s.cost).toFixed(2)}</td>
-                      <td className="py-3.5"><span className="text-xs px-2 py-1 rounded-full" style={{background:'rgba(124,58,237,0.15)', color:'#c4b5fd'}}>{s.category}</span></td>
-                      <td className="py-3.5 text-xs" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace'}}>{s.days_since_used === 0 ? 'Today' : `${s.days_since_used}d ago`}</td>
-                      <td className="py-3.5"><span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{
-                        background: s.status==='dead' ? 'rgba(239,68,68,0.15)' : s.status==='warn' ? 'rgba(251,191,36,0.15)' : 'rgba(134,239,172,0.15)',
-                        color: s.status==='dead' ? '#fca5a5' : s.status==='warn' ? '#fde68a' : '#86efac'
-                      }}>{s.status.toUpperCase()}</span></td>
-                      <td className="py-3.5"><button onClick={()=>deleteSub(s.id)} className="text-xs px-3 py-1.5 rounded-lg transition-all" style={{color:'rgba(255,255,255,0.3)', border:'1px solid rgba(255,255,255,0.08)'}}>Kill</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px'}}>
+        <Card style={{padding:'24px'}}>
+          <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>Category</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
+            <tbody>
+              {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No subscriptions yet</td></tr>
+              : subs.map(s=>(
+                <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                  <td style={{padding:'12px 0 12px',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{s.name}</td>
+                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>${Number(s.cost).toFixed(2)}</td>
+                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text}}>{s.category}</span></td>
+                  <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{s.days_since_used===0?'Today':`${s.days_since_used}d ago`}</td>
+                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:500,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7'}}>{s.status.toUpperCase()}</span></td>
+                  <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>Kill</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
 
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>By Category</div>
-          {categoryData.length > 0 ? (
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>By Category</div>
+          {catData.length>0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value">
-                  {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                <Pie data={catData} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value">
+                  {catData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} />)}
                 </Pie>
-                <Tooltip formatter={(v) => `$${v.toFixed(2)}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
+                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
-          ) : <div className="h-48 flex items-center justify-center text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No data</div>}
+          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data</div>}
+          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
+            {catData.map((d,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'12px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.4)'}}>
+                  <div style={{width:'7px',height:'7px',borderRadius:'50%',background:theme.chart[i%5]}}></div>
+                  {d.name}
+                </div>
+                <span style={{...VAL,color:'rgba(255,255,255,0.6)'}}>${d.value.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
         </Card>
       </div>
     </div>
   )
 }
 
-// ─── SPENDING PAGE ───
-function SpendingPage({ expenses, userId, onRefresh }) {
-  const [form, setForm] = useState({ description:'', amount:'', category:'impulse', expense_date:'' })
+// ── SPENDING ──────────────────────────────────────────────────────
+
+function SpendingPage({ theme, expenses, userId, onRefresh }) {
+  const [form, setForm] = useState({description:'',amount:'',category:'impulse',expense_date:''})
   const [adding, setAdding] = useState(false)
   const [filter, setFilter] = useState('all')
 
   async function addExpense() {
-    if (!form.description || !form.amount) return
-    await supabaseInsert('expenses', { ...form, amount: parseFloat(form.amount), user_id: userId })
-    setForm({ description:'', amount:'', category:'impulse', expense_date:'' })
-    setAdding(false)
-    onRefresh()
+    if (!form.description||!form.amount) return
+    await supabaseInsert('expenses',{...form,amount:parseFloat(form.amount),user_id:userId})
+    setForm({description:'',amount:'',category:'impulse',expense_date:''}); setAdding(false); onRefresh()
   }
+  async function del(id) { await supabaseDelete('expenses',id); onRefresh() }
 
-  async function deleteExp(id) { await supabaseDelete('expenses', id); onRefresh() }
-
-  const filtered = filter === 'all' ? expenses : expenses.filter(e => e.category === filter)
-  const total = expenses.reduce((a,e) => a + Number(e.amount), 0)
-  const leaks = expenses.filter(e => e.category === 'impulse' || e.category === 'food')
-  const leakAmt = leaks.reduce((a,e) => a + Number(e.amount), 0)
-
-  const areaData = expenses.slice(-7).map((e, i) => ({ day: `Day ${i+1}`, amount: Number(e.amount) }))
-
-  const catColors = { impulse:'#fca5a5', food:'#fdba74', transport:'#fde68a', business:'#86efac', other:'#c4b5fd' }
-  const catLabels = { impulse:'Impulse / Leak', food:'Food & Delivery', transport:'Transport', business:'Business', other:'Other' }
+  const filtered = filter==='all' ? expenses : expenses.filter(e=>e.category===filter)
+  const total = expenses.reduce((a,e)=>a+Number(e.amount),0)
+  const leaks = expenses.filter(e=>e.category==='impulse'||e.category==='food')
+  const leakAmt = leaks.reduce((a,e)=>a+Number(e.amount),0)
+  const areaData = expenses.slice(-7).map((e,i)=>({day:`D${i+1}`,amount:Number(e.amount)}))
+  const catLabels = {impulse:'Impulse',food:'Food',transport:'Transport',business:'Business',other:'Other'}
+  const catColors = {impulse:'#ef4444',food:'#f97316',transport:'#f59e0b',business:'#10b981',other:'#8b5cf6'}
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1" style={{color:'#f5f5f7', letterSpacing:'-0.5px'}}>💸 Daily Spending</h1>
-          <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Track impulse buys and convenience leaks.</p>
-        </div>
-        <button onClick={() => setAdding(!adding)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>
-          + Log Expense
-        </button>
-      </div>
+    <div style={{padding:'40px'}}>
+      <PageHeader theme={theme} title="💸 Daily Spending" subtitle="Track impulse buys and convenience leaks."
+        action={<AddBtn theme={theme} label="+ Log Expense" onClick={()=>setAdding(!adding)} />} />
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Spent" value={`$${total.toFixed(2)}`} color="#fca5a5" icon="💸" />
-        <StatCard label="Leak Amount" value={`$${leakAmt.toFixed(2)}`} sub={`${total > 0 ? Math.round(leakAmt/total*100) : 0}% of spending`} color="#fca5a5" icon="🩸" />
-        <StatCard label="Transactions" value={expenses.length} color="#c4b5fd" icon="📋" />
-        <StatCard label="Avg per Transaction" value={expenses.length > 0 ? `$${(total/expenses.length).toFixed(2)}` : '$0'} color="#fde68a" icon="📊" />
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+        <StatCard label="Total Spent" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard label="Leak Amount" value={`$${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard label="Transactions" value={expenses.length} color={theme.text} icon="📋" />
+        <StatCard label="Avg / Transaction" value={expenses.length>0?`$${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
       </div>
 
       {adding && (
-        <Card style={{padding:'24px', marginBottom:'20px', border:'1px solid rgba(124,58,237,0.3)'}}>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+        <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+            {[['Description','description','text','Late night delivery...'],['Amount ($)','amount','number','0.00'],['Date','expense_date','text','May 5']].map(([label,key,type,ph])=>(
+              <div key={key}>
+                <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
+                <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} placeholder={ph}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box'}} />
+              </div>
+            ))}
             <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Description</label>
-              <input value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Late night delivery..." className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Amount ($)</label>
-              <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Category</label>
-              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}}>
-                <option value="impulse" style={{background:'#1a1a2e'}}>Impulse / Leak</option>
-                <option value="food" style={{background:'#1a1a2e'}}>Food & Delivery</option>
-                <option value="transport" style={{background:'#1a1a2e'}}>Transport</option>
-                <option value="business" style={{background:'#1a1a2e'}}>Business</option>
-                <option value="other" style={{background:'#1a1a2e'}}>Other</option>
+              <div style={{...TIP,marginBottom:'6px'}}>Category</div>
+              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none'}}>
+                <option value="impulse" style={{background:'#12121c'}}>Impulse / Leak</option>
+                <option value="food" style={{background:'#12121c'}}>Food & Delivery</option>
+                <option value="transport" style={{background:'#12121c'}}>Transport</option>
+                <option value="business" style={{background:'#12121c'}}>Business</option>
+                <option value="other" style={{background:'#12121c'}}>Other</option>
               </select>
             </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Date</label>
-              <input value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="May 5" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
           </div>
-          <div className="flex justify-end gap-3">
-            <button onClick={()=>setAdding(false)} className="px-4 py-2 rounded-xl text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Cancel</button>
-            <button onClick={addExpense} className="px-4 py-2 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>Save</button>
+          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer'}}>Cancel</button>
+            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:500,background:`linear-gradient(135deg,${theme.accent},${theme.accent}99)`,color:'#fff',border:'none',cursor:'pointer'}}>Save</button>
           </div>
         </Card>
       )}
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="col-span-2">
-          <Card style={{padding:'24px', marginBottom:'16px'}}>
-            <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Spending Trend</div>
-            {areaData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={160}>
-                <AreaChart data={areaData}>
-                  <defs>
-                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="day" tick={{fill:'rgba(255,255,255,0.3)', fontSize:10}} axisLine={false} tickLine={false} />
-                  <YAxis tick={{fill:'rgba(255,255,255,0.3)', fontSize:10}} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v) => `$${v}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
-                  <Area type="monotone" dataKey="amount" stroke="#7c3aed" strokeWidth={2} fill="url(#areaGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : <div className="h-40 flex items-center justify-center text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No data yet</div>}
-          </Card>
-        </div>
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px',marginBottom:'16px'}}>
+        <Card style={{padding:'24px'}}>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Spending Trend</div>
+          {areaData.length>0 ? (
+            <ResponsiveContainer width="100%" height={160}>
+              <AreaChart data={areaData}>
+                <defs>
+                  <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={theme.accent} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={theme.accent} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                <XAxis dataKey="day" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false}/>
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle}/>
+                <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2} fill="url(#spendGrad)"/>
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data yet</div>}
+        </Card>
 
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>By Category</div>
-          {[...new Set(expenses.map(e => e.category))].map(cat => {
-            const amt = expenses.filter(e => e.category === cat).reduce((a,e) => a+Number(e.amount), 0)
-            const pct = total > 0 ? (amt/total*100) : 0
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>By Category</div>
+          {[...new Set(expenses.map(e=>e.category))].map(cat=>{
+            const amt = expenses.filter(e=>e.category===cat).reduce((a,e)=>a+Number(e.amount),0)
+            const pct = total>0?(amt/total*100):0
             return (
-              <div key={cat} className="mb-3">
-                <div className="flex justify-between text-xs mb-1">
-                  <span style={{color:'rgba(255,255,255,0.5)'}}>{catLabels[cat] || cat}</span>
-                  <span style={{color:catColors[cat] || '#c4b5fd', fontFamily:'SF Mono, monospace'}}>${amt.toFixed(2)}</span>
+              <div key={cat} style={{marginBottom:'12px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'5px'}}>
+                  <span style={{color:'rgba(255,255,255,0.45)'}}>{catLabels[cat]||cat}</span>
+                  <span style={{...VAL,color:catColors[cat]||theme.text}}>${amt.toFixed(2)}</span>
                 </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
-                  <div className="h-full rounded-full" style={{width:`${pct}%`, background:catColors[cat] || '#7c3aed'}}></div>
+                <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
+                  <div style={{height:'100%',borderRadius:'100px',width:`${pct}%`,background:catColors[cat]||theme.accent}}></div>
                 </div>
               </div>
             )
           })}
-          {expenses.length === 0 && <div className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No data yet</div>}
+          {expenses.length===0 && <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data yet</div>}
         </Card>
       </div>
 
-      <Card>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-medium" style={{color:'rgba(255,255,255,0.6)'}}>Expense Log</div>
-            <div className="flex gap-2">
-              {['all','impulse','food','transport','business'].map(f => (
-                <button key={f} onClick={() => setFilter(f)} className="text-xs px-3 py-1.5 rounded-full transition-all" style={{
-                  background: filter===f ? 'rgba(124,58,237,0.2)' : 'transparent',
-                  color: filter===f ? '#c4b5fd' : 'rgba(255,255,255,0.3)',
-                  border: filter===f ? '1px solid rgba(124,58,237,0.3)' : '1px solid transparent'
-                }}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
-              ))}
-            </div>
+      <Card style={{padding:'24px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500}}>Expense Log</div>
+          <div style={{display:'flex',gap:'6px'}}>
+            {['all','impulse','food','transport','business'].map(f=>(
+              <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer'}}>
+                {f.charAt(0).toUpperCase()+f.slice(1)}
+              </button>
+            ))}
           </div>
-          <table className="w-full">
-            <thead>
-              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                {['Description','Amount','Category','Date',''].map(h => (
-                  <th key={h} className="text-left pb-3 text-xs uppercase" style={{color:'rgba(255,255,255,0.25)', fontFamily:'SF Mono, monospace', fontSize:'10px', letterSpacing:'1px'}}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={5} className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.2)'}}>No expenses yet</td></tr>
-              ) : filtered.map(e => (
-                <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                  <td className="py-3.5 text-sm font-medium" style={{color:'#f5f5f7'}}>{e.description}</td>
-                  <td className="py-3.5 text-sm font-medium" style={{color:'#fca5a5', fontFamily:'SF Mono, monospace'}}>-${Number(e.amount).toFixed(2)}</td>
-                  <td className="py-3.5"><span className="text-xs px-2 py-1 rounded-full" style={{background: e.category==='impulse'||e.category==='food' ? 'rgba(239,68,68,0.15)' : 'rgba(124,58,237,0.15)', color: e.category==='impulse'||e.category==='food' ? '#fca5a5' : '#c4b5fd'}}>{catLabels[e.category] || e.category}</span></td>
-                  <td className="py-3.5 text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{e.expense_date || '—'}</td>
-                  <td className="py-3.5"><button onClick={()=>deleteExp(e.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{color:'rgba(255,255,255,0.3)', border:'1px solid rgba(255,255,255,0.08)'}}>×</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
+        <table style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead><tr><TH>Description</TH><TH>Amount</TH><TH>Category</TH><TH>Date</TH><TH></TH></tr></thead>
+          <tbody>
+            {filtered.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</td></tr>
+            : filtered.map(e=>(
+              <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{e.description}</td>
+                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>-${Number(e.amount).toFixed(2)}</td>
+                <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${catColors[e.category]||theme.accent}22`,color:catColors[e.category]||theme.text}}>{catLabels[e.category]||e.category}</span></td>
+                <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px'}}>{e.expense_date||'—'}</td>
+                <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Card>
     </div>
   )
 }
 
-// ─── INVESTMENTS PAGE ───
-function InvestmentsPage({ investments, setInvestments }) {
+// ── INVESTMENTS ───────────────────────────────────────────────────
+
+function InvestmentsPage({ theme, investments, setInvestments }) {
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({ symbol:'', name:'', shares:'', buyPrice:'', currentPrice:'', type:'stock' })
+  const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
 
-  function addInvestment() {
-    if (!form.symbol || !form.shares || !form.buyPrice || !form.currentPrice) return
-    setInvestments([...investments, { ...form, shares: parseFloat(form.shares), buyPrice: parseFloat(form.buyPrice), currentPrice: parseFloat(form.currentPrice), id: Date.now() }])
-    setForm({ symbol:'', name:'', shares:'', buyPrice:'', currentPrice:'', type:'stock' })
-    setAdding(false)
+  function addInv() {
+    if (!form.symbol||!form.shares||!form.buyPrice||!form.currentPrice) return
+    setInvestments([...investments,{...form,shares:parseFloat(form.shares),buyPrice:parseFloat(form.buyPrice),currentPrice:parseFloat(form.currentPrice),id:Date.now()}])
+    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'}); setAdding(false)
   }
+  function del(id) { setInvestments(investments.filter(i=>i.id!==id)) }
 
-  function deleteInv(id) { setInvestments(investments.filter(i => i.id !== id)) }
+  const totalValue = investments.reduce((a,inv)=>a+(inv.shares*inv.currentPrice),0)
+  const totalCost  = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
+  const totalGain  = totalValue - totalCost
+  const gainPct    = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
 
-  const totalValue = investments.reduce((a, inv) => a + (inv.shares * inv.currentPrice), 0)
-  const totalCost = investments.reduce((a, inv) => a + (inv.shares * inv.buyPrice), 0)
-  const totalGain = totalValue - totalCost
-  const gainPct = totalCost > 0 ? ((totalGain / totalCost) * 100).toFixed(2) : 0
-
-  const portfolioData = investments.map(inv => ({
-    name: inv.symbol,
-    value: inv.shares * inv.currentPrice
-  }))
-
-  const performanceData = investments.map(inv => ({
-    name: inv.symbol,
-    cost: inv.shares * inv.buyPrice,
-    value: inv.shares * inv.currentPrice,
-    gain: ((inv.currentPrice - inv.buyPrice) / inv.buyPrice * 100).toFixed(1)
-  }))
+  const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*inv.currentPrice}))
+  const barData = investments.map(inv=>({name:inv.symbol,cost:inv.shares*inv.buyPrice,value:inv.shares*inv.currentPrice}))
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1" style={{color:'#f5f5f7', letterSpacing:'-0.5px'}}>📈 Investments</h1>
-          <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Track your stocks and crypto portfolio.</p>
-        </div>
-        <button onClick={() => setAdding(!adding)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>
-          + Add Investment
-        </button>
-      </div>
+    <div style={{padding:'40px'}}>
+      <PageHeader theme={theme} title="📈 Investments" subtitle="Track your stocks and crypto portfolio."
+        action={<AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />} />
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color="#86efac" icon="💼" />
-        <StatCard label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="#c4b5fd" icon="💸" />
-        <StatCard label="Total Gain/Loss" value={`${totalGain >= 0 ? '+' : ''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain >= 0 ? '#86efac' : '#fca5a5'} icon={totalGain >= 0 ? '📈' : '📉'} />
-        <StatCard label="Positions" value={investments.length} color="#fde68a" icon="🎯" />
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+        <StatCard label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
+        <StatCard label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
+        <StatCard label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
+        <StatCard label="Positions" value={investments.length} color={theme.text} icon="🎯" />
       </div>
 
       {adding && (
-        <Card style={{padding:'24px', marginBottom:'20px', border:'1px solid rgba(124,58,237,0.3)'}}>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+        <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
+            {[['Symbol','symbol','text','AAPL / BTC'],['Name','name','text','Apple Inc.'],['Shares','shares','number','2'],['Buy Price ($)','buyPrice','number','150.00'],['Current Price ($)','currentPrice','number','189.00']].map(([label,key,type,ph])=>(
+              <div key={key}>
+                <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
+                <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:key==='symbol'?e.target.value.toUpperCase():e.target.value})} placeholder={ph}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box'}} />
+              </div>
+            ))}
             <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Symbol</label>
-              <input value={form.symbol} onChange={e=>setForm({...form,symbol:e.target.value.toUpperCase()})} placeholder="AAPL / BTC" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Name</label>
-              <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Apple Inc." className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Type</label>
-              <select value={form.type} onChange={e=>setForm({...form,type:e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}}>
-                <option value="stock" style={{background:'#1a1a2e'}}>Stock</option>
-                <option value="crypto" style={{background:'#1a1a2e'}}>Crypto</option>
+              <div style={{...TIP,marginBottom:'6px'}}>Type</div>
+              <select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none'}}>
+                <option value="stock" style={{background:'#12121c'}}>Stock</option>
+                <option value="crypto" style={{background:'#12121c'}}>Crypto</option>
               </select>
             </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Shares / Amount</label>
-              <input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Buy Price ($)</label>
-              <input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Current Price ($)</label>
-              <input type="number" value={form.currentPrice} onChange={e=>setForm({...form,currentPrice:e.target.value})} placeholder="189.00" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
           </div>
-          <div className="flex justify-end gap-3">
-            <button onClick={()=>setAdding(false)} className="px-4 py-2 rounded-xl text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Cancel</button>
-            <button onClick={addInvestment} className="px-4 py-2 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>Add</button>
+          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer'}}>Cancel</button>
+            <button onClick={addInv} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:500,background:`linear-gradient(135deg,${theme.accent},${theme.accent}99)`,color:'#fff',border:'none',cursor:'pointer'}}>Add</button>
           </div>
         </Card>
       )}
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'16px',marginBottom:'16px'}}>
         <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Portfolio Split</div>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
-              <Pie data={portfolioData} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value">
-                {portfolioData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value">
+                {pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} />)}
               </Pie>
-              <Tooltip formatter={(v) => `$${v.toFixed(2)}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
             </PieChart>
           </ResponsiveContainer>
-          <div className="flex flex-col gap-2 mt-2">
-            {portfolioData.map((d,i) => (
-              <div key={i} className="flex justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div style={{width:'8px', height:'8px', borderRadius:'50%', background:COLORS[i % COLORS.length]}}></div>
-                  <span style={{color:'rgba(255,255,255,0.5)'}}>{d.name}</span>
+          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
+            {pieData.map((d,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'12px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.4)'}}>
+                  <div style={{width:'7px',height:'7px',borderRadius:'50%',background:theme.chart[i%5]}}></div>{d.name}
                 </div>
-                <span style={{color:'rgba(255,255,255,0.7)', fontFamily:'SF Mono, monospace'}}>${d.value.toFixed(0)}</span>
+                <span style={{...VAL,color:'rgba(255,255,255,0.6)'}}>${d.value.toFixed(0)}</span>
               </div>
             ))}
           </div>
         </Card>
 
-        <div className="col-span-2">
-          <Card style={{padding:'24px', marginBottom:'16px'}}>
-            <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Cost vs Value</div>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={performanceData} barSize={24}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)', fontSize:11}} axisLine={false} tickLine={false} />
-                <YAxis tick={{fill:'rgba(255,255,255,0.3)', fontSize:10}} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => `$${v.toFixed(2)}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
-                <Bar dataKey="cost" fill="rgba(124,58,237,0.4)" radius={[4,4,0,0]} name="Cost" />
-                <Bar dataKey="value" fill="#7c3aed" radius={[4,4,0,0]} name="Value" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </div>
+        <Card style={{padding:'24px'}}>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Cost vs Current Value</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={barData} barSize={22}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+              <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11}} axisLine={false} tickLine={false}/>
+              <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false}/>
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
+              <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[4,4,0,0]} name="Cost"/>
+              <Bar dataKey="value" fill={theme.accent} radius={[4,4,0,0]} name="Value"/>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
       </div>
 
-      <Card>
-        <div className="p-6">
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>All Positions</div>
-          <table className="w-full">
-            <thead>
-              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                {['Symbol','Name','Type','Shares','Buy Price','Current','Value','Gain/Loss',''].map(h => (
-                  <th key={h} className="text-left pb-3 text-xs uppercase" style={{color:'rgba(255,255,255,0.25)', fontFamily:'SF Mono, monospace', fontSize:'10px', letterSpacing:'1px'}}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {investments.length === 0 ? (
-                <tr><td colSpan={9} className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.2)'}}>No investments yet. Add your first position.</td></tr>
-              ) : investments.map((inv, i) => {
-                const value = inv.shares * inv.currentPrice
-                const cost = inv.shares * inv.buyPrice
-                const gain = value - cost
-                const gainP = ((gain/cost)*100).toFixed(1)
-                return (
-                  <tr key={inv.id || i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                    <td className="py-3.5 font-semibold" style={{color:'#c4b5fd', fontFamily:'SF Mono, monospace'}}>{inv.symbol}</td>
-                    <td className="py-3.5 text-sm" style={{color:'#f5f5f7'}}>{inv.name}</td>
-                    <td className="py-3.5"><span className="text-xs px-2 py-1 rounded-full" style={{background: inv.type==='crypto' ? 'rgba(251,191,36,0.15)' : 'rgba(134,239,172,0.15)', color: inv.type==='crypto' ? '#fde68a' : '#86efac'}}>{inv.type}</span></td>
-                    <td className="py-3.5 text-sm" style={{color:'rgba(255,255,255,0.5)', fontFamily:'SF Mono, monospace'}}>{inv.shares}</td>
-                    <td className="py-3.5 text-sm" style={{color:'rgba(255,255,255,0.5)', fontFamily:'SF Mono, monospace'}}>${inv.buyPrice.toFixed(2)}</td>
-                    <td className="py-3.5 text-sm font-medium" style={{color:'#f5f5f7', fontFamily:'SF Mono, monospace'}}>${inv.currentPrice.toFixed(2)}</td>
-                    <td className="py-3.5 text-sm font-medium" style={{color:'#86efac', fontFamily:'SF Mono, monospace'}}>${value.toFixed(2)}</td>
-                    <td className="py-3.5 text-sm font-medium" style={{color: gain >= 0 ? '#86efac' : '#fca5a5', fontFamily:'SF Mono, monospace'}}>{gain >= 0 ? '+' : ''}${gain.toFixed(2)} ({gainP}%)</td>
-                    <td className="py-3.5"><button onClick={()=>deleteInv(inv.id || i)} className="text-xs px-3 py-1.5 rounded-lg" style={{color:'rgba(255,255,255,0.3)', border:'1px solid rgba(255,255,255,0.08)'}}>×</button></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+      <Card style={{padding:'24px'}}>
+        <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>All Positions</div>
+        <table style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead><tr><TH>Symbol</TH><TH>Name</TH><TH>Type</TH><TH>Shares</TH><TH>Buy</TH><TH>Current</TH><TH>Value</TH><TH>Gain/Loss</TH><TH></TH></tr></thead>
+          <tbody>
+            {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet</td></tr>
+            : investments.map((inv,i)=>{
+              const val=inv.shares*inv.currentPrice, cost=inv.shares*inv.buyPrice, gain=val-cost, gp=((gain/cost)*100).toFixed(1)
+              return (
+                <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontWeight:600}}>{inv.symbol}</td>
+                  <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px'}}>{inv.name}</td>
+                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:inv.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:inv.type==='crypto'?'#fde68a':'#6ee7b7'}}>{inv.type}</span></td>
+                  <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
+                  <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
+                  <td style={{padding:'12px 0',...VAL,color:'#f5f5f7',fontSize:'13px'}}>${inv.currentPrice.toFixed(2)}</td>
+                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px',fontWeight:500}}>${val.toFixed(2)}</td>
+                  <td style={{padding:'12px 0',...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:500}}>{gain>=0?'+':''}${gain.toFixed(2)} ({gp}%)</td>
+                  <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </Card>
     </div>
   )
 }
 
-// ─── BALANCE PAGE ───
-function BalancePage({ income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh }) {
-  const [form, setForm] = useState({ source:'', amount:'', income_date:'' })
+// ── BALANCE ───────────────────────────────────────────────────────
+
+function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh }) {
+  const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
 
   async function addIncome() {
-    if (!form.source || !form.amount) return
-    await supabaseInsert('income', { ...form, amount: parseFloat(form.amount), user_id: userId })
-    setForm({ source:'', amount:'', income_date:'' })
-    setAdding(false)
-    onRefresh()
+    if (!form.source||!form.amount) return
+    await supabaseInsert('income',{...form,amount:parseFloat(form.amount),user_id:userId})
+    setForm({source:'',amount:'',income_date:''}); setAdding(false); onRefresh()
   }
+  async function del(id) { await supabaseDelete('income',id); onRefresh() }
 
-  async function deleteInc(id) { await supabaseDelete('income', id); onRefresh() }
-
-  const sr = totalIncome > 0 ? Math.round(((totalIncome - totalExp - totalSubs) / totalIncome) * 100) : 0
-  const incomeData = income.map((i, idx) => ({ name: i.source?.slice(0,8) || `#${idx+1}`, amount: Number(i.amount) }))
+  const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
+  const incomeData = income.map((i,idx)=>({name:i.source?.slice(0,8)||`#${idx+1}`,amount:Number(i.amount)}))
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1" style={{color:'#f5f5f7', letterSpacing:'-0.5px'}}>💰 Balance & Savings</h1>
-          <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Track income and your savings rate.</p>
-        </div>
-        <button onClick={() => setAdding(!adding)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>
-          + Log Income
-        </button>
-      </div>
+    <div style={{padding:'40px'}}>
+      <PageHeader theme={theme} title="💰 Balance & Savings" subtitle="Track income and your savings rate."
+        action={<AddBtn theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
 
-      <Card style={{padding:'32px', marginBottom:'24px', background:'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(76,29,149,0.05))'}}>
-        <div className="text-xs uppercase tracking-widest mb-2" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Net Balance</div>
-        <div className="text-5xl font-semibold mb-2" style={{color: netBal >= 0 ? '#86efac' : '#fca5a5', letterSpacing:'-2px'}}>${Math.abs(netBal).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-        <div className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>{netBal >= 0 ? '↑ You are net positive this month' : '↓ Spending exceeds income'}</div>
-        <div className="grid grid-cols-3 gap-6 mt-6 pt-6" style={{borderTop:'1px solid rgba(255,255,255,0.08)'}}>
-          <div>
-            <div className="text-xs mb-1" style={{color:'rgba(255,255,255,0.3)'}}>Total Income</div>
-            <div className="text-lg font-semibold" style={{color:'#86efac', fontFamily:'SF Mono, monospace'}}>${totalIncome.toFixed(2)}</div>
-          </div>
-          <div>
-            <div className="text-xs mb-1" style={{color:'rgba(255,255,255,0.3)'}}>Total Expenses</div>
-            <div className="text-lg font-semibold" style={{color:'#fca5a5', fontFamily:'SF Mono, monospace'}}>${(totalExp+totalSubs).toFixed(2)}</div>
-          </div>
-          <div>
-            <div className="text-xs mb-1" style={{color:'rgba(255,255,255,0.3)'}}>Savings Rate</div>
-            <div className="text-lg font-semibold" style={{color: sr >= 30 ? '#86efac' : sr >= 15 ? '#fde68a' : '#fca5a5', fontFamily:'SF Mono, monospace'}}>{sr}%</div>
-          </div>
+      <Card style={{padding:'32px',marginBottom:'24px',background:`linear-gradient(135deg,${theme.bg},rgba(0,0,0,0))`}}>
+        <div style={{...TIP,marginBottom:'8px'}}>Net Balance</div>
+        <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:600,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px'}}>
+          ${Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+        </div>
+        <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px'}}>{netBal>=0?'↑ You are net positive':'↓ Spending exceeds income'}</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'24px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
+          {[['Total Income',`$${totalIncome.toFixed(2)}`,'#6ee7b7'],['Total Expenses',`$${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
+            <div key={l}>
+              <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginBottom:'4px'}}>{l}</div>
+              <div style={{color:c,fontSize:'18px',fontWeight:600,...VAL}}>{v}</div>
+            </div>
+          ))}
         </div>
       </Card>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="col-span-2">
-          <Card style={{padding:'24px'}}>
-            <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Income Sources</div>
-            {incomeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={incomeData} barSize={24}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)', fontSize:11}} axisLine={false} tickLine={false} />
-                  <YAxis tick={{fill:'rgba(255,255,255,0.3)', fontSize:10}} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v) => `$${v}`} contentStyle={{background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#f5f5f7'}} />
-                  <Bar dataKey="amount" radius={[4,4,0,0]}>
-                    {incomeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <div className="h-48 flex items-center justify-center text-xs" style={{color:'rgba(255,255,255,0.2)'}}>No income logged yet</div>}
-          </Card>
-        </div>
-
-        <Card style={{padding:'24px'}}>
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Savings Goal</div>
-          <div className="flex items-center justify-center mb-4">
-            <div style={{position:'relative', width:'120px', height:'120px'}}>
-              <svg width="120" height="120" style={{transform:'rotate(-90deg)'}}>
-                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-                <circle cx="60" cy="60" r="50" fill="none" stroke={sr>=30?'#86efac':sr>=15?'#fde68a':'#fca5a5'} strokeWidth="10" strokeLinecap="round"
-                  strokeDasharray="314.16"
-                  strokeDashoffset={314.16 - (314.16 * Math.min(sr, 100) / 100)} />
-              </svg>
-              <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                <div className="text-2xl font-semibold" style={{color: sr>=30?'#86efac':sr>=15?'#fde68a':'#fca5a5'}}>{sr}%</div>
-                <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>saved</div>
-              </div>
-            </div>
-          </div>
-          <div className="text-xs text-center" style={{color:'rgba(255,255,255,0.4)'}}>
-            {sr >= 30 ? '🎉 Excellent! Above 30% target' : sr >= 15 ? '📈 Good progress. Target is 30%' : '⚠️ Below target. Trim expenses'}
-          </div>
-          <div className="mt-4">
-            <div className="flex justify-between text-xs mb-1.5" style={{color:'rgba(255,255,255,0.3)'}}>
-              <span>Goal: 30%</span>
-              <span>{Math.min(Math.round(sr/30*100), 100)}%</span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
-              <div className="h-full rounded-full" style={{width:`${Math.min(sr/30*100, 100)}%`, background: sr>=30?'#86efac':sr>=15?'#fde68a':'#fca5a5'}}></div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
       {adding && (
-        <Card style={{padding:'24px', marginBottom:'16px', border:'1px solid rgba(124,58,237,0.3)'}}>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Source</label>
-              <input value={form.source} onChange={e=>setForm({...form,source:e.target.value})} placeholder="Freelance, Product sale..." className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Amount ($)</label>
-              <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace', fontSize:'10px'}}>Date</label>
-              <input value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} placeholder="May 5" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f7'}} />
-            </div>
+        <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
+            {[['Source','source','text','Freelance, Product sale...'],['Amount ($)','amount','number','0.00'],['Date','income_date','text','May 5']].map(([label,key,type,ph])=>(
+              <div key={key}>
+                <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
+                <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} placeholder={ph}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box'}} />
+              </div>
+            ))}
           </div>
-          <div className="flex justify-end gap-3">
-            <button onClick={()=>setAdding(false)} className="px-4 py-2 rounded-xl text-sm" style={{color:'rgba(255,255,255,0.4)'}}>Cancel</button>
-            <button onClick={addIncome} className="px-4 py-2 rounded-xl text-sm font-medium" style={{background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff'}}>Save</button>
+          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer'}}>Cancel</button>
+            <button onClick={addIncome} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:500,background:`linear-gradient(135deg,${theme.accent},${theme.accent}99)`,color:'#fff',border:'none',cursor:'pointer'}}>Save</button>
           </div>
         </Card>
       )}
 
-      <Card>
-        <div className="p-6">
-          <div className="text-sm font-medium mb-4" style={{color:'rgba(255,255,255,0.6)'}}>Income Log</div>
-          <table className="w-full">
-            <thead>
-              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                {['Source','Amount','Date',''].map(h => (
-                  <th key={h} className="text-left pb-3 text-xs uppercase" style={{color:'rgba(255,255,255,0.25)', fontFamily:'SF Mono, monospace', fontSize:'10px', letterSpacing:'1px'}}>{h}</th>
-                ))}
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px',marginBottom:'16px'}}>
+        <Card style={{padding:'24px'}}>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Income Sources</div>
+          {incomeData.length>0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={incomeData} barSize={24}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false}/>
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle}/>
+                <Bar dataKey="amount" radius={[4,4,0,0]}>
+                  {incomeData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]}/>)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No income logged yet</div>}
+        </Card>
+
+        <Card style={{padding:'24px'}}>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'20px'}}>Savings Goal</div>
+          <div style={{display:'flex',justifyContent:'center',marginBottom:'20px'}}>
+            <div style={{position:'relative',width:'120px',height:'120px'}}>
+              <svg width="120" height="120" style={{transform:'rotate(-90deg)'}}>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} strokeWidth="10" strokeLinecap="round"
+                  strokeDasharray="314.16" strokeDashoffset={314.16-(314.16*Math.min(sr,100)/100)}/>
+              </svg>
+              <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                <div style={{color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5',fontSize:'22px',fontWeight:600}}>{sr}%</div>
+                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px'}}>saved</div>
+              </div>
+            </div>
+          </div>
+          <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',textAlign:'center',marginBottom:'16px'}}>
+            {sr>=30?'🎉 Above 30% target':sr>=15?'📈 Target is 30%':'⚠️ Below target'}
+          </div>
+          <div>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'rgba(255,255,255,0.28)',marginBottom:'5px'}}>
+              <span>Goal: 30%</span><span>{Math.min(Math.round(sr/30*100),100)}%</span>
+            </div>
+            <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
+              <div style={{height:'100%',borderRadius:'100px',width:`${Math.min(sr/30*100,100)}%`,background:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'}}></div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <Card style={{padding:'24px'}}>
+        <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Income Log</div>
+        <table style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead><tr><TH>Source</TH><TH>Amount</TH><TH>Date</TH><TH></TH></tr></thead>
+          <tbody>
+            {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No income logged yet</td></tr>
+            : income.map(i=>(
+              <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{i.source}</td>
+                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+${Number(i.amount).toFixed(2)}</td>
+                <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px'}}>{i.income_date||'—'}</td>
+                <td style={{padding:'12px 0'}}><button onClick={()=>del(i.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
               </tr>
-            </thead>
-            <tbody>
-              {income.length === 0 ? (
-                <tr><td colSpan={4} className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.2)'}}>No income logged yet</td></tr>
-              ) : income.map(i => (
-                <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                  <td className="py-3.5 text-sm font-medium" style={{color:'#f5f5f7'}}>{i.source}</td>
-                  <td className="py-3.5 text-sm font-medium" style={{color:'#86efac', fontFamily:'SF Mono, monospace'}}>+${Number(i.amount).toFixed(2)}</td>
-                  <td className="py-3.5 text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{i.income_date || '—'}</td>
-                  <td className="py-3.5"><button onClick={()=>deleteInc(i.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{color:'rgba(255,255,255,0.3)', border:'1px solid rgba(255,255,255,0.08)'}}>×</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </Card>
     </div>
   )
 }
 
-// ─── AI ADVISOR PAGE ───
-function AIPage({ user, subs, expenses, income, investments }) {
+// ── AI ADVISOR ────────────────────────────────────────────────────
+
+function AIPage({ theme, user, subs, expenses, income, investments }) {
   const [messages, setMessages] = useState([
-    { role: 'ai', text: "Hey! I'm your BurnRate AI Advisor. I can see your financial data and help you optimize spending, cut dead subscriptions, and grow your wealth. What's on your mind?" }
+    { role:'ai', text:"Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -902,106 +815,83 @@ function AIPage({ user, subs, expenses, income, investments }) {
   const suggestions = [
     "Which subscriptions should I cancel?",
     "How can I improve my savings rate?",
-    "Give me investment advice based on my portfolio",
+    "Give me investment advice",
     "Where am I leaking the most money?",
   ]
 
-  async function sendMessage(msg) {
+  async function send(msg) {
     const userMsg = msg || input.trim()
-    if (!userMsg || loading) return
+    if (!userMsg||loading) return
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }])
+    setMessages(prev=>[...prev,{role:'user',text:userMsg}])
     setLoading(true)
 
     const context = `
-      Subscriptions: ${subs.map(s => `${s.name} $${s.cost}/mo status:${s.status} days-unused:${s.days_since_used}`).join(', ') || 'none'}.
-      Expenses: ${expenses.map(e => `${e.description} $${e.amount} (${e.category})`).join(', ') || 'none'}.
-      Income: ${income.map(i => `${i.source} $${i.amount}`).join(', ') || 'none'}.
-      Investments: ${investments.map(inv => `${inv.symbol} ${inv.shares} shares, buy:$${inv.buyPrice}, current:$${inv.currentPrice}`).join(', ') || 'none'}.
+      Subscriptions: ${subs.map(s=>`${s.name} $${s.cost}/mo status:${s.status} unused:${s.days_since_used}days`).join(', ')||'none'}.
+      Expenses: ${expenses.map(e=>`${e.description} $${e.amount} (${e.category})`).join(', ')||'none'}.
+      Income: ${income.map(i=>`${i.source} $${i.amount}`).join(', ')||'none'}.
+      Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:$${inv.buyPrice} now:$${inv.currentPrice}`).join(', ')||'none'}.
     `
 
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg, context })
-      })
+      const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userMsg,context})})
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'ai', text: data.reply || 'Could not get a response.' }])
+      setMessages(prev=>[...prev,{role:'ai',text:data.reply||'Could not get a response.'}])
     } catch {
-      setMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again.' }])
+      setMessages(prev=>[...prev,{role:'ai',text:'Connection error. Please try again.'}])
     }
     setLoading(false)
   }
 
   return (
-    <div className="p-8 h-screen flex flex-col" style={{maxHeight:'100vh'}}>
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="flex items-center justify-center rounded-xl text-lg" style={{width:'40px', height:'40px', background:'linear-gradient(135deg, #7c3aed, #4c1d95)'}}>🤖</div>
+    <div style={{padding:'40px',height:'100vh',display:'flex',flexDirection:'column',maxHeight:'100vh',boxSizing:'border-box'}}>
+      <div style={{marginBottom:'20px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'4px'}}>
+          <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
           <div>
-            <h1 className="text-2xl font-semibold" style={{color:'#f5f5f7', letterSpacing:'-0.5px'}}>AI Financial Advisor</h1>
-            <div className="text-xs" style={{color:'rgba(255,255,255,0.3)', fontFamily:'SF Mono, monospace'}}>powered by claude · sees your real data</div>
+            <h1 style={{color:theme.text,fontSize:'22px',fontWeight:600,letterSpacing:'-0.4px',margin:0}}>AI Financial Advisor</h1>
+            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:'SF Mono,monospace'}}>powered by claude · sees your real data</div>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {suggestions.map((s, i) => (
-          <button key={i} onClick={() => sendMessage(s)} className="text-xs px-3 py-1.5 rounded-full transition-all" style={{background:'rgba(124,58,237,0.1)', color:'#c4b5fd', border:'1px solid rgba(124,58,237,0.2)'}}>
+      <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap'}}>
+        {suggestions.map((s,i)=>(
+          <button key={i} onClick={()=>send(s)} style={{fontSize:'12px',padding:'6px 14px',borderRadius:'100px',background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer'}}>
             {s}
           </button>
         ))}
       </div>
 
-      <Card style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:'0'}}>
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4" style={{minHeight:'0'}}>
-          {messages.map((m, i) => (
-            <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 flex items-center justify-center rounded-xl text-sm" style={{
-                width:'32px', height:'32px',
-                background: m.role === 'user' ? 'linear-gradient(135deg, #7c3aed, #4c1d95)' : 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.08)'
-              }}>
-                {m.role === 'user' ? '👤' : '🤖'}
+      <Card style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+        <div style={{flex:1,overflowY:'auto',padding:'24px',display:'flex',flexDirection:'column',gap:'16px',minHeight:0}}>
+          {messages.map((m,i)=>(
+            <div key={i} style={{display:'flex',gap:'12px',flexDirection:m.role==='user'?'row-reverse':'row'}}>
+              <div style={{width:'32px',height:'32px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',flexShrink:0,background:m.role==='user'?`linear-gradient(135deg,${theme.accent},${theme.accent}88)`:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>
+                {m.role==='user'?'👤':'🤖'}
               </div>
-              <div className="max-w-lg px-4 py-3 rounded-2xl text-sm leading-relaxed" style={{
-                background: m.role === 'user' ? 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(76,29,149,0.15))' : 'rgba(255,255,255,0.03)',
-                border: m.role === 'user' ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.07)',
-                color: '#f5f5f7'
-              }}>
+              <div style={{maxWidth:'520px',padding:'12px 16px',borderRadius:'16px',fontSize:'13px',lineHeight:'1.6',color:'#f5f5f7',background:m.role==='user'?theme.bg:'rgba(255,255,255,0.03)',border:m.role==='user'?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)'}}>
                 {m.text}
               </div>
             </div>
           ))}
           {loading && (
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 flex items-center justify-center rounded-xl text-sm" style={{width:'32px', height:'32px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)'}}>🤖</div>
-              <div className="px-4 py-3 rounded-2xl" style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)'}}>
-                <div className="flex gap-1.5">
-                  {[0,1,2].map(i => <div key={i} className="rounded-full" style={{width:'6px', height:'6px', background:'rgba(255,255,255,0.3)', animation:`pulse 1.2s infinite ${i*0.2}s`}}></div>)}
-                </div>
+            <div style={{display:'flex',gap:'12px'}}>
+              <div style={{width:'32px',height:'32px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',flexShrink:0,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>🤖</div>
+              <div style={{padding:'12px 16px',borderRadius:'16px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'5px',alignItems:'center'}}>
+                {[0,1,2].map(i=><div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:`${theme.accent}88`,animation:`pulse 1.2s infinite ${i*0.2}s`}}></div>)}
               </div>
             </div>
           )}
         </div>
 
-        <div className="p-4" style={{borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-          <div className="flex gap-3 items-center">
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
-              placeholder="Ask anything about your finances..."
-              className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
-              style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', color:'#f5f5f7'}}
-            />
-            <button onClick={() => sendMessage()} disabled={loading || !input.trim()}
-              className="flex items-center justify-center rounded-xl font-medium text-sm transition-all"
-              style={{width:'44px', height:'44px', background:'linear-gradient(135deg, #7c3aed, #4c1d95)', color:'#fff', opacity: loading || !input.trim() ? 0.5 : 1}}>
-              ↑
-            </button>
-          </div>
+        <div style={{padding:'16px 24px',borderTop:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'10px',alignItems:'center'}}>
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Ask anything about your finances..."
+            style={{flex:1,padding:'11px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'13px',outline:'none'}} />
+          <button onClick={()=>send()} disabled={loading||!input.trim()}
+            style={{width:'42px',height:'42px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}99)`,color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0}}>
+            ↑
+          </button>
         </div>
       </Card>
     </div>
