@@ -1,0 +1,28 @@
+export async function POST(request) {
+    try {
+      const { message, context } = await request.json()
+  
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-6',
+          max_tokens: 1024,
+          system: `Sen BurnRate OS'un AI finansal danışmanısın. Dijital girişimciler, freelancer'lar ve öğrenciler için çalışıyorsun. Kullanıcının finansal verilerine göre kısa, net ve aksiyona dönüştürülebilir tavsiyeler ver. Türkçe cevap ver. Maksimum 3 paragraf. Kullanıcı verisi: ${context}`,
+          messages: [{ role: 'user', content: message }]
+        })
+      })
+  
+      const data = await res.json()
+      const reply = data.content?.[0]?.text || 'Bir hata oluştu, tekrar dene.'
+  
+      return Response.json({ reply })
+  
+    } catch (error) {
+      return Response.json({ error: error.message }, { status: 500 })
+    }
+  }
