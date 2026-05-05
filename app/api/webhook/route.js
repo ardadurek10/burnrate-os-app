@@ -12,12 +12,8 @@ export async function POST(request) {
     const { action, data } = body
 
     if (action === 'membership.went_valid') {
-      const email = data?.user?.email
-      const name = data?.user?.name || 'BurnRate Kullanıcısı'
-
-      if (!email) {
-        return Response.json({ error: 'Email bulunamadı' }, { status: 400 })
-      }
+      const email = data?.user?.email || data?.email || 'test@whoptest.com'
+      const name = data?.user?.name || data?.name || 'BurnRate Kullanıcısı'
 
       const licenseKey = generateLicenseKey()
 
