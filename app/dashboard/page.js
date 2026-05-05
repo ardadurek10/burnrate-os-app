@@ -558,27 +558,38 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
 
 function InvestmentsPage({ theme, investments, setInvestments }) {
   const [adding, setAdding] = useState(false)
-  const [prices, setPrices] = useState({})
-const [loadingPrices, setLoadingPrices] = useState(false)
-
-async function fetchPrices() {
-  setLoadingPrices(true)
-  const updated = {}
-  for (const inv of investments) {
-    try {
-      const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
-      const data = await res.json()
-      if (data.price) updated[inv.symbol] = parseFloat(data.price)
-    } catch {}
-  }
-  setPrices(updated)
-  setLoadingPrices(false)
-}
-
-useEffect(() => {
-  if (investments.length > 0) fetchPrices()
-}, [investments.length])
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
+  const [prices, setPrices] = useState({})
+  const [changes, setChanges] = useState({})
+  const [loadingPrices, setLoadingPrices] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState(null)
+
+  async function fetchPrices() {
+    if (investments.length === 0) return
+    setLoadingPrices(true)
+    const updatedPrices = {}
+    const updatedChanges = {}
+    for (const inv of investments) {
+      try {
+        const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
+        const data = await res.json()
+        if (data.price) {
+          updatedPrices[inv.symbol] = parseFloat(data.price)
+          updatedChanges[inv.symbol] = parseFloat(data.change)
+        }
+      } catch {}
+    }
+    setPrices(updatedPrices)
+    setChanges(updatedChanges)
+    setLastUpdated(new Date().toLocaleTimeString())
+    setLoadingPrices(false)
+  }
+
+  useEffect(() => {
+    fetchPrices()
+    const interval = setInterval(fetchPrices, 30000)
+    return () => clearInterval(interval)
+  }, [investments.length])
 
   function addInv() {
     if (!form.symbol||!form.shares||!form.buyPrice||!form.currentPrice) return
@@ -587,18 +598,29 @@ useEffect(() => {
   }
   function del(id) { setInvestments(investments.filter(i=>i.id!==id)) }
 
-  const totalValue = investments.reduce((a,inv)=>a+(inv.shares*inv.currentPrice),0)
+  const totalValue = investments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
   const totalCost  = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
   const totalGain  = totalValue - totalCost
   const gainPct    = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
 
-  const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*inv.currentPrice}))
-  const barData = investments.map(inv=>({name:inv.symbol,cost:inv.shares*inv.buyPrice,value:inv.shares*inv.currentPrice}))
+  const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
+  const barData = investments.map(inv=>({name:inv.symbol,cost:inv.shares*inv.buyPrice,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
 
   return (
     <div style={{padding:'40px'}}>
-      <PageHeader theme={theme} title="📈 Investments" subtitle="Track your stocks and crypto portfolio."
-        action={<AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />} />
+      <PageHeader theme={theme} title="📈 Investments" subtitle="Live prices update every 30 seconds."
+        action={
+          <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+            {lastUpdated && (
+              <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div>
+                <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:'SF Mono,monospace'}}>Updated {lastUpdated}</span>
+              </div>
+            )}
+            <AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />
+          </div>
+        }
+      />
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
@@ -610,7 +632,7 @@ useEffect(() => {
       {adding && (
         <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
-            {[['Symbol','symbol','text','AAPL / BTC'],['Name','name','text','Apple Inc.'],['Shares','shares','number','2'],['Buy Price ($)','buyPrice','number','150.00'],['Current Price ($)','currentPrice','number','189.00']].map(([label,key,type,ph])=>(
+            {[['Symbol','symbol','text','AAPL / BTC-USD'],['Name','name','text','Apple Inc.'],['Shares','shares','number','2'],['Buy Price ($)','buyPrice','number','150.00'],['Current Price ($)','currentPrice','number','189.00']].map(([label,key,type,ph])=>(
               <div key={key}>
                 <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
                 <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:key==='symbol'?e.target.value.toUpperCase():e.target.value})} placeholder={ph}
@@ -622,7 +644,7 @@ useEffect(() => {
               <select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none'}}>
                 <option value="stock" style={{background:'#12121c'}}>Stock</option>
-                <option value="crypto" style={{background:'#12121c'}}>Crypto</option>
+                <option value="crypto" style={{background:'#12121c'}}>Crypto (use BTC-USD format)</option>
               </select>
             </div>
           </div>
@@ -659,7 +681,7 @@ useEffect(() => {
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Cost vs Current Value</div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={barData} barSize={22}>
+            <BarChart data={barData} barSize={24}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10}} axisLine={false} tickLine={false}/>
@@ -673,33 +695,86 @@ useEffect(() => {
 
       <Card style={{padding:'24px'}}>
         <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>All Positions</div>
+        {loadingPrices && investments.length > 0 && (
+          <div style={{fontSize:'12px',color:'rgba(255,255,255,0.3)',marginBottom:'12px',fontFamily:'SF Mono,monospace'}}>⟳ Fetching live prices...</div>
+        )}
         <table style={{width:'100%',borderCollapse:'collapse'}}>
-          <thead><tr><TH>Symbol</TH><TH>Name</TH><TH>Type</TH><TH>Shares</TH><TH>Buy</TH><TH>Current</TH><TH>Value</TH><TH>Gain/Loss</TH><TH></TH></tr></thead>
+          <thead>
+            <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+              {['Symbol','Name','Type','Shares','Buy Price','Live Price','Change','Value','Gain/Loss',''].map(h=>(
+                <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'12px',borderBottom:'1px solid rgba(255,255,255,0.06)',fontWeight:400}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
           <tbody>
-            {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet</td></tr>
-            : investments.map((inv,i)=>{
+            {investments.length===0 ? (
+              <tr><td colSpan={10} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet. Add your first one.</td></tr>
+            ) : investments.map((inv,i)=>{
               const livePrice = prices[inv.symbol] || inv.currentPrice
-const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost, gp=((gain/cost)*100).toFixed(1)
+              const change = changes[inv.symbol] || 0
+              const val = inv.shares * livePrice
+              const cost = inv.shares * inv.buyPrice
+              const gain = val - cost
+              const gp = ((gain/cost)*100).toFixed(1)
+              const isLive = !!prices[inv.symbol]
+              const changePositive = change >= 0
+
               return (
                 <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontWeight:600}}>{inv.symbol}</td>
-                  <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px'}}>{inv.name}</td>
-                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:inv.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:inv.type==='crypto'?'#fde68a':'#6ee7b7'}}>{inv.type}</span></td>
-                  <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
-                  <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
-                  <td style={{padding:'12px 0',...VAL,color:'#f5f5f7',fontSize:'13px'}}>
-  {loadingPrices ? '...' : `$${(prices[inv.symbol] || inv.currentPrice).toFixed(2)}`}
-  {prices[inv.symbol] && <span style={{fontSize:'9px',marginLeft:'4px',color:'rgba(255,255,255,0.3)'}}>LIVE</span>}
-</td>
-                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px',fontWeight:500}}>${val.toFixed(2)}</td>
-                  <td style={{padding:'12px 0',...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:500}}>{gain>=0?'+':''}${gain.toFixed(2)} ({gp}%)</td>
-                  <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
+                  <td style={{padding:'14px 0',...VAL,color:theme.text,fontWeight:600,fontSize:'14px'}}>{inv.symbol}</td>
+                  <td style={{padding:'14px 0',color:'#f5f5f7',fontSize:'13px'}}>{inv.name}</td>
+                  <td style={{padding:'14px 0'}}>
+                    <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:inv.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:inv.type==='crypto'?'#fde68a':'#6ee7b7'}}>
+                      {inv.type}
+                    </span>
+                  </td>
+                  <td style={{padding:'14px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
+                  <td style={{padding:'14px 0',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
+                  <td style={{padding:'14px 0'}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:600}}>
+                        {loadingPrices && !isLive ? '...' : `$${livePrice.toFixed(2)}`}
+                      </div>
+                      {isLive && (
+                        <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
+                          <div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div>
+                          <span style={{fontSize:'9px',color:'#10b981',fontFamily:'SF Mono,monospace'}}>LIVE</span>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{padding:'14px 0'}}>
+                    {isLive ? (
+                      <div style={{display:'flex',alignItems:'center',gap:'4px',padding:'4px 10px',borderRadius:'8px',background:changePositive?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)',width:'fit-content'}}>
+                        <span style={{fontSize:'13px',color:changePositive?'#6ee7b7':'#fca5a5',fontWeight:600,...VAL}}>
+                          {changePositive?'▲':'▼'} {Math.abs(change)}%
+                        </span>
+                      </div>
+                    ) : <span style={{color:'rgba(255,255,255,0.2)',fontSize:'12px'}}>—</span>}
+                  </td>
+                  <td style={{padding:'14px 0',...VAL,color:theme.text,fontSize:'13px',fontWeight:500}}>${val.toFixed(2)}</td>
+                  <td style={{padding:'14px 0'}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+                      <span style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:600}}>{gain>=0?'+':''}${gain.toFixed(2)}</span>
+                      <span style={{...VAL,color:gain>=0?'rgba(110,231,183,0.6)':'rgba(252,165,165,0.6)',fontSize:'11px'}}>{gp}%</span>
+                    </div>
+                  </td>
+                  <td style={{padding:'14px 0'}}>
+                    <button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button>
+                  </td>
                 </tr>
               )
             })}
           </tbody>
         </table>
       </Card>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
     </div>
   )
 }
