@@ -1,99 +1,100 @@
-'use client';
-import { useState } from 'react';
-import { supabaseQuery } from '../lib/supabase';
+'use client'
+import { useState } from 'react'
+import { supabaseQuery } from '../lib/supabase'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [licenseKey, setLicenseKey] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('')
+  const [licenseKey, setLicenseKey] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   async function handleLogin(e) {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
     try {
       const data = await supabaseQuery('users', {
         email: email.toLowerCase().trim(),
-        license_key: licenseKey.trim(),
-      });
-
-      console.log('API response:', data);
+        license_key: licenseKey.trim()
+      })
 
       if (!data || data.length === 0) {
-        setError('Geçersiz e-posta veya lisans anahtarı.');
-        setLoading(false);
-        return;
+        setError('Invalid email or license key. Please check your purchase confirmation.')
+        setLoading(false)
+        return
       }
 
-      const user = data[0];
-      console.log('User found:', user);
-      alert('Kullanıcı bulundu: ' + user.email + ' ID: ' + user.id);
-      localStorage.setItem('burnrate_user', JSON.stringify(user));
-      window.location.replace(window.location.origin + '/dashboard');
-    } catch (err) {
-      console.log('Error:', err);
-      setError('Bağlantı hatası: ' + err.message);
-      setLoading(false);
+      localStorage.setItem('burnrate_user', JSON.stringify(data[0]))
+      window.location.replace(window.location.origin + '/dashboard')
+
+    } catch(err) {
+      setError('Connection error. Please try again.')
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#08080e] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-purple-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
-            🔥
-          </div>
-          <h1 className="text-2xl font-bold text-white">BurnRate OS</h1>
-          <p className="text-gray-400 mt-2 text-sm">
-            Finansal komuta merkezine hoş geldin
-          </p>
+    <div style={{minHeight:'100vh',background:'#0a0a0f',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px',fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif'}}>
+      <div style={{width:'100%',maxWidth:'400px'}}>
+
+        <div style={{textAlign:'center',marginBottom:'40px'}}>
+          <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 20px'}}>🔥</div>
+          <h1 style={{color:'#f5f5f7',fontSize:'26px',fontWeight:600,letterSpacing:'-0.5px',margin:'0 0 8px'}}>BurnRate OS</h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',margin:0}}>Sign in to your financial command center</p>
         </div>
-        <div className="bg-[#111118] border border-white/10 rounded-2xl p-8">
+
+        <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'20px',padding:'32px'}}>
+
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">
+            <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'10px',padding:'12px 16px',marginBottom:'20px',color:'#fca5a5',fontSize:'13px'}}>
               {error}
             </div>
           )}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="text-xs text-gray-500 uppercase tracking-wider block mb-2">
-                E-posta
-              </label>
+
+          <form onSubmit={handleLogin}>
+            <div style={{marginBottom:'16px'}}>
+              <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>Email Address</label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="sen@example.com"
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
                 required
-                className="w-full bg-[#1c1c2a] border border-white/10 text-white rounded-lg px-4 py-3 text-sm outline-none focus:border-purple-500"
+                style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box'}}
               />
             </div>
-            <div>
-              <label className="text-xs text-gray-500 uppercase tracking-wider block mb-2">
-                Lisans Anahtarı
-              </label>
+
+            <div style={{marginBottom:'24px'}}>
+              <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>License Key</label>
               <input
                 type="text"
                 value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value)}
+                onChange={e => setLicenseKey(e.target.value)}
                 placeholder="BRNOS-XXXX-XXXX-XXXX"
                 required
-                className="w-full bg-[#1c1c2a] border border-white/10 text-white rounded-lg px-4 py-3 text-sm outline-none focus:border-purple-500"
+                style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box'}}
               />
             </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg disabled:opacity-50"
-            >
-              {loading ? 'Giriş yapılıyor...' : 'Panele Gir →'}
+              style={{width:'100%',padding:'13px',borderRadius:'12px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',fontSize:'14px',fontWeight:600,border:'none',cursor:'pointer',opacity:loading?0.6:1,transition:'opacity 0.2s'}}>
+              {loading ? 'Signing in...' : 'Access Dashboard →'}
             </button>
           </form>
+
+          <p style={{textAlign:'center',color:'rgba(255,255,255,0.2)',fontSize:'12px',marginTop:'20px',lineHeight:'1.5'}}>
+            Your license key was sent to your email after purchase.<br/>
+            Check your spam folder if you can't find it.
+          </p>
         </div>
+
+        <p style={{textAlign:'center',color:'rgba(255,255,255,0.15)',fontSize:'11px',marginTop:'24px',fontFamily:'SF Mono,monospace'}}>
+          BurnRate OS · Stop the leak.
+        </p>
       </div>
     </div>
-  );
+  )
 }
