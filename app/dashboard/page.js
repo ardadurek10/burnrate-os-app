@@ -47,125 +47,119 @@ export default function Dashboard() {
   }
 
   if (!user) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'#0a0a0f'}}>
-      <div style={{color:'rgba(255,255,255,0.4)', fontSize:'14px', fontFamily:'SF Pro Display,-apple-system,sans-serif'}}>Loading...</div>
-    </div>
-  )
+    <div style={{background:'#0a0a0f', fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif', minHeight:'100vh', display:'flex', flexDirection:'column'}}>
 
-  const totalIncome = income.reduce((a,i) => a+Number(i.amount), 0)
-  const totalExp = expenses.reduce((a,e) => a+Number(e.amount), 0)
-  const totalSubs = subs.reduce((a,s) => a+Number(s.cost), 0)
-  const netBal = totalIncome - totalExp - totalSubs
-  const deadSubs = subs.filter(s => s.status === 'dead')
-  const totalInvValue = investments.reduce((a,inv) => a+(inv.shares*inv.currentPrice), 0)
-  const totalInvCost = investments.reduce((a,inv) => a+(inv.shares*inv.buyPrice), 0)
-  const invGain = totalInvValue - totalInvCost
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-sidebar { display: none !important; }
+          .mobile-topbar { display: flex !important; }
+          .mobile-tabbar { display: flex !important; }
+          .main-content { padding-bottom: 80px !important; }
+          .page-padding { padding: 20px !important; }
+          .stat-grid-4 { grid-template-columns: repeat(2,1fr) !important; }
+          .stat-grid-3 { grid-template-columns: repeat(2,1fr) !important; }
+          .two-col { grid-template-columns: 1fr !important; }
+          .three-col { grid-template-columns: 1fr !important; }
+          .hide-mobile { display: none !important; }
+        }
+        @media (min-width: 769px) {
+          .desktop-sidebar { display: flex !important; }
+          .mobile-topbar { display: none !important; }
+          .mobile-tabbar { display: none !important; }
+          .app-shell { flex-direction: row !important; }
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+      `}</style>
 
-  const theme = THEMES[page] || THEMES.dashboard
-
-  const navItems = [
-    { id:'dashboard',     icon:'⚡', label:'Overview' },
-    { id:'subscriptions', icon:'⚔️', label:'Subscriptions' },
-    { id:'spending',      icon:'💸', label:'Spending' },
-    { id:'investments',   icon:'📈', label:'Investments' },
-    { id:'balance',       icon:'💰', label:'Balance' },
-  ]
-
-  return (
-    <div className="min-h-screen flex" style={{background:'#0a0a0f', fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif'}}>
-
-      {/* SIDEBAR */}
-      <div className="flex flex-col py-8 px-4" style={{width:'220px', background:'rgba(255,255,255,0.018)', borderRight:'1px solid rgba(255,255,255,0.06)', flexShrink:0}}>
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="flex items-center justify-center text-lg rounded-xl" style={{width:'36px',height:'36px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',flexShrink:0}}>🔥</div>
-          <div>
-            <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
-            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:'SF Mono,monospace'}}>command center</div>
-          </div>
+      {/* MOBILE TOP BAR */}
+      <div className="mobile-topbar" style={{display:'none', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'rgba(255,255,255,0.02)', borderBottom:'1px solid rgba(255,255,255,0.06)', position:'sticky', top:0, zIndex:50, backdropFilter:'blur(20px)'}}>
+        <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+          <div style={{width:'28px', height:'28px', borderRadius:'8px', background:'linear-gradient(135deg,#7c3aed,#4c1d95)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px'}}>🔥</div>
+          <div style={{color:'#f5f5f7', fontSize:'15px', fontWeight:600, letterSpacing:'-0.3px'}}>BurnRate OS</div>
         </div>
+        <div style={{color:'rgba(255,255,255,0.3)', fontSize:'11px', fontFamily:'SF Mono,monospace'}}>{user.name || user.email?.split('@')[0]}</div>
+      </div>
 
-        <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
-          {navItems.map(item => {
-            const t = THEMES[item.id]
-            const active = page === item.id
-            return (
-              <button key={item.id} onClick={() => setPage(item.id)}
-                style={{
-                  display:'flex', alignItems:'center', gap:'10px',
-                  padding:'9px 12px', borderRadius:'10px',
-                  fontSize:'13px', fontWeight:500, textAlign:'left',
-                  background: active ? t.bg : 'transparent',
-                  color: active ? t.text : 'rgba(255,255,255,0.38)',
-                  border: active ? `1px solid ${t.border}` : '1px solid transparent',
-                  cursor:'pointer', transition:'all 0.18s',
-                }}>
-                <span style={{fontSize:'15px'}}>{item.icon}</span>
-                {item.label}
-              </button>
-            )
-          })}
-        </nav>
+      <div className="app-shell" style={{display:'flex', flex:1}}>
 
-        {/* AI ADVISOR */}
-        <div style={{marginBottom:'16px'}}>
-          <button onClick={() => setPage('ai')}
-            style={{
-              width:'100%', display:'flex', alignItems:'center', gap:'10px',
-              padding:'11px 12px', borderRadius:'12px',
-              background: page==='ai' ? 'linear-gradient(135deg,#7c3aed,#4c1d95)' : 'rgba(124,58,237,0.1)',
-              color: page==='ai' ? '#fff' : '#c4b5fd',
-              border: '1px solid rgba(124,58,237,0.35)',
-              cursor:'pointer', transition:'all 0.18s',
-            }}>
-            <span style={{fontSize:'16px'}}>🤖</span>
-            <div style={{textAlign:'left'}}>
-              <div style={{fontSize:'13px',fontWeight:600}}>AI Advisor</div>
-              <div style={{fontSize:'10px',color: page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:'SF Mono,monospace'}}>powered by claude</div>
+        {/* DESKTOP SIDEBAR */}
+        <div className="desktop-sidebar" style={{width:'220px', background:'rgba(255,255,255,0.018)', borderRight:'1px solid rgba(255,255,255,0.06)', flexShrink:0, flexDirection:'column', padding:'32px 16px'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'40px', paddingLeft:'8px'}}>
+            <div style={{width:'34px', height:'34px', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#4c1d95)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', flexShrink:0}}>🔥</div>
+            <div>
+              <div style={{color:'#f5f5f7', fontSize:'14px', fontWeight:600, letterSpacing:'-0.3px'}}>BurnRate OS</div>
+              <div style={{color:'rgba(255,255,255,0.3)', fontSize:'10px', fontFamily:'SF Mono,monospace'}}>command center</div>
             </div>
-          </button>
-        </div>
-
-        <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'16px'}}>
-          <div style={{padding:'0 8px',marginBottom:'10px'}}>
-            <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
-            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',marginTop:'2px'}}>{user.email}</div>
           </div>
-          <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
-            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'none',cursor:'pointer'}}>
-            Sign out →
-          </button>
+
+          <nav style={{display:'flex', flexDirection:'column', gap:'2px', flex:1}}>
+            {navItems.map(item => {
+              const t = THEMES[item.id]
+              const active = page === item.id
+              return (
+                <button key={item.id} onClick={() => setPage(item.id)}
+                  style={{display:'flex', alignItems:'center', gap:'10px', padding:'9px 12px', borderRadius:'10px', fontSize:'13px', fontWeight:500, textAlign:'left', background:active?t.bg:'transparent', color:active?t.text:'rgba(255,255,255,0.38)', border:active?`1px solid ${t.border}`:'1px solid transparent', cursor:'pointer', transition:'all 0.18s'}}>
+                  <span style={{fontSize:'15px'}}>{item.icon}</span>
+                  {item.label}
+                </button>
+              )
+            })}
+          </nav>
+
+          <div style={{marginBottom:'16px'}}>
+            <button onClick={() => setPage('ai')}
+              style={{width:'100%', display:'flex', alignItems:'center', gap:'10px', padding:'11px 12px', borderRadius:'12px', background:page==='ai'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(124,58,237,0.1)', color:page==='ai'?'#fff':'#c4b5fd', border:'1px solid rgba(124,58,237,0.35)', cursor:'pointer', transition:'all 0.18s'}}>
+              <span style={{fontSize:'16px'}}>🤖</span>
+              <div style={{textAlign:'left'}}>
+                <div style={{fontSize:'13px', fontWeight:600}}>AI Advisor</div>
+                <div style={{fontSize:'10px', color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)', fontFamily:'SF Mono,monospace'}}>powered by claude</div>
+              </div>
+            </button>
+          </div>
+
+          <div style={{borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'16px'}}>
+            <div style={{paddingLeft:'8px', marginBottom:'10px'}}>
+              <div style={{color:'#f5f5f7', fontSize:'13px', fontWeight:500}}>{user.name || 'User'}</div>
+              <div style={{color:'rgba(255,255,255,0.28)', fontSize:'10px', fontFamily:'SF Mono,monospace', marginTop:'2px'}}>{user.email}</div>
+            </div>
+            <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
+              style={{width:'100%', textAlign:'left', padding:'6px 8px', borderRadius:'8px', fontSize:'12px', color:'rgba(255,255,255,0.28)', background:'transparent', border:'none', cursor:'pointer'}}>
+              Sign out →
+            </button>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT */}
+        <div className="main-content" style={{flex:1, overflowY:'auto'}}>
+          {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} />}
+          {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
+          {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
+          {page==='investments'   && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} />}
+          {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
+          {page==='ai'            && <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
         </div>
       </div>
 
-      {/* MAIN */}
-      <div style={{flex:1,overflowY:'auto'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} />}
-        {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page==='investments'   && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} />}
-        {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page==='ai'            && <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
+      {/* MOBILE BOTTOM TAB BAR */}
+      <div className="mobile-tabbar" style={{display:'none', position:'fixed', bottom:0, left:0, right:0, background:'rgba(10,10,15,0.95)', borderTop:'1px solid rgba(255,255,255,0.08)', backdropFilter:'blur(20px)', zIndex:50, padding:'8px 0 20px'}}>
+        {[...navItems, { id:'ai', icon:'🤖', label:'AI' }].map(item => {
+          const active = page === item.id
+          const t = THEMES[item.id] || THEMES.ai
+          return (
+            <button key={item.id} onClick={() => setPage(item.id)}
+              style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px', padding:'6px 4px', background:'transparent', border:'none', cursor:'pointer'}}>
+              <div style={{width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', background:active?t.bg:'transparent', border:active?`1px solid ${t.border}`:'1px solid transparent', transition:'all 0.18s'}}>
+                {item.icon}
+              </div>
+              <span style={{fontSize:'10px', fontWeight:active?600:400, color:active?t.text:'rgba(255,255,255,0.3)', transition:'all 0.18s'}}>
+                {item.label}
+              </span>
+            </button>
+          )
+        })}
       </div>
+
     </div>
-  )
-}
-
-// ── SHARED COMPONENTS ──────────────────────────────────────────────
-
-function Card({ children, style={} }) {
-  return <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',...style}}>{children}</div>
-}
-
-function StatCard({ label, value, sub, color, icon, accent }) {
-  return (
-    <Card style={{padding:'20px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
-        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
-        {icon && <span style={{fontSize:'18px',opacity:0.65}}>{icon}</span>}
-      </div>
-      <div style={{color:color||'#f5f5f7',fontSize:'24px',fontWeight:600,letterSpacing:'-0.5px',lineHeight:1}}>{value}</div>
-      {sub && <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginTop:'6px'}}>{sub}</div>}
-    </Card>
   )
 }
 
