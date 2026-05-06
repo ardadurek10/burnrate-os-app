@@ -12,6 +12,10 @@ const THEMES = {
   ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.08)',  border:'rgba(139,92,246,0.25)',  text:'#ddd6fe',  chart:['#8b5cf6','#a78bfa','#7c3aed','#ede9fe','#4c1d95'] },
 }
 
+const TIP = {fontFamily:'SF Mono,monospace',fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
+const VAL = {fontFamily:'SF Mono,monospace'}
+const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'10px',color:'#f5f5f7',fontSize:'12px'}
+
 export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [page, setPage] = useState('dashboard')
@@ -42,61 +46,94 @@ export default function Dashboard() {
     setIncome(Array.isArray(i) ? i : [])
     setInvestments([
       { id:1, symbol:'AAPL', name:'Apple Inc.', shares:2, buyPrice:150, currentPrice:189, type:'stock' },
-      { id:2, symbol:'BTC', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
+      { id:2, symbol:'BTC-USD', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
     ])
   }
-  if (typeof window === 'undefined') return null
-  if (!user) return (
-    <div style={{background:'#0a0a0f', fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif', minHeight:'100vh', display:'flex'}}>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
 
-      <div style={{width:'220px', background:'rgba(255,255,255,0.018)', borderRight:'1px solid rgba(255,255,255,0.06)', flexShrink:0, display:'flex', flexDirection:'column', padding:'32px 16px'}}>
-        <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'40px', paddingLeft:'8px'}}>
-          <div style={{width:'34px', height:'34px', borderRadius:'10px', background:'linear-gradient(135deg,#7c3aed,#4c1d95)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', flexShrink:0}}>🔥</div>
+  const navItems = [
+    { id:'dashboard',     icon:'⚡', label:'Overview' },
+    { id:'subscriptions', icon:'⚔️', label:'Subscriptions' },
+    { id:'spending',      icon:'💸', label:'Spending' },
+    { id:'investments',   icon:'📈', label:'Investments' },
+    { id:'balance',       icon:'💰', label:'Balance' },
+  ]
+
+  if (!user) return (
+    <div style={{minHeight:'100vh',background:'#0a0a0f',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'SF Pro Display,-apple-system,sans-serif'}}>
+      <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Loading...</div>
+    </div>
+  )
+
+  const totalIncome = income.reduce((a,i) => a+Number(i.amount), 0)
+  const totalExp = expenses.reduce((a,e) => a+Number(e.amount), 0)
+  const totalSubs = subs.reduce((a,s) => a+Number(s.cost), 0)
+  const netBal = totalIncome - totalExp - totalSubs
+  const deadSubs = subs.filter(s => s.status === 'dead')
+  const totalInvValue = investments.reduce((a,inv) => a+(inv.shares*inv.currentPrice), 0)
+  const totalInvCost = investments.reduce((a,inv) => a+(inv.shares*inv.buyPrice), 0)
+  const invGain = totalInvValue - totalInvCost
+
+  return (
+    <div style={{background:'#0a0a0f', fontFamily:'SF Pro Display,-apple-system,BlinkMacSystemFont,sans-serif', minHeight:'100vh', display:'flex'}}>
+      <style>{`
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        @media(max-width:768px){
+          .sidebar{display:none!important}
+          .tabbar{display:flex!important}
+          .page-wrap{padding-bottom:80px!important}
+          .page-pad{padding:20px!important}
+          .grid4{grid-template-columns:repeat(2,1fr)!important}
+          .grid3{grid-template-columns:repeat(2,1fr)!important}
+          .grid2{grid-template-columns:1fr!important}
+          .hide-mob{display:none!important}
+        }
+      `}</style>
+
+      {/* SIDEBAR */}
+      <div className="sidebar" style={{width:'220px',background:'rgba(255,255,255,0.018)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'32px 16px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'40px',paddingLeft:'8px'}}>
+          <div style={{width:'34px',height:'34px',borderRadius:'10px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',flexShrink:0}}>🔥</div>
           <div>
-            <div style={{color:'#f5f5f7', fontSize:'14px', fontWeight:600, letterSpacing:'-0.3px'}}>BurnRate OS</div>
-            <div style={{color:'rgba(255,255,255,0.3)', fontSize:'10px', fontFamily:'SF Mono,monospace'}}>command center</div>
+            <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
+            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:'SF Mono,monospace'}}>command center</div>
           </div>
         </div>
-
-        <nav style={{display:'flex', flexDirection:'column', gap:'2px', flex:1}}>
+        <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
             return (
               <button key={item.id} onClick={() => setPage(item.id)}
-                style={{display:'flex', alignItems:'center', gap:'10px', padding:'9px 12px', borderRadius:'10px', fontSize:'13px', fontWeight:500, textAlign:'left', background:active?t.bg:'transparent', color:active?t.text:'rgba(255,255,255,0.38)', border:active?`1px solid ${t.border}`:'1px solid transparent', cursor:'pointer', transition:'all 0.18s'}}>
-                <span style={{fontSize:'15px'}}>{item.icon}</span>
-                {item.label}
+                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:500,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.18s'}}>
+                <span style={{fontSize:'15px'}}>{item.icon}</span>{item.label}
               </button>
             )
           })}
         </nav>
-
         <div style={{marginBottom:'16px'}}>
           <button onClick={() => setPage('ai')}
-            style={{width:'100%', display:'flex', alignItems:'center', gap:'10px', padding:'11px 12px', borderRadius:'12px', background:page==='ai'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(124,58,237,0.1)', color:page==='ai'?'#fff':'#c4b5fd', border:'1px solid rgba(124,58,237,0.35)', cursor:'pointer', transition:'all 0.18s'}}>
+            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(124,58,237,0.1)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.35)',cursor:'pointer',transition:'all 0.18s'}}>
             <span style={{fontSize:'16px'}}>🤖</span>
             <div style={{textAlign:'left'}}>
-              <div style={{fontSize:'13px', fontWeight:600}}>AI Advisor</div>
-              <div style={{fontSize:'10px', color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)', fontFamily:'SF Mono,monospace'}}>powered by claude</div>
+              <div style={{fontSize:'13px',fontWeight:600}}>AI Advisor</div>
+              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:'SF Mono,monospace'}}>powered by claude</div>
             </div>
           </button>
         </div>
-
-        <div style={{borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'16px'}}>
-          <div style={{paddingLeft:'8px', marginBottom:'10px'}}>
-            <div style={{color:'#f5f5f7', fontSize:'13px', fontWeight:500}}>{user?.name || 'User'}</div>
-            <div style={{color:'rgba(255,255,255,0.28)', fontSize:'10px', fontFamily:'SF Mono,monospace', marginTop:'2px'}}>{user?.email || ''}</div>
+        <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'16px'}}>
+          <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
+            <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
+            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',marginTop:'2px'}}>{user.email}</div>
           </div>
           <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
-            style={{width:'100%', textAlign:'left', padding:'6px 8px', borderRadius:'8px', fontSize:'12px', color:'rgba(255,255,255,0.28)', background:'transparent', border:'none', cursor:'pointer'}}>
+            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'none',cursor:'pointer'}}>
             Sign out →
           </button>
         </div>
       </div>
 
-      <div style={{flex:1, overflowY:'auto'}}>
+      {/* MAIN */}
+      <div className="page-wrap" style={{flex:1,overflowY:'auto'}}>
         {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} />}
         {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
@@ -104,7 +141,43 @@ export default function Dashboard() {
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='ai'            && <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
       </div>
+
+      {/* MOBILE TAB BAR */}
+      <div className="tabbar" style={{display:'none',position:'fixed',bottom:0,left:0,right:0,background:'rgba(10,10,15,0.96)',borderTop:'1px solid rgba(255,255,255,0.08)',backdropFilter:'blur(20px)',zIndex:50,padding:'8px 0 20px'}}>
+        {[...navItems,{id:'ai',icon:'🤖',label:'AI'}].map(item => {
+          const active = page === item.id
+          const t = THEMES[item.id] || THEMES.ai
+          return (
+            <button key={item.id} onClick={() => setPage(item.id)}
+              style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',padding:'6px 4px',background:'transparent',border:'none',cursor:'pointer'}}>
+              <div style={{width:'36px',height:'36px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.18s'}}>
+                {item.icon}
+              </div>
+              <span style={{fontSize:'10px',fontWeight:active?600:400,color:active?t.text:'rgba(255,255,255,0.3)',transition:'all 0.18s'}}>
+                {item.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
+  )
+}
+
+function Card({ children, style={} }) {
+  return <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',...style}}>{children}</div>
+}
+
+function StatCard({ label, value, sub, color, icon }) {
+  return (
+    <Card style={{padding:'20px'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
+        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:'SF Mono,monospace',textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
+        {icon && <span style={{fontSize:'18px',opacity:0.65}}>{icon}</span>}
+      </div>
+      <div style={{color:color||'#f5f5f7',fontSize:'24px',fontWeight:600,letterSpacing:'-0.5px',lineHeight:1}}>{value}</div>
+      {sub && <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginTop:'6px'}}>{sub}</div>}
+    </Card>
   )
 }
 
@@ -114,7 +187,7 @@ function PageHeader({ theme, title, subtitle, action }) {
       <div>
         <h1 style={{color:theme.text,fontSize:'24px',fontWeight:600,letterSpacing:'-0.5px',margin:0,marginBottom:'4px'}}>{title}</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0}}>{subtitle}</p>
-      </div> 
+      </div>
       {action}
     </div>
   )
@@ -128,35 +201,25 @@ function AddBtn({ theme, label, onClick }) {
   )
 }
 
-const TIP = {fontFamily:'SF Mono,monospace',fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
-const VAL = {fontFamily:'SF Mono,monospace'}
-
 function TH({ children }) {
   return <th style={{...TIP,textAlign:'left',paddingBottom:'12px',borderBottom:'1px solid rgba(255,255,255,0.06)',fontWeight:400}}>{children}</th>
 }
 
-const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'10px',color:'#f5f5f7',fontSize:'12px'}
-
-// ── OVERVIEW ──────────────────────────────────────────────────────
-
 function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
-
   const pieData = [
     { name:'Subscriptions', value:totalSubs },
-    { name:'Expenses',      value:totalExp },
-    { name:'Saved',         value:Math.max(0, netBal) },
+    { name:'Expenses', value:totalExp },
+    { name:'Saved', value:Math.max(0, netBal) },
   ].filter(d => d.value > 0)
-
   const barData = expenses.slice(-6).map((e,i) => ({ name:e.description?.slice(0,8)||`#${i+1}`, amount:Number(e.amount) }))
 
   return (
-    <div style={{padding:'40px'}}>
+    <div className="page-pad" style={{padding:'40px'}}>
       <div style={{marginBottom:'32px'}}>
         <h1 style={{color:theme.text,fontSize:'26px',fontWeight:600,letterSpacing:'-0.5px',margin:0,marginBottom:'4px'}}>Good morning ☀️</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0}}>Here's your financial snapshot.</p>
       </div>
-
       {deadSubs.length > 0 && (
         <div style={{display:'flex',gap:'12px',padding:'14px 18px',borderRadius:'14px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',marginBottom:'24px'}}>
           <span>⚠️</span>
@@ -166,15 +229,13 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           </div>
         </div>
       )}
-
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
         <StatCard label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subs" color="#fca5a5" icon="🔥" />
         <StatCard label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent':sr>=15?'Good':'Needs work'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
         <StatCard label="Portfolio" value={`$${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
-
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Spending Breakdown</div>
           {pieData.length > 0 ? (
@@ -190,13 +251,11 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           <div style={{display:'flex',gap:'16px',justifyContent:'center',marginTop:'8px'}}>
             {pieData.map((d,i) => (
               <div key={i} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'rgba(255,255,255,0.35)'}}>
-                <div style={{width:'8px',height:'8px',borderRadius:'50%',background:theme.chart[i]}}></div>
-                {d.name}
+                <div style={{width:'8px',height:'8px',borderRadius:'50%',background:theme.chart[i]}}></div>{d.name}
               </div>
             ))}
           </div>
         </Card>
-
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Recent Expenses</div>
           {barData.length > 0 ? (
@@ -214,8 +273,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</div>}
         </Card>
       </div>
-
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'14px'}}>⚔️ Top Subscriptions</div>
           {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No subscriptions yet</div> :
@@ -232,7 +290,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
               </div>
             ))}
         </Card>
-
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'14px'}}>💸 Recent Spending</div>
           {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</div> :
@@ -251,8 +308,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
   )
 }
 
-// ── SUBSCRIPTIONS ─────────────────────────────────────────────────
-
 function SubsPage({ theme, subs, userId, onRefresh }) {
   const [form, setForm] = useState({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
   const [adding, setAdding] = useState(false)
@@ -262,8 +317,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
     const days = parseInt(form.days_since_used)||0
     const status = days===0?'keep':days<30?'keep':days<60?'warn':'dead'
     await supabaseInsert('subscriptions',{...form,cost:parseFloat(form.cost),days_since_used:days,status,user_id:userId})
-    setForm({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
-    setAdding(false); onRefresh()
+    setForm({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''}); setAdding(false); onRefresh()
   }
   async function del(id) { await supabaseDelete('subscriptions',id); onRefresh() }
 
@@ -272,19 +326,17 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
   const catData = [...new Set(subs.map(s=>s.category))].map(c=>({name:c,value:subs.filter(s=>s.category===c).reduce((a,s)=>a+Number(s.cost),0)}))
 
   return (
-    <div style={{padding:'40px'}}>
+    <div className="page-pad" style={{padding:'40px'}}>
       <PageHeader theme={theme} title="⚔️ Subscription Guillotine" subtitle="Track every recurring charge. Kill the dead ones."
         action={<AddBtn theme={theme} label="+ Add Subscription" onClick={()=>setAdding(!adding)} />} />
-
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
+      <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard label="Monthly Cost" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
         <StatCard label="Dead Tools" value={dead.length} sub={`$${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
         <StatCard label="Worth Keeping" value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
-
       {adding && (
         <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+          <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
             {[['Service Name','name','text','Shopify, Claude Pro...'],['Monthly Cost ($)','cost','number','29.00'],['Days Since Last Used','days_since_used','number','0 = used today']].map(([label,key,type,ph])=>(
               <div key={key}>
                 <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
@@ -306,27 +358,27 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
           </div>
         </Card>
       )}
-
-      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px'}}>
+      <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px'}}>
         <Card style={{padding:'24px'}}>
-          <table style={{width:'100%',borderCollapse:'collapse'}}>
-            <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>Category</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
-            <tbody>
-              {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No subscriptions yet</td></tr>
-              : subs.map(s=>(
-                <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                  <td style={{padding:'12px 0 12px',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{s.name}</td>
-                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>${Number(s.cost).toFixed(2)}</td>
-                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text}}>{s.category}</span></td>
-                  <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{s.days_since_used===0?'Today':`${s.days_since_used}d ago`}</td>
-                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:500,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7'}}>{s.status.toUpperCase()}</span></td>
-                  <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>Kill</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{overflowX:'auto'}}>
+            <table style={{width:'100%',borderCollapse:'collapse',minWidth:'500px'}}>
+              <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>Category</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
+              <tbody>
+                {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No subscriptions yet</td></tr>
+                : subs.map(s=>(
+                  <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{s.name}</td>
+                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>${Number(s.cost).toFixed(2)}</td>
+                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text}}>{s.category}</span></td>
+                    <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{s.days_since_used===0?'Today':`${s.days_since_used}d ago`}</td>
+                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:500,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7'}}>{s.status.toUpperCase()}</span></td>
+                    <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>Kill</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
-
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>By Category</div>
           {catData.length>0 ? (
@@ -339,24 +391,11 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data</div>}
-          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
-            {catData.map((d,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'12px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.4)'}}>
-                  <div style={{width:'7px',height:'7px',borderRadius:'50%',background:theme.chart[i%5]}}></div>
-                  {d.name}
-                </div>
-                <span style={{...VAL,color:'rgba(255,255,255,0.6)'}}>${d.value.toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
         </Card>
       </div>
     </div>
   )
 }
-
-// ── SPENDING ──────────────────────────────────────────────────────
 
 function SpendingPage({ theme, expenses, userId, onRefresh }) {
   const [form, setForm] = useState({description:'',amount:'',category:'impulse',expense_date:''})
@@ -379,20 +418,18 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
   const catColors = {impulse:'#ef4444',food:'#f97316',transport:'#f59e0b',business:'#10b981',other:'#8b5cf6'}
 
   return (
-    <div style={{padding:'40px'}}>
+    <div className="page-pad" style={{padding:'40px'}}>
       <PageHeader theme={theme} title="💸 Daily Spending" subtitle="Track impulse buys and convenience leaks."
         action={<AddBtn theme={theme} label="+ Log Expense" onClick={()=>setAdding(!adding)} />} />
-
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard label="Total Spent" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
         <StatCard label="Leak Amount" value={`$${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
         <StatCard label="Transactions" value={expenses.length} color={theme.text} icon="📋" />
         <StatCard label="Avg / Transaction" value={expenses.length>0?`$${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
       </div>
-
       {adding && (
         <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+          <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
             {[['Description','description','text','Late night delivery...'],['Amount ($)','amount','number','0.00'],['Date','expense_date','text','May 5']].map(([label,key,type,ph])=>(
               <div key={key}>
                 <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
@@ -418,8 +455,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
           </div>
         </Card>
       )}
-
-      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px',marginBottom:'16px'}}>
+      <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px',marginBottom:'16px'}}>
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Spending Trend</div>
           {areaData.length>0 ? (
@@ -440,7 +476,6 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
             </ResponsiveContainer>
           ) : <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data yet</div>}
         </Card>
-
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>By Category</div>
           {[...new Set(expenses.map(e=>e.category))].map(cat=>{
@@ -461,11 +496,10 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
           {expenses.length===0 && <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No data yet</div>}
         </Card>
       </div>
-
       <Card style={{padding:'24px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500}}>Expense Log</div>
-          <div style={{display:'flex',gap:'6px'}}>
+          <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
             {['all','impulse','food','transport','business'].map(f=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer'}}>
                 {f.charAt(0).toUpperCase()+f.slice(1)}
@@ -473,27 +507,27 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
             ))}
           </div>
         </div>
-        <table style={{width:'100%',borderCollapse:'collapse'}}>
-          <thead><tr><TH>Description</TH><TH>Amount</TH><TH>Category</TH><TH>Date</TH><TH></TH></tr></thead>
-          <tbody>
-            {filtered.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</td></tr>
-            : filtered.map(e=>(
-              <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{e.description}</td>
-                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>-${Number(e.amount).toFixed(2)}</td>
-                <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${catColors[e.category]||theme.accent}22`,color:catColors[e.category]||theme.text}}>{catLabels[e.category]||e.category}</span></td>
-                <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px'}}>{e.expense_date||'—'}</td>
-                <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'400px'}}>
+            <thead><tr><TH>Description</TH><TH>Amount</TH><TH>Category</TH><TH>Date</TH><TH></TH></tr></thead>
+            <tbody>
+              {filtered.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No expenses yet</td></tr>
+              : filtered.map(e=>(
+                <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                  <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{e.description}</td>
+                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>-${Number(e.amount).toFixed(2)}</td>
+                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${catColors[e.category]||theme.accent}22`,color:catColors[e.category]||theme.text}}>{catLabels[e.category]||e.category}</span></td>
+                  <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px'}}>{e.expense_date||'—'}</td>
+                  <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </div>
   )
 }
-
-// ── INVESTMENTS ───────────────────────────────────────────────────
 
 function InvestmentsPage({ theme, investments, setInvestments }) {
   const [adding, setAdding] = useState(false)
@@ -562,26 +596,25 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
     if (!form.symbol||!form.shares||!form.buyPrice) return
     setInvestments([...investments,{...form,shares:parseFloat(form.shares),buyPrice:parseFloat(form.buyPrice),currentPrice:parseFloat(form.currentPrice)||0,id:Date.now()}])
     setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
-    setSearchQuery('')
-    setAdding(false)
+    setSearchQuery(''); setAdding(false)
   }
   function del(id) { setInvestments(investments.filter(i=>i.id!==id)) }
 
   const totalValue = investments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
-  const totalCost  = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
-  const totalGain  = totalValue - totalCost
-  const gainPct    = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
+  const totalCost = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
+  const totalGain = totalValue - totalCost
+  const gainPct = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
   const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
   const barData = investments.map(inv=>({name:inv.symbol,cost:inv.shares*inv.buyPrice,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
 
   return (
-    <div style={{padding:'40px'}}>
+    <div className="page-pad" style={{padding:'40px'}}>
       <PageHeader theme={theme} title="📈 Investments" subtitle="Live prices update every 30 seconds."
         action={
           <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
             {lastUpdated && (
               <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981'}}></div>
+                <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div>
                 <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:'SF Mono,monospace'}}>Updated {lastUpdated}</span>
               </div>
             )}
@@ -589,33 +622,25 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           </div>
         }
       />
-
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
         <StatCard label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
         <StatCard label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
         <StatCard label="Positions" value={investments.length} color={theme.text} icon="🎯" />
       </div>
-
       {adding && (
         <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
           <div style={{marginBottom:'16px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>Search Stock or Crypto</div>
             <div style={{position:'relative'}}>
-              <input
-                value={searchQuery}
-                onChange={e=>searchStocks(e.target.value)}
-                placeholder="Search Apple, Bitcoin, Tesla..."
-                style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box'}}
-              />
-              {searching && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>Searching...</div>}
-              {fetchingPrice && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:theme.text,fontSize:'12px'}}>Fetching price...</div>}
-
+              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder="Search Apple, Bitcoin, Tesla..."
+                style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box'}} />
+              {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{searching?'Searching...':'Fetching price...'}</div>}
               {searchResults.length > 0 && (
                 <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.4)'}}>
                   {searchResults.map((s,i) => (
                     <div key={i} onClick={()=>selectStock(s)}
-                      style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)',transition:'background 0.15s'}}
+                      style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
                       onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
                       onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                       <div>
@@ -629,9 +654,8 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               )}
             </div>
           </div>
-
           {form.symbol && (
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
+            <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
               <div>
                 <div style={{...TIP,marginBottom:'6px'}}>Symbol</div>
                 <div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:600,...VAL}}>{form.symbol}</div>
@@ -658,7 +682,6 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               </div>
             </div>
           )}
-
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
             <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}}
               style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer'}}>Cancel</button>
@@ -669,8 +692,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           </div>
         </Card>
       )}
-
-      <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'16px',marginBottom:'16px'}}>
+      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'16px',marginBottom:'16px'}}>
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -681,18 +703,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
             </PieChart>
           </ResponsiveContainer>
-          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
-            {pieData.map((d,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'12px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.4)'}}>
-                  <div style={{width:'7px',height:'7px',borderRadius:'50%',background:theme.chart[i%5]}}></div>{d.name}
-                </div>
-                <span style={{...VAL,color:'rgba(255,255,255,0.6)'}}>${d.value.toFixed(0)}</span>
-              </div>
-            ))}
-          </div>
         </Card>
-
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Cost vs Current Value</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -707,77 +718,62 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           </ResponsiveContainer>
         </Card>
       </div>
-
       <Card style={{padding:'24px'}}>
         <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>All Positions</div>
-        <table style={{width:'100%',borderCollapse:'collapse'}}>
-          <thead>
-            <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-              {['Symbol','Name','Type','Shares','Buy Price','Live Price','24h Change','Value','Gain/Loss',''].map(h=>(
-                <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'12px',borderBottom:'1px solid rgba(255,255,255,0.06)',fontWeight:400}}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {investments.length===0 ? (
-              <tr><td colSpan={10} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet. Search and add your first one.</td></tr>
-            ) : investments.map((inv,i)=>{
-              const livePrice = prices[inv.symbol] || inv.currentPrice
-              const change = changes[inv.symbol] || 0
-              const val = inv.shares * livePrice
-              const cost = inv.shares * inv.buyPrice
-              const gain = val - cost
-              const gp = cost > 0 ? ((gain/cost)*100).toFixed(1) : 0
-              const isLive = !!prices[inv.symbol]
-              const changePos = change >= 0
-
-              return (
-                <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                  <td style={{padding:'14px 8px 14px 0',...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</td>
-                  <td style={{padding:'14px 8px',color:'rgba(255,255,255,0.6)',fontSize:'12px',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inv.name}</td>
-                  <td style={{padding:'14px 8px'}}>
-                    <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:inv.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:inv.type==='crypto'?'#fde68a':'#6ee7b7'}}>{inv.type}</span>
-                  </td>
-                  <td style={{padding:'14px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
-                  <td style={{padding:'14px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
-                  <td style={{padding:'14px 8px'}}>
-                    <div>
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
+            <thead>
+              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                {['Symbol','Name','Shares','Buy Price','Live Price','24h','Value','Gain/Loss',''].map(h=>(
+                  <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'12px',fontWeight:400}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {investments.length===0 ? (
+                <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No positions yet. Search and add your first one.</td></tr>
+              ) : investments.map((inv,i)=>{
+                const livePrice = prices[inv.symbol] || inv.currentPrice
+                const change = changes[inv.symbol] || 0
+                const val = inv.shares * livePrice
+                const cost = inv.shares * inv.buyPrice
+                const gain = val - cost
+                const gp = cost > 0 ? ((gain/cost)*100).toFixed(1) : 0
+                const isLive = !!prices[inv.symbol]
+                const changePos = change >= 0
+                return (
+                  <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    <td style={{padding:'12px 8px 12px 0',...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</td>
+                    <td style={{padding:'12px 8px',color:'rgba(255,255,255,0.6)',fontSize:'12px',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inv.name}</td>
+                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
+                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
+                    <td style={{padding:'12px 8px'}}>
                       <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:600}}>{loadingPrices&&!isLive?'...':`$${livePrice.toFixed(2)}`}</div>
-                      {isLive && <div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}>
-                        <div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div>
-                        <span style={{fontSize:'9px',color:'#10b981',fontFamily:'SF Mono,monospace'}}>LIVE</span>
-                      </div>}
-                    </div>
-                  </td>
-                  <td style={{padding:'14px 8px'}}>
-                    {isLive ? (
-                      <div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}>
-                        <span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:600,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span>
-                      </div>
-                    ) : <span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
-                  </td>
-                  <td style={{padding:'14px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:600}}>${val.toFixed(2)}</td>
-                  <td style={{padding:'14px 8px'}}>
-                    <div>
+                      {isLive && <div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:'SF Mono,monospace'}}>LIVE</span></div>}
+                    </td>
+                    <td style={{padding:'12px 8px'}}>
+                      {isLive ? (
+                        <div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}>
+                          <span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:600,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span>
+                        </div>
+                      ) : <span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
+                    </td>
+                    <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:600}}>${val.toFixed(2)}</td>
+                    <td style={{padding:'12px 8px'}}>
                       <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:600}}>{gain>=0?'+':''}${gain.toFixed(2)}</div>
                       <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
-                    </div>
-                  </td>
-                  <td style={{padding:'14px 0'}}>
-                    <button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}}>×</button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
     </div>
   )
 }
-
-// ── BALANCE ───────────────────────────────────────────────────────
 
 function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh }) {
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
@@ -794,25 +790,16 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
   const incomeData = income.map((i,idx)=>({name:i.source?.slice(0,8)||`#${idx+1}`,amount:Number(i.amount)}))
 
   return (
-    <div style={{padding:'40px'}}>
+    <div className="page-pad" style={{padding:'40px'}}>
       <PageHeader theme={theme} title="💰 Balance & Savings" subtitle="Track income and your savings rate."
-        action={<AddBtn action={
-          <div style={{display:'flex',gap:'10px'}}>
-            <button onClick={fetchPrices} disabled={loadingPrices}
-              style={{padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:500,background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.6)',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>
-              {loadingPrices ? '⟳ Loading...' : '⟳ Refresh Prices'}
-            </button>
-            <AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />
-          </div>
-        }theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
-
+        action={<AddBtn theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
       <Card style={{padding:'32px',marginBottom:'24px',background:`linear-gradient(135deg,${theme.bg},rgba(0,0,0,0))`}}>
         <div style={{...TIP,marginBottom:'8px'}}>Net Balance</div>
-        <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:600,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px'}}>
+        <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:600,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px',...VAL}}>
           ${Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
         </div>
         <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px'}}>{netBal>=0?'↑ You are net positive':'↓ Spending exceeds income'}</div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'24px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
+        <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'24px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
           {[['Total Income',`$${totalIncome.toFixed(2)}`,'#6ee7b7'],['Total Expenses',`$${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
             <div key={l}>
               <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginBottom:'4px'}}>{l}</div>
@@ -821,10 +808,9 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           ))}
         </div>
       </Card>
-
       {adding && (
         <Card style={{padding:'24px',marginBottom:'20px',border:`1px solid ${theme.border}`}}>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
+          <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
             {[['Source','source','text','Freelance, Product sale...'],['Amount ($)','amount','number','0.00'],['Date','income_date','text','May 5']].map(([label,key,type,ph])=>(
               <div key={key}>
                 <div style={{...TIP,marginBottom:'6px'}}>{label}</div>
@@ -839,8 +825,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           </div>
         </Card>
       )}
-
-      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px',marginBottom:'16px'}}>
+      <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'16px',marginBottom:'16px'}}>
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Income Sources</div>
           {incomeData.length>0 ? (
@@ -857,7 +842,6 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px'}}>No income logged yet</div>}
         </Card>
-
         <Card style={{padding:'24px'}}>
           <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'20px'}}>Savings Goal</div>
           <div style={{display:'flex',justifyContent:'center',marginBottom:'20px'}}>
@@ -877,16 +861,13 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             {sr>=30?'🎉 Above 30% target':sr>=15?'📈 Target is 30%':'⚠️ Below target'}
           </div>
           <div>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'rgba(255,255,255,0.28)',marginBottom:'5px'}}>
-              <span>Goal: 30%</span><span>{Math.min(Math.round(sr/30*100),100)}%</span>
-            </div>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'rgba(255,255,255,0.28)',marginBottom:'5px'}}><span>Goal: 30%</span><span>{Math.min(Math.round(sr/30*100),100)}%</span></div>
             <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
               <div style={{height:'100%',borderRadius:'100px',width:`${Math.min(sr/30*100,100)}%`,background:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'}}></div>
             </div>
           </div>
         </Card>
       </div>
-
       <Card style={{padding:'24px'}}>
         <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:500,marginBottom:'16px'}}>Income Log</div>
         <table style={{width:'100%',borderCollapse:'collapse'}}>
@@ -908,8 +889,6 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
   )
 }
 
-// ── AI ADVISOR ────────────────────────────────────────────────────
-
 function AIPage({ theme, user, subs, expenses, income, investments }) {
   const [messages, setMessages] = useState([
     { role:'ai', text:"Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
@@ -930,14 +909,7 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
     setInput('')
     setMessages(prev=>[...prev,{role:'user',text:userMsg}])
     setLoading(true)
-
-    const context = `
-      Subscriptions: ${subs.map(s=>`${s.name} $${s.cost}/mo status:${s.status} unused:${s.days_since_used}days`).join(', ')||'none'}.
-      Expenses: ${expenses.map(e=>`${e.description} $${e.amount} (${e.category})`).join(', ')||'none'}.
-      Income: ${income.map(i=>`${i.source} $${i.amount}`).join(', ')||'none'}.
-      Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:$${inv.buyPrice} now:$${inv.currentPrice}`).join(', ')||'none'}.
-    `
-
+    const context = `Subscriptions: ${subs.map(s=>`${s.name} $${s.cost}/mo status:${s.status}`).join(', ')||'none'}. Expenses: ${expenses.map(e=>`${e.description} $${e.amount}`).join(', ')||'none'}. Income: ${income.map(i=>`${i.source} $${i.amount}`).join(', ')||'none'}. Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:$${inv.buyPrice}`).join(', ')||'none'}.`
     try {
       const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userMsg,context})})
       const data = await res.json()
@@ -949,7 +921,7 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
   }
 
   return (
-    <div style={{padding:'40px',height:'100vh',display:'flex',flexDirection:'column',maxHeight:'100vh',boxSizing:'border-box'}}>
+    <div className="page-pad" style={{padding:'40px',height:'100vh',display:'flex',flexDirection:'column',maxHeight:'100vh',boxSizing:'border-box'}}>
       <div style={{marginBottom:'20px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'4px'}}>
           <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
@@ -959,7 +931,6 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
           </div>
         </div>
       </div>
-
       <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap'}}>
         {suggestions.map((s,i)=>(
           <button key={i} onClick={()=>send(s)} style={{fontSize:'12px',padding:'6px 14px',borderRadius:'100px',background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer'}}>
@@ -967,7 +938,6 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
           </button>
         ))}
       </div>
-
       <Card style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
         <div style={{flex:1,overflowY:'auto',padding:'24px',display:'flex',flexDirection:'column',gap:'16px',minHeight:0}}>
           {messages.map((m,i)=>(
@@ -989,7 +959,6 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
             </div>
           )}
         </div>
-
         <div style={{padding:'16px 24px',borderTop:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'10px',alignItems:'center'}}>
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Ask anything about your finances..."
             style={{flex:1,padding:'11px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'13px',outline:'none'}} />
