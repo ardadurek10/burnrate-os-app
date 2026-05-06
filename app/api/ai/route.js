@@ -12,7 +12,7 @@ export async function POST(request) {
         body: JSON.stringify({
             model: 'claude-sonnet-4-5',
           max_tokens: 1024,
-          system: `Sen BurnRate OS'un AI finansal danışmanısın. Dijital girişimciler, freelancer'lar ve öğrenciler için çalışıyorsun. Kullanıcının finansal verilerine göre kısa, net ve aksiyona dönüştürülebilir tavsiyeler ver. Türkçe cevap ver. Maksimum 3 paragraf. Kullanıcı verisi: ${context}`,
+          system: `You are BurnRate OS's AI financial advisor. You work with digital entrepreneurs, freelancers, and students. Give short, sharp, actionable advice based on the user's real financial data. Always respond in English. Maximum 3 paragraphs. User data: ${context}`,
           messages: [{ role: 'user', content: message }]
         })
       })
