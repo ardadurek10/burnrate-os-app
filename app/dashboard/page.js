@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabaseQuery, supabaseInsert, supabaseDelete } from '../lib/supabase'
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
 const MONO = "'DM Mono',monospace"
@@ -14,11 +14,19 @@ const THEMES = {
   balance:       { accent:'#06b6d4', bg:'rgba(6,182,212,0.1)',   border:'rgba(6,182,212,0.3)',   text:'#67e8f9',  chart:['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b'] },
   goals:         { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
   ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.1)',  border:'rgba(139,92,246,0.3)',  text:'#ddd6fe',  chart:['#8b5cf6','#7c3aed','#06b6d4','#10b981','#f59e0b'] },
+  summary:       { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#6ee7b7','#f97316','#ef4444','#7c3aed','#06b6d4'] },
 }
 
 const TIP = {fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
 const VAL = {fontFamily:MONO}
 const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.12)',borderRadius:'12px',color:'#f5f5f7',fontSize:'12px',fontFamily:FONT}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16)
+  const g = parseInt(hex.slice(3,5),16)
+  const b = parseInt(hex.slice(5,7),16)
+  return `${r},${g},${b}`
+}
 
 const DAILY_TASKS = [
   ["Check your bank balance","No impulse buys today","Log all expenses tonight"],
@@ -118,6 +126,7 @@ export default function Dashboard() {
         * { box-sizing: border-box; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
         @media(max-width:768px){
           .sidebar{display:none!important}
           .tabbar{display:flex!important}
@@ -126,7 +135,6 @@ export default function Dashboard() {
           .grid4{grid-template-columns:repeat(2,1fr)!important}
           .grid3{grid-template-columns:repeat(2,1fr)!important}
           .grid2{grid-template-columns:1fr!important}
-          .hide-mob{display:none!important}
         }
       `}</style>
 
@@ -135,7 +143,7 @@ export default function Dashboard() {
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'36px',paddingLeft:'8px'}}>
           <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',flexShrink:0}}>🔥</div>
           <div>
-            <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px',fontFamily:FONT}}>BurnRate OS</div>
+            <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
             <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>command center</div>
           </div>
         </div>
@@ -164,6 +172,13 @@ export default function Dashboard() {
           </button>
         </div>
 
+        <div style={{marginBottom:'8px'}}>
+          <button onClick={() => setPage('summary')}
+            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:'rgba(255,255,255,0.38)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
+            <span style={{fontSize:'14px'}}>📋</span>Monthly Summary
+          </button>
+        </div>
+
         <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'14px'}}>
           <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
@@ -178,25 +193,25 @@ export default function Dashboard() {
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} />}
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>setPage('summary')} />}
         {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='investments'   && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} />}
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='goals'         && <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} />}
+        {page==='summary'       && <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} />}
         {page==='ai'            && <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
-        {page==='summary'       && <MonthlySummaryPage theme={THEMES.dashboard} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} />}
       </div>
 
       {/* MOBILE TAB BAR */}
       <div className="tabbar" style={{display:'none',position:'fixed',bottom:0,left:0,right:0,background:'rgba(10,10,15,0.97)',borderTop:'1px solid rgba(255,255,255,0.07)',backdropFilter:'blur(24px)',zIndex:50,padding:'8px 0 20px'}}>
-        {[...navItems,{id:'ai',icon:'🤖',label:'AI'}].map(item => {
+        {[...navItems,{id:'ai',icon:'🤖',label:'AI'},{id:'summary',icon:'📋',label:'Summary'}].map(item => {
           const active = page === item.id
           const t = THEMES[item.id] || THEMES.ai
           return (
             <button key={item.id} onClick={() => setPage(item.id)}
               style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',padding:'6px 2px',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
-              <div style={{width:'34px',height:'34px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.15s'}}>
+              <div style={{width:'32px',height:'32px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.15s'}}>
                 {item.icon}
               </div>
               <span style={{fontSize:'9px',fontWeight:active?600:400,color:active?t.text:'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>
@@ -211,13 +226,20 @@ export default function Dashboard() {
 }
 
 // ── SHARED ────────────────────────────────────────────────────────
-function Card({ children, style={} }) {
-  return <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',animation:'fadeIn 0.3s ease',...style}}>{children}</div>
+function Card({ children, style={}, accent=null }) {
+  const rgb = accent ? hexToRgb(accent) : null
+  const bg = rgb ? `rgba(${rgb},0.06)` : 'rgba(255,255,255,0.03)'
+  const border = rgb ? `rgba(${rgb},0.14)` : 'rgba(255,255,255,0.07)'
+  return (
+    <div style={{background:bg,border:`1px solid ${border}`,borderRadius:'16px',animation:'fadeIn 0.3s ease',...style}}>
+      {children}
+    </div>
+  )
 }
 
-function StatCard({ label, value, sub, color, icon }) {
+function StatCard({ label, value, sub, color, icon, accent=null }) {
   return (
-    <Card style={{padding:'20px'}}>
+    <Card accent={accent} style={{padding:'20px'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
         <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
         {icon && <span style={{fontSize:'18px',opacity:0.6}}>{icon}</span>}
@@ -263,10 +285,11 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue }) {
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
+  const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
 
   const pieData = [
     { name:'Subscriptions', value:totalSubs },
@@ -278,9 +301,15 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <div style={{marginBottom:'28px'}}>
-        <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>Good morning ☀️</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — your financial snapshot</p>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'28px',flexWrap:'wrap',gap:'12px'}}>
+        <div>
+          <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>Good morning ☀️</h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} days left in month</p>
+        </div>
+        <button onClick={onSummary}
+          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
+          📋 Monthly Summary
+        </button>
       </div>
 
       {deadSubs.length > 0 && (
@@ -294,15 +323,15 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
       )}
 
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive this month':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
-        <StatCard label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subscriptions" color="#fb7185" icon="🔥" />
-        <StatCard label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs improvement'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
-        <StatCard label="Portfolio" value={`$${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} total gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
+        <StatCard accent={theme.accent} label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
+        <StatCard accent={theme.accent} label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subs" color="#fb7185" icon="🔥" />
+        <StatCard accent={theme.accent} label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
+        <StatCard accent={theme.accent} label="Portfolio" value={`$${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
 
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Breakdown</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Breakdown</div>
           {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
@@ -322,8 +351,8 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           </div>
         </Card>
 
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Recent Expenses</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Recent Expenses</div>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={barData} barSize={16}>
@@ -341,8 +370,8 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
       </div>
 
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>⚔️ Top Subscriptions</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>⚔️ Top Subscriptions</div>
           {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No subscriptions yet</div> :
             subs.slice(0,4).map(s => (
               <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
@@ -358,8 +387,8 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
             ))}
         </Card>
 
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>💸 Recent Spending</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>💸 Recent Spending</div>
           {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No expenses yet</div> :
             expenses.slice(0,4).map(e => (
               <div key={e.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
@@ -399,12 +428,12 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
       <PageHeader theme={theme} title="⚔️ Subscription Guillotine" subtitle="Track every recurring charge. Kill the dead ones."
         action={<AddBtn theme={theme} label="+ Add Subscription" onClick={()=>setAdding(!adding)} />} />
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard label="Monthly Cost" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard label="Dead Tools" value={dead.length} sub={`$${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
-        <StatCard label="Worth Keeping" value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
+        <StatCard accent={theme.accent} label="Monthly Cost" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label="Dead Tools" value={dead.length} sub={`$${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
+        <StatCard accent={theme.accent} label="Worth Keeping" value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
       {adding && (
-        <Card style={{padding:'22px',marginBottom:'18px',border:`1px solid ${theme.border}`}}>
+        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
             <InputField label="Service Name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Shopify, Claude Pro..." />
             <InputField label="Monthly Cost ($)" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
@@ -424,7 +453,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px'}}>
-        <Card style={{padding:'22px'}}>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:'500px'}}>
               <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>Category</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
@@ -444,8 +473,8 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
             </table>
           </div>
         </Card>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>By Category</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>By Category</div>
           {catData.length>0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -456,14 +485,6 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data</div>}
-          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
-            {catData.map((d,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'12px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.4)',fontFamily:FONT}}><div style={{width:'7px',height:'7px',borderRadius:'50%',background:theme.chart[i%5]}}></div>{d.name}</div>
-                <span style={{...VAL,color:'rgba(255,255,255,0.6)'}}>${d.value.toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
         </Card>
       </div>
     </div>
@@ -496,13 +517,13 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
       <PageHeader theme={theme} title="💸 Daily Spending" subtitle="Track impulse buys and convenience leaks."
         action={<AddBtn theme={theme} label="+ Log Expense" onClick={()=>setAdding(!adding)} />} />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard label="Total Spent" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard label="Leak Amount" value={`$${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
-        <StatCard label="Transactions" value={expenses.length} color={theme.text} icon="📋" />
-        <StatCard label="Avg / Transaction" value={expenses.length>0?`$${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
+        <StatCard accent={theme.accent} label="Total Spent" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label="Leak Amount" value={`$${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard accent={theme.accent} label="Transactions" value={expenses.length} color={theme.text} icon="📋" />
+        <StatCard accent={theme.accent} label="Avg / Transaction" value={expenses.length>0?`$${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
       </div>
       {adding && (
-        <Card style={{padding:'22px',marginBottom:'18px',border:`1px solid ${theme.border}`}}>
+        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
             <InputField label="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Late night delivery..." />
             <InputField label="Amount ($)" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
@@ -526,8 +547,8 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px',marginBottom:'14px'}}>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Trend</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Trend</div>
           {areaData.length>0 ? (
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={areaData}>
@@ -546,8 +567,8 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
             </ResponsiveContainer>
           ) : <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
         </Card>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>By Category</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>By Category</div>
           {[...new Set(expenses.map(e=>e.category))].map(cat=>{
             const amt = expenses.filter(e=>e.category===cat).reduce((a,e)=>a+Number(e.amount),0)
             const pct = total>0?(amt/total*100):0
@@ -566,9 +587,9 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
           {expenses.length===0 && <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
         </Card>
       </div>
-      <Card style={{padding:'22px'}}>
+      <Card accent={theme.accent} style={{padding:'22px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Expense Log</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Expense Log</div>
           <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
             {['all','impulse','food','transport','business'].map(f=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
@@ -679,13 +700,13 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         }
       />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
-        <StatCard label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
-        <StatCard label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
-        <StatCard label="Positions" value={investments.length} color={theme.text} icon="🎯" />
+        <StatCard accent={theme.accent} label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
+        <StatCard accent={theme.accent} label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
+        <StatCard accent={theme.accent} label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
+        <StatCard accent={theme.accent} label="Positions" value={investments.length} color={theme.text} icon="🎯" />
       </div>
       {adding && (
-        <Card style={{padding:'22px',marginBottom:'18px',border:`1px solid ${theme.border}`}}>
+        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div style={{marginBottom:'14px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>Search Stock or Crypto</div>
             <div style={{position:'relative'}}>
@@ -725,8 +746,8 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'14px',marginBottom:'14px'}}>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/></PieChart>
           </ResponsiveContainer>
@@ -739,8 +760,8 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
             ))}
           </div>
         </Card>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Current Value</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Current Value</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
@@ -753,8 +774,8 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           </ResponsiveContainer>
         </Card>
       </div>
-      <Card style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>All Positions</div>
+      <Card accent={theme.accent} style={{padding:'22px'}}>
+        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>All Positions</div>
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
             <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Symbol','Name','Shares','Buy Price','Live Price','24h','Value','Gain/Loss',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
@@ -813,7 +834,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
     <div className="page-pad" style={{padding:'36px'}}>
       <PageHeader theme={theme} title="💰 Balance & Savings" subtitle="Track income and your savings rate."
         action={<AddBtn theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
-      <Card style={{padding:'28px',marginBottom:'20px',background:`linear-gradient(135deg,${theme.bg},rgba(0,0,0,0))`}}>
+      <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
         <div style={{...TIP,marginBottom:'8px'}}>Net Balance</div>
         <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:700,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px',...VAL}}>
           ${Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -826,7 +847,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
         </div>
       </Card>
       {adding && (
-        <Card style={{padding:'22px',marginBottom:'18px',border:`1px solid ${theme.border}`}}>
+        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
             <InputField label="Source" value={form.source} onChange={e=>setForm({...form,source:e.target.value})} placeholder="Freelance, Product sale..." />
             <InputField label="Amount ($)" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
@@ -839,8 +860,8 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px',marginBottom:'14px'}}>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Income Sources</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Income Sources</div>
           {incomeData.length>0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={incomeData} barSize={24}>
@@ -853,8 +874,8 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No income logged yet</div>}
         </Card>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'20px',fontFamily:FONT}}>Savings Goal</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'20px',fontFamily:FONT}}>Savings Goal</div>
           <div style={{display:'flex',justifyContent:'center',marginBottom:'20px'}}>
             <div style={{position:'relative',width:'120px',height:'120px'}}>
               <svg width="120" height="120" style={{transform:'rotate(-90deg)'}}>
@@ -874,8 +895,8 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           </div>
         </Card>
       </div>
-      <Card style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Income Log</div>
+      <Card accent={theme.accent} style={{padding:'22px'}}>
+        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Income Log</div>
         <table style={{width:'100%',borderCollapse:'collapse'}}>
           <thead><tr><TH>Source</TH><TH>Amount</TH><TH>Date</TH><TH></TH></tr></thead>
           <tbody>
@@ -963,20 +984,18 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{marginBottom:'28px'}}>
         <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>🎯 30-Day Financial Challenge</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — tap a day to see your tasks</p>
+        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — tap a day to see your AI tasks</p>
       </div>
 
-      {/* STATS */}
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
-        <StatCard label="Days Completed" value={completedCount} sub={`of ${today} days so far`} color={theme.text} icon="✅" />
-        <StatCard label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?'Outstanding!':streakPct>=50?'Keep going!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
-        <StatCard label="Days Remaining" value={30-today} sub="until end of month" color="rgba(255,255,255,0.5)" icon="📅" />
+        <StatCard accent={theme.accent} label="Days Completed" value={completedCount} sub={`of ${today} days so far`} color={theme.text} icon="✅" />
+        <StatCard accent={theme.accent} label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?'Outstanding!':streakPct>=50?'Keep going!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
+        <StatCard accent={theme.accent} label="Days Remaining" value={30-today} sub="until end of month" color="rgba(255,255,255,0.5)" icon="📅" />
       </div>
 
-      {/* CALENDAR GRID */}
-      <Card style={{padding:'24px',marginBottom:'20px'}}>
+      <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Select a day to begin</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Select a day to begin your challenge</div>
           <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>
             {completedCount}/30 complete
           </div>
@@ -1007,51 +1026,49 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
         </div>
       </Card>
 
-      {/* DAY TASKS PANEL */}
       {selectedDay && (
-        <Card style={{padding:'24px',border:`1px solid ${theme.border}`,animation:'fadeIn 0.25s ease'}}>
+        <Card accent={theme.accent} style={{padding:'24px',animation:'fadeIn 0.25s ease'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
             <div>
-              <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Day {selectedDay}</div>
-              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>Complete all tasks to finish the day</div>
+              <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Day {selectedDay} Tasks</div>
+              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>AI-generated just for you · Complete all 3 tasks</div>
             </div>
-            <button onClick={()=>setSelectedDay(null)} style={{fontSize:'18px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+            <button onClick={()=>setSelectedDay(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer',lineHeight:1}}>×</button>
           </div>
 
-          <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'20px'}}>
+          <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'24px'}}>
             {loadingTasks ? (
-              <div style={{display:'flex',gap:'8px',alignItems:'center',padding:'16px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
-                <div style={{width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
-                AI is generating your tasks...
+              <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'20px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
+                <div style={{width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite',flexShrink:0}}></div>
+                AI is generating your personalized tasks...
               </div>
             ) : dayTasks.map((task,idx) => {
               const key = `${selectedDay}-${idx}`
               const done = completedTasks[key]
               return (
                 <div key={idx} onClick={()=>toggleTask(selectedDay,idx)}
-                  style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 16px',borderRadius:'12px',background:done?theme.bg:'rgba(255,255,255,0.03)',border:done?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
-                  <div style={{width:'22px',height:'22px',borderRadius:'7px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.25)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'#fff',fontWeight:700,transition:'all 0.15s'}}>
+                  style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px',borderRadius:'12px',background:done?theme.bg:'rgba(255,255,255,0.03)',border:done?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
+                  <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700,transition:'all 0.15s'}}>
                     {done?'✓':''}
                   </div>
-                  <span style={{fontSize:'14px',color:done?theme.text:'rgba(255,255,255,0.75)',textDecoration:done?'none':'none',fontWeight:done?600:400,fontFamily:FONT,flex:1}}>{task}</span>
+                  <span style={{fontSize:'14px',color:done?theme.text:'rgba(255,255,255,0.8)',fontWeight:done?600:400,fontFamily:FONT,flex:1,lineHeight:'1.4'}}>{task}</span>
+                  {done && <span style={{fontSize:'11px',color:theme.text,fontFamily:MONO,opacity:0.7}}>done</span>}
                 </div>
               )
             })}
           </div>
 
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
             <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>
-              {dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length}/{dayTasks.length} tasks done
+              {dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of {dayTasks.length} tasks completed
             </div>
             <button onClick={()=>completeDay(selectedDay)}
-              style={{padding:'12px 24px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.2)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
-              {completedDays.includes(selectedDay) ? '✓ Day Completed!' : '🎯 Complete Day'}
+              style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
+              {completedDays.includes(selectedDay) ? '✓ Day Completed!' : '🎯 Complete Day →'}
             </button>
           </div>
         </Card>
       )}
-
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }
@@ -1062,45 +1079,45 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
   const totalSpend = totalExp + totalSubs
-  const topExpense = expenses.reduce((a,e)=>Number(e.amount)>Number(a.amount)?e:a, expenses[0]||{description:'—',amount:0})
+  const topExpense = expenses.length>0?expenses.reduce((a,e)=>Number(e.amount)>Number(a.amount)?e:a,expenses[0]):{description:'—',amount:0}
   const deadSubs = subs.filter(s=>s.status==='dead')
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
+  const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
+  const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
 
   const chartData = [
-    {name:'Income',value:totalIncome,fill:'#6ee7b7'},
-    {name:'Expenses',value:totalExp,fill:'#f97316'},
-    {name:'Subscriptions',value:totalSubs,fill:'#ef4444'},
-    {name:'Saved',value:Math.max(0,netBal),fill:'#7c3aed'},
+    {name:'Income',  value:totalIncome, fill:'#6ee7b7'},
+    {name:'Expenses',value:totalExp,    fill:'#f97316'},
+    {name:'Subs',   value:totalSubs,   fill:'#ef4444'},
+    {name:'Saved',  value:Math.max(0,netBal), fill:'#7c3aed'},
   ]
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{marginBottom:'28px'}}>
         <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>📋 Monthly Summary</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — full financial report</p>
+        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — your complete financial report</p>
       </div>
 
-      {/* BIG SCORE */}
-      <Card style={{padding:'28px',marginBottom:'20px',background:`linear-gradient(135deg,${theme.bg},rgba(0,0,0,0))`}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'16px'}}>
+      <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'24px'}}>
           <div>
-            <div style={{...TIP,marginBottom:'8px'}}>Monthly Financial Score</div>
-            <div style={{fontSize:'64px',fontWeight:700,letterSpacing:'-3px',lineHeight:1,...VAL,
-              color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'}}>
-              {sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'}
-            </div>
-            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'4px',fontFamily:FONT}}>
-              {sr>=30?'Excellent financial discipline!':sr>=20?'Good progress, keep it up':sr>=10?'Room for improvement':'Time to cut spending'}
+            <div style={{...TIP,marginBottom:'10px'}}>Monthly Financial Grade</div>
+            <div style={{fontSize:'80px',fontWeight:700,letterSpacing:'-4px',lineHeight:1,color:scoreColor,...VAL}}>{score}</div>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>
+              {sr>=30?'🎉 Outstanding financial discipline!':sr>=20?'💪 Good progress, keep it up!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending'}
             </div>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-            {[['Net Balance',`$${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
+            {[
+              ['Net Balance',`$${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],
               ['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],
               ['Total Income',`$${totalIncome.toFixed(0)}`,'#6ee7b7'],
-              ['Total Spend',`$${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
+              ['Total Spend',`$${totalSpend.toFixed(0)}`,'#fca5a5'],
+            ].map(([l,v,c])=>(
               <div key={l}>
-                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'3px'}}>{l}</div>
-                <div style={{color:c,fontSize:'20px',fontWeight:700,...VAL}}>{v}</div>
+                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div>
+                <div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div>
               </div>
             ))}
           </div>
@@ -1108,12 +1125,12 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
       </Card>
 
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Money Flow</div>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Money Flow</div>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} barSize={32}>
+            <BarChart data={chartData} barSize={36}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
-              <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
+              <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
               <Bar dataKey="value" radius={[8,8,0,0]}>
@@ -1123,21 +1140,21 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           </ResponsiveContainer>
         </Card>
 
-        <Card style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>Key Insights</div>
-          <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>Key Insights</div>
+          <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
             {[
-              { icon:'🏆', label:'Best habit', value:'Tracked your finances', color:'#6ee7b7' },
               { icon:'💸', label:'Biggest expense', value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`, color:'#fca5a5' },
-              { icon:'💀', label:'Wasted on dead subs', value:`$${wastedOnDead.toFixed(0)}/mo`, color:wastedOnDead>0?'#fca5a5':'#6ee7b7' },
-              { icon:'📈', label:'Savings rate', value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`, color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5' },
-              { icon:'🎯', label:'Next month goal', value:`Save $${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`, color:theme.text },
+              { icon:'💀', label:'Wasted on dead subs', value:wastedOnDead>0?`$${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉', color:wastedOnDead>0?'#fca5a5':'#6ee7b7' },
+              { icon:'📈', label:'Savings performance', value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`, color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5' },
+              { icon:'🎯', label:'Next month target', value:`Save $${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`, color:theme.text },
+              { icon:'🔥', label:'Subscriptions tracked', value:`${subs.length} active · $${subs.reduce((a,s)=>a+Number(s.cost),0).toFixed(0)}/mo total`, color:'rgba(255,255,255,0.6)' },
             ].map((item,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)'}}>
-                <span style={{fontSize:'18px'}}>{item.icon}</span>
-                <div style={{flex:1}}>
-                  <div style={{color:'rgba(255,255,255,0.35)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'0.8px'}}>{item.label}</div>
-                  <div style={{color:item.color,fontSize:'13px',fontWeight:500,marginTop:'1px',fontFamily:FONT}}>{item.value}</div>
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
+                <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'0.8px'}}>{item.label}</div>
+                  <div style={{color:item.color,fontSize:'13px',fontWeight:500,marginTop:'1px',fontFamily:FONT,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.value}</div>
                 </div>
               </div>
             ))}
@@ -1145,15 +1162,15 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
         </Card>
       </div>
 
-      <Card style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Subscription Audit</div>
-        {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No subscriptions tracked</div> : (
+      <Card accent={theme.accent} style={{padding:'22px'}}>
+        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>Subscription Health Check</div>
+        {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT,textAlign:'center',padding:'32px'}}>No subscriptions tracked yet</div> : (
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
             {subs.map(s=>(
-              <div key={s.id} style={{padding:'14px',borderRadius:'12px',background:'rgba(255,255,255,0.02)',border:`1px solid ${s.status==='dead'?'rgba(239,68,68,0.2)':s.status==='warn'?'rgba(245,158,11,0.2)':'rgba(16,185,129,0.15)'}`}}>
-                <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,marginBottom:'4px',fontFamily:FONT}}>{s.name}</div>
-                <div style={{color:THEMES.subscriptions.text,fontSize:'14px',fontWeight:700,...VAL,marginBottom:'6px'}}>${Number(s.cost).toFixed(2)}/mo</div>
-                <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span>
+              <div key={s.id} style={{padding:'16px',borderRadius:'12px',background:'rgba(255,255,255,0.02)',border:`1px solid ${s.status==='dead'?'rgba(239,68,68,0.2)':s.status==='warn'?'rgba(245,158,11,0.2)':'rgba(16,185,129,0.15)'}`}}>
+                <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,marginBottom:'4px',fontFamily:FONT,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</div>
+                <div style={{color:THEMES.subscriptions.text,fontSize:'16px',fontWeight:700,...VAL,marginBottom:'8px'}}>${Number(s.cost).toFixed(2)}<span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:FONT,fontWeight:400}}>/mo</span></div>
+                <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span>
               </div>
             ))}
           </div>
@@ -1213,7 +1230,7 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
           </button>
         ))}
       </div>
-      <Card style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+      <Card accent={theme.accent} style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
         <div style={{flex:1,overflowY:'auto',padding:'20px',display:'flex',flexDirection:'column',gap:'14px',minHeight:0}}>
           {messages.map((m,i)=>(
             <div key={i} style={{display:'flex',gap:'10px',flexDirection:m.role==='user'?'row-reverse':'row'}}>
