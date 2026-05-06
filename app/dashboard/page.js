@@ -114,7 +114,7 @@ function PageHeader({ theme, title, subtitle, action }) {
       <div>
         <h1 style={{color:theme.text,fontSize:'24px',fontWeight:600,letterSpacing:'-0.5px',margin:0,marginBottom:'4px'}}>{title}</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0}}>{subtitle}</p>
-      </div>
+      </div> 
       {action}
     </div>
   )
