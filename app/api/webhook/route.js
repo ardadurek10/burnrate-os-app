@@ -201,6 +201,7 @@ export async function POST(request) {
     // Webhook imzasını logla (debug için)
     console.log('[Webhook] action:', action)
     console.log('[Webhook] data keys:', Object.keys(data || {}))
+    console.log('[Webhook] full data:', JSON.stringify(data, null, 2))
 
     if (action === 'membership.went_valid') {
       const email = (
