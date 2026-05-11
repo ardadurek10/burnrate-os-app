@@ -283,6 +283,10 @@ export default function Dashboard() {
   return (
     <div style={{background:'#0a0a0f',fontFamily:FONT,minHeight:'100vh',display:'flex'}}>
       <style>{`
+      .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
+      .recharts-default-tooltip { background: #12121c !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; }
+      .recharts-tooltip-label { color: rgba(255,255,255,0.5) !important; }
+      .recharts-tooltip-item { color: #f5f5f7 !important; }
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
@@ -528,7 +532,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={78} paddingAngle={5} dataKey="value">
                   {pieData.map((_,i) => <Cell key={i} fill={theme.chart[i]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} />
+                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} /> 
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
@@ -549,7 +553,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false} />
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false} />
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} />
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 <Bar dataKey="amount" radius={[6,6,0,0]}>
                   {barData.map((_,i) => <Cell key={i} fill={THEMES.spending.chart[i%5]} />)}
                 </Bar>
@@ -671,7 +675,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
                 <Pie data={catData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">
                   {catData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} />
+                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data</div>}
@@ -751,7 +755,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
                 <XAxis dataKey="day" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle}/>
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
                 <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2.5} fill="url(#spendGrad)"/>
               </AreaChart>
             </ResponsiveContainer>
@@ -939,7 +943,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/></PieChart>
+            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
           </ResponsiveContainer>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -949,7 +953,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[6,6,0,0]} name="Cost"/>
               <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name="Value"/>
             </BarChart>
@@ -1050,7 +1054,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle}/>
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
                 <Bar dataKey="amount" radius={[6,6,0,0]}>{incomeData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0}/>)}</Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -1255,7 +1259,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="value" radius={[8,8,0,0]}>{chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}</Bar>
             </BarChart>
           </ResponsiveContainer>
