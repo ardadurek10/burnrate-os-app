@@ -771,11 +771,12 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
 }
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
+// Bu kodu dashboard/page.js içindeki InvestmentsPage fonksiyonuyla değiştir
+
 function InvestmentsPage({ theme, investments, setInvestments }) {
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
-  const [prices, setPrices] = useState({})
-  const [changes, setChanges] = useState({})
+  const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock',currency:'USD',currencySymbol:'$'})
+  const [prices, setPrices] = useState({})       // { AAPL: { price, priceUSD, currency, currencySymbol, change } }
   const [loadingPrices, setLoadingPrices] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -786,15 +787,25 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
   async function fetchPrices() {
     if (investments.length === 0) return
     setLoadingPrices(true)
-    const up = {}, uc = {}
+    const up = {}
     for (const inv of investments) {
       try {
         const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
         const data = await res.json()
-        if (data.price) { up[inv.symbol]=parseFloat(data.price); uc[inv.symbol]=parseFloat(data.change) }
+        if (data.price) {
+          up[inv.symbol] = {
+            price:          parseFloat(data.price),
+            priceUSD:       parseFloat(data.priceUSD || data.price),
+            change:         parseFloat(data.change || 0),
+            currency:       data.currency || inv.currency || 'USD',
+            currencySymbol: data.currencySymbol || inv.currencySymbol || '$',
+          }
+        }
       } catch {}
     }
-    setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString()); setLoadingPrices(false)
+    setPrices(up)
+    setLastUpdated(new Date().toLocaleTimeString())
+    setLoadingPrices(false)
   }
 
   useEffect(() => {
@@ -816,62 +827,147 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
   }
 
   async function selectStock(stock) {
-    setSearchQuery(stock.name); setSearchResults([]); setFetchingPrice(true)
+    setSearchQuery(stock.name)
+    setSearchResults([])
+    setFetchingPrice(true)
     try {
       const res = await fetch(`/api/stocks?symbol=${stock.symbol}`)
       const data = await res.json()
-      setForm(f => ({...f, symbol:stock.symbol, name:stock.name, type:stock.type, currentPrice:data.price||''}))
+      setForm(f => ({
+        ...f,
+        symbol:         stock.symbol,
+        name:           stock.name,
+        type:           stock.type,
+        currentPrice:   data.price || '',
+        currency:       data.currency || 'USD',
+        currencySymbol: data.currencySymbol || '$',
+      }))
     } catch {}
     setFetchingPrice(false)
   }
 
   function addInv() {
-    if (!form.symbol||!form.shares||!form.buyPrice) return
-    setInvestments([...investments,{...form,shares:parseFloat(form.shares),buyPrice:parseFloat(form.buyPrice),currentPrice:parseFloat(form.currentPrice)||0,id:Date.now()}])
-    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'}); setSearchQuery(''); setAdding(false)
+    if (!form.symbol || !form.shares || !form.buyPrice) return
+    setInvestments([...investments, {
+      ...form,
+      shares:         parseFloat(form.shares),
+      buyPrice:       parseFloat(form.buyPrice),
+      currentPrice:   parseFloat(form.currentPrice) || 0,
+      id:             Date.now(),
+    }])
+    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock',currency:'USD',currencySymbol:'$'})
+    setSearchQuery('')
+    setAdding(false)
   }
-  function del(id) { setInvestments(investments.filter(i=>i.id!==id)) }
 
-  const totalValue = investments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
-  const totalCost = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
+  function del(id) { setInvestments(investments.filter(i => i.id !== id)) }
+
+  // Portfolio hesabı — her zaman USD üzerinden
+  const totalValue = investments.reduce((a, inv) => {
+    const p = prices[inv.symbol]
+    const usdPrice = p ? p.priceUSD : (inv.currentPrice * (inv.currency === 'TRY' ? 0.028 : 1))
+    return a + inv.shares * usdPrice
+  }, 0)
+
+  const totalCost = investments.reduce((a, inv) => {
+    const buyUSD = inv.currency === 'TRY' || inv.buyPriceCurrency === 'TRY'
+      ? inv.buyPrice * 0.028
+      : inv.buyPrice
+    return a + inv.shares * buyUSD
+  }, 0)
+
   const totalGain = totalValue - totalCost
-  const gainPct = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
-  const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
-  const barData = investments.map(inv=>({name:inv.symbol,cost:parseFloat((inv.shares*inv.buyPrice).toFixed(2)),value:parseFloat((inv.shares*(prices[inv.symbol]||inv.currentPrice)).toFixed(2))}))
+  const gainPct = totalCost > 0 ? ((totalGain / totalCost) * 100).toFixed(2) : 0
+
+  const pieData = investments.map(inv => {
+    const p = prices[inv.symbol]
+    const usdPrice = p ? p.priceUSD : inv.currentPrice
+    return { name: inv.symbol, value: inv.shares * usdPrice }
+  })
+
+  const barData = investments.map(inv => {
+    const p = prices[inv.symbol]
+    const usdLive = p ? p.priceUSD : inv.currentPrice
+    const usdBuy = inv.currency === 'TRY' ? inv.buyPrice * 0.028 : inv.buyPrice
+    return {
+      name:  inv.symbol,
+      cost:  parseFloat((inv.shares * usdBuy).toFixed(2)),
+      value: parseFloat((inv.shares * usdLive).toFixed(2)),
+    }
+  })
+
+  const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
+  const MONO = "'DM Mono',monospace"
+  const VAL  = { fontFamily: MONO }
+  const TIP  = { fontFamily:MONO, fontSize:'10px', letterSpacing:'1px', textTransform:'uppercase', color:'rgba(255,255,255,0.25)' }
+  const tooltipStyle = { background:'#12121c', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'12px', color:'#f5f5f7', fontSize:'12px', fontFamily:FONT }
+  const tooltipItemStyle  = { color:'#f5f5f7' }
+  const tooltipLabelStyle = { color:'rgba(255,255,255,0.5)', marginBottom:'4px' }
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title="📈 Investments" subtitle="Live prices update every 30 seconds."
-        action={
-          <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span></div>}
-            <AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />
-          </div>
-        }
-      />
-      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
-        <StatCard accent={theme.accent} label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
-        <StatCard accent={theme.accent} label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
-        <StatCard accent={theme.accent} label="Positions" value={investments.length} color={theme.text} icon="🎯" />
+      {/* HEADER */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'28px',flexWrap:'wrap',gap:'12px'}}>
+        <div>
+          <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'3px',fontFamily:FONT}}>📈 Investments</h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>Live prices · Portfolio in USD</p>
+        </div>
+        <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+          {lastUpdated && (
+            <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+              <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div>
+              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span>
+            </div>
+          )}
+          <button onClick={()=>setAdding(!adding)}
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>
+            + Add Position
+          </button>
+        </div>
       </div>
+
+      {/* STATS */}
+      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
+        {[
+          ['Portfolio Value','$'+totalValue.toFixed(2),theme.text,'💼'],
+          ['Total Cost (USD)','$'+totalCost.toFixed(2),'rgba(255,255,255,0.6)','💸'],
+          ['Total Gain/Loss',(totalGain>=0?'+':'')+`$${totalGain.toFixed(2)}`,totalGain>=0?'#6ee7b7':'#fca5a5',totalGain>=0?'📈':'📉'],
+          ['Positions',investments.length,theme.text,'🎯'],
+        ].map(([label,value,color,icon])=>(
+          <div key={label} style={{background:`rgba(${require !== undefined ? '' : ''}16,185,129,0.06)`,border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'20px',animation:'fadeIn 0.3s ease'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
+              <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
+              <span style={{fontSize:'18px',opacity:0.6}}>{icon}</span>
+            </div>
+            <div style={{color,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',lineHeight:1,fontFamily:FONT}}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ADD FORM */}
       {adding && (
-        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
+        <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',marginBottom:'18px',animation:'fadeIn 0.3s ease'}}>
           <div style={{marginBottom:'14px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>Search Stock or Crypto</div>
             <div style={{position:'relative'}}>
-              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder="Search Apple, Bitcoin, Tesla..."
+              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)}
+                placeholder="AAPL, ASELS.IS, Bitcoin, Tesla..."
                 style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
-              {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Searching...':'Fetching price...'}</div>}
+              {(searching||fetchingPrice) && (
+                <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>
+                  {searching?'Searching...':'Fetching price...'}
+                </div>
+              )}
               {searchResults.length > 0 && (
                 <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
                   {searchResults.map((s,i) => (
-                    <div key={i} onClick={()=>selectStock(s)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
+                    <div key={i} onClick={()=>selectStock(s)}
+                      style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
                       onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
                       onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                       <div>
                         <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{s.symbol}</div>
-                        <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{s.name}</div>
+                        <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{s.name} · {s.exchange}</div>
                       </div>
                       <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:s.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.type==='crypto'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.type}</span>
                     </div>
@@ -880,30 +976,64 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               )}
             </div>
           </div>
+
           {form.symbol && (
-            <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Symbol</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Live Price</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Loading...':form.currentPrice?`$${form.currentPrice}`:'—'}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Type</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Shares / Amount</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Buy Price ($)</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
+              <div>
+                <div style={{...TIP,marginBottom:'6px'}}>Symbol</div>
+                <div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div>
+              </div>
+              <div>
+                <div style={{...TIP,marginBottom:'6px'}}>Live Price</div>
+                <div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>
+                  {fetchingPrice ? 'Loading...' : form.currentPrice ? `${form.currencySymbol}${form.currentPrice}` : '—'}
+                </div>
+              </div>
+              <div>
+                <div style={{...TIP,marginBottom:'6px'}}>Currency</div>
+                <div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>
+                  {form.currency} {form.currencySymbol}
+                </div>
+              </div>
+              <div>
+                <div style={{...TIP,marginBottom:'6px'}}>Shares / Lot</div>
+                <input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2"
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
+              </div>
+              <div>
+                <div style={{...TIP,marginBottom:'6px'}}>Buy Price ({form.currencySymbol})</div>
+                <input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder={form.currency==='TRY'?'400.00':'150.00'}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
+              </div>
             </div>
           )}
+
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
-            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>Add Position</button>
+            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock',currency:'USD',currencySymbol:'$'})}}
+              style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
+            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice}
+              style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>
+              Add Position
+            </button>
           </div>
-        </Card>
+        </div>
       )}
+
+      {/* CHARTS */}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'14px',marginBottom:'14px'}}>
-        <Card accent={theme.accent} style={{padding:'22px'}}>
+        <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',animation:'fadeIn 0.3s ease'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
+            <PieChart>
+              <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">
+                {pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}
+              </Pie>
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+            </PieChart>
           </ResponsiveContainer>
-        </Card>
-        <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Current Value</div>
+        </div>
+        <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',animation:'fadeIn 0.3s ease'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Value (USD)</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
@@ -914,45 +1044,95 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name="Value"/>
             </BarChart>
           </ResponsiveContainer>
-        </Card>
+        </div>
       </div>
-      <Card accent={theme.accent} style={{padding:'22px'}}>
+
+      {/* TABLE */}
+      <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',animation:'fadeIn 0.3s ease'}}>
         <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>All Positions</div>
         <div style={{overflowX:'auto'}}>
-          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
-            <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Symbol','Name','Shares','Buy Price','Live Price','24h','Value','Gain/Loss',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'700px'}}>
+            <thead>
+              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                {['Symbol','Name','Shares','Buy Price','Live Price','24h','Value (USD)','Gain/Loss',''].map(h=>(
+                  <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
-              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet.</td></tr>
-              : investments.map((inv,i)=>{
-                const livePrice=prices[inv.symbol]||inv.currentPrice, change=changes[inv.symbol]||0
-                const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
-                const gp=cost>0?((gain/cost)*100).toFixed(1):0, isLive=!!prices[inv.symbol], changePos=change>=0
+              {investments.length === 0 ? (
+                <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet. Search and add your first one.</td></tr>
+              ) : investments.map((inv, i) => {
+                const p = prices[inv.symbol]
+                const sym = inv.currencySymbol || (p?.currencySymbol) || '$'
+                const cur = inv.currency || (p?.currency) || 'USD'
+                const livePrice    = p?.price || inv.currentPrice
+                const livePriceUSD = p?.priceUSD || (cur === 'TRY' ? inv.currentPrice * 0.028 : inv.currentPrice)
+                const buyUSD       = cur === 'TRY' ? inv.buyPrice * 0.028 : inv.buyPrice
+                const change       = p?.change || 0
+                const val          = inv.shares * livePriceUSD
+                const cost         = inv.shares * buyUSD
+                const gain         = val - cost
+                const gp           = cost > 0 ? ((gain / cost) * 100).toFixed(1) : 0
+                const isLive       = !!p
+                const changePos    = change >= 0
+
                 return (
-                  <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                  <tr key={inv.id || i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    {/* Symbol */}
                     <td style={{padding:'12px 8px 12px 0',...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</td>
+                    {/* Name */}
                     <td style={{padding:'12px 8px',color:'rgba(255,255,255,0.6)',fontSize:'12px',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:FONT}}>{inv.name}</td>
+                    {/* Shares */}
                     <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
-                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
+                    {/* Buy Price — orijinal para biriminde */}
+                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{sym}{inv.buyPrice.toFixed(2)}</td>
+                    {/* Live Price — orijinal para biriminde */}
                     <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>{loadingPrices&&!isLive?'...':`$${livePrice.toFixed(2)}`}</div>
-                      {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>LIVE</span></div>}
+                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>
+                        {loadingPrices && !isLive ? '...' : `${sym}${parseFloat(livePrice).toFixed(2)}`}
+                      </div>
+                      {cur !== 'USD' && (
+                        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>≈ ${livePriceUSD}</div>
+                      )}
+                      {isLive && (
+                        <div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}>
+                          <div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div>
+                          <span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>LIVE</span>
+                        </div>
+                      )}
                     </td>
+                    {/* 24h change */}
                     <td style={{padding:'12px 8px'}}>
-                      {isLive?<div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}><span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span></div>:<span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
+                      {isLive ? (
+                        <div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}>
+                          <span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span>
+                        </div>
+                      ) : <span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
                     </td>
+                    {/* Value in USD */}
                     <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>${val.toFixed(2)}</td>
+                    {/* Gain/Loss */}
                     <td style={{padding:'12px 8px'}}>
                       <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}${gain.toFixed(2)}</div>
                       <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
                     </td>
-                    <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
+                    {/* Delete */}
+                    <td style={{padding:'12px 0'}}>
+                      <button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button>
+                    </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
-      </Card>
+        {investments.some(inv => (inv.currency || 'USD') !== 'USD') && (
+          <div style={{marginTop:'14px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>
+            ℹ️ Non-USD positions are converted to USD using approximate exchange rates for portfolio calculations.
+          </div>
+        )}
+      </div>
     </div>
   )
 }
