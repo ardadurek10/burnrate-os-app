@@ -46,6 +46,8 @@ const THEMES = {
 const TIP = {fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
 const VAL = {fontFamily:MONO}
 const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.12)',borderRadius:'12px',color:'#f5f5f7',fontSize:'12px',fontFamily:FONT}
+const tooltipItemStyle = {color:'#f5f5f7'}
+const tooltipLabelStyle = {color:'rgba(255,255,255,0.5)',marginBottom:'4px'}
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1,3),16)
