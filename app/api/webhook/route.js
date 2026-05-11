@@ -2,10 +2,9 @@ import { supabaseInsert } from '../../lib/supabase'
 
 // ─── PLAN CONFIG ────────────────────────────────────────────────────────────
 const PLANS = {
-  // Whop plan ID'lerini buraya ekle (Whop dashboard → Plans → Plan ID)
-  'plan_starter_id': 'starter',   // ← Whop'taki Starter plan ID'si
-  'plan_pro_id':     'pro',       // ← Whop'taki Pro plan ID'si
-  'plan_elite_id':   'elite',     // ← Whop'taki Elite plan ID'si
+  'plan_fPw7wIxGVEc7g': 'starter',
+  'plan_69Su8P5fb8BKc': 'pro',
+  'plan_SFjoNXODXAH6j': 'elite',
 }
 
 const PLAN_META = {
