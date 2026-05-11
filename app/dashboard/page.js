@@ -6,6 +6,32 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
 const MONO = "'DM Mono',monospace"
 
+// ── PLAN CONFIG ───────────────────────────────────────────────────
+const PLAN_ACCESS = {
+  starter: ['dashboard', 'spending', 'balance'],
+  pro:     ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai'],
+  elite:   ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'investments', 'summary'],
+}
+
+const PLAN_META = {
+  starter: { name: 'Starter', color: '#06b6d4', emoji: '🚀', price: '$9/mo' },
+  pro:     { name: 'Pro',     color: '#7c3aed', emoji: '💜', price: '$19/mo' },
+  elite:   { name: 'Elite',   color: '#f59e0b', emoji: '⚡', price: '$39/mo' },
+}
+
+const MODULE_PLAN = {
+  subscriptions: 'pro',
+  goals:         'pro',
+  ai:            'pro',
+  investments:   'elite',
+  summary:       'elite',
+}
+
+function canAccess(userPlan, moduleId) {
+  const plan = userPlan || 'starter'
+  return (PLAN_ACCESS[plan] || PLAN_ACCESS.starter).includes(moduleId)
+}
+
 const THEMES = {
   dashboard:     { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#7c3aed','#06b6d4','#10b981','#f59e0b','#f43f5e'] },
   subscriptions: { accent:'#ef4444', bg:'rgba(239,68,68,0.1)',   border:'rgba(239,68,68,0.3)',   text:'#fca5a5',  chart:['#ef4444','#f97316','#fbbf24','#a3e635','#34d399'] },
@@ -61,6 +87,127 @@ const DAILY_TASKS = [
   ["Complete monthly review","Celebrate savings wins","Plan next month"],
 ]
 
+// ── UPGRADE MODAL ─────────────────────────────────────────────────
+function UpgradeModal({ moduleId, userPlan, onClose }) {
+  const required = MODULE_PLAN[moduleId] || 'pro'
+  const requiredMeta = PLAN_META[required]
+  const currentMeta = PLAN_META[userPlan] || PLAN_META.starter
+
+  const moduleNames = {
+    subscriptions: 'Subscription Tracker',
+    goals:         '30-Day Challenge',
+    ai:            'AI Financial Advisor',
+    investments:   'Live Investments',
+    summary:       'Monthly Summary',
+  }
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{background:'#0f0f1a',border:`1px solid ${requiredMeta.color}44`,borderRadius:'24px',padding:'40px',maxWidth:'440px',width:'100%',boxShadow:`0 0 80px ${requiredMeta.color}22`,animation:'fadeIn 0.2s ease'}}>
+
+        {/* Icon */}
+        <div style={{width:'64px',height:'64px',borderRadius:'18px',background:`rgba(${hexToRgb(requiredMeta.color)},0.12)`,border:`1px solid ${requiredMeta.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',marginBottom:'24px'}}>
+          🔒
+        </div>
+
+        {/* Title */}
+        <div style={{fontFamily:MONO,fontSize:'11px',color:requiredMeta.color,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'10px'}}>
+          {requiredMeta.name} Feature
+        </div>
+        <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,letterSpacing:'-0.03em',margin:'0 0 12px',fontFamily:FONT}}>
+          {moduleNames[moduleId]} is locked
+        </h2>
+        <p style={{color:'#a09ab8',fontSize:'14px',lineHeight:1.6,margin:'0 0 28px',fontFamily:FONT,fontWeight:300}}>
+          You're on the <strong style={{color:currentMeta.color}}>{currentMeta.name}</strong> plan. Upgrade to <strong style={{color:requiredMeta.color}}>{requiredMeta.name}</strong> to unlock this module and {required === 'pro' ? 'AI advisor, subscription audit, and 30-day challenge' : 'live investments, monthly scores, and priority support'}.
+        </p>
+
+        {/* Plan comparison */}
+        <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'18px',marginBottom:'24px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>Current plan</span>
+            <span style={{color:currentMeta.color,fontSize:'13px',fontWeight:600,fontFamily:MONO}}>{currentMeta.name} · {currentMeta.price}</span>
+          </div>
+          <div style={{height:'1px',background:'rgba(255,255,255,0.06)',marginBottom:'14px'}}></div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>Upgrade to</span>
+            <span style={{color:requiredMeta.color,fontSize:'13px',fontWeight:700,fontFamily:MONO}}>{requiredMeta.name} · {requiredMeta.price}</span>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <a href="https://whop.com/burnrate-os"
+          style={{display:'block',textAlign:'center',padding:'16px',borderRadius:'14px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'15px',textDecoration:'none',marginBottom:'12px',boxShadow:`0 0 40px ${requiredMeta.color}44`,fontFamily:FONT}}>
+          {requiredMeta.emoji} Upgrade to {requiredMeta.name} →
+        </a>
+        <button onClick={onClose}
+          style={{width:'100%',padding:'12px',borderRadius:'14px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.4)',fontSize:'14px',cursor:'pointer',fontFamily:FONT}}>
+          Maybe later
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── LOCKED PAGE ───────────────────────────────────────────────────
+function LockedPage({ moduleId, userPlan, onUpgrade }) {
+  const required = MODULE_PLAN[moduleId] || 'pro'
+  const requiredMeta = PLAN_META[required]
+  const moduleNames = {
+    subscriptions: 'Subscription Tracker',
+    goals:         '30-Day Challenge',
+    ai:            'AI Financial Advisor',
+    investments:   'Live Investments',
+    summary:       'Monthly Summary Score',
+  }
+  const moduleDescs = {
+    subscriptions: 'Track every recurring charge. Auto-label as KEEP, WARN, or DEAD. Cancel what\'s draining you invisibly.',
+    goals:         'AI-generated daily financial tasks. 10×3 calendar grid. Build discipline with 30-day streaks.',
+    ai:            'Claude-powered analysis of your real spending. Not generic tips — personalized, data-driven insights.',
+    investments:   'Yahoo Finance live prices. Track your portfolio with 30-second auto-refresh and real-time data.',
+    summary:       'A/B/C/D monthly score. Money flow chart. Subscription audit. Your complete financial report card.',
+  }
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'40px',background:'#0a0a0f'}}>
+      <div style={{maxWidth:'480px',width:'100%',textAlign:'center'}}>
+        <div style={{width:'80px',height:'80px',borderRadius:'24px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',margin:'0 auto 28px'}}>
+          🔒
+        </div>
+        <div style={{fontFamily:MONO,fontSize:'11px',color:requiredMeta.color,letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:'12px'}}>
+          {requiredMeta.name} Plan Required
+        </div>
+        <h2 style={{color:'#f1f0ff',fontSize:'28px',fontWeight:700,letterSpacing:'-0.03em',margin:'0 0 16px',fontFamily:FONT,lineHeight:1.1}}>
+          {moduleNames[moduleId]}
+        </h2>
+        <p style={{color:'#a09ab8',fontSize:'15px',lineHeight:1.7,margin:'0 0 40px',fontFamily:FONT,fontWeight:300}}>
+          {moduleDescs[moduleId]}
+        </p>
+
+        {/* Feature pills */}
+        <div style={{display:'flex',flexWrap:'wrap',gap:'8px',justifyContent:'center',marginBottom:'40px'}}>
+          {(required === 'pro'
+            ? ['Subscription Tracker','30-Day Challenge','AI Advisor']
+            : ['Live Investments','Monthly Summary','Priority Support']
+          ).map(f => (
+            <span key={f} style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 14px',borderRadius:'100px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,color:requiredMeta.color,fontSize:'12px',fontFamily:FONT}}>
+              ✓ {f}
+            </span>
+          ))}
+        </div>
+
+        <button onClick={onUpgrade}
+          style={{display:'block',width:'100%',padding:'18px',borderRadius:'16px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'16px',border:'none',cursor:'pointer',boxShadow:`0 0 60px ${requiredMeta.color}44`,fontFamily:FONT,marginBottom:'12px'}}>
+          {requiredMeta.emoji} Upgrade to {requiredMeta.name} · {requiredMeta.price}
+        </button>
+        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>
+          Cancel anytime · Instant activation via Whop
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [page, setPage] = useState('dashboard')
@@ -68,6 +215,7 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([])
   const [income, setIncome] = useState([])
   const [investments, setInvestments] = useState([])
+  const [upgradeModal, setUpgradeModal] = useState(null)
 
   useEffect(() => {
     try {
@@ -95,6 +243,14 @@ export default function Dashboard() {
     ])
   }
 
+  function navigateTo(moduleId) {
+    if (!canAccess(user?.plan, moduleId)) {
+      setUpgradeModal(moduleId)
+      return
+    }
+    setPage(moduleId)
+  }
+
   const navItems = [
     { id:'dashboard',     icon:'⚡', label:'Overview' },
     { id:'subscriptions', icon:'⚔️', label:'Subscriptions' },
@@ -109,6 +265,9 @@ export default function Dashboard() {
       <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Loading...</div>
     </div>
   )
+
+  const userPlan = user.plan || 'starter'
+  const planMeta = PLAN_META[userPlan] || PLAN_META.starter
 
   const totalIncome = income.reduce((a,i) => a+Number(i.amount), 0)
   const totalExp = expenses.reduce((a,e) => a+Number(e.amount), 0)
@@ -138,9 +297,18 @@ export default function Dashboard() {
         }
       `}</style>
 
+      {/* UPGRADE MODAL */}
+      {upgradeModal && (
+        <UpgradeModal
+          moduleId={upgradeModal}
+          userPlan={userPlan}
+          onClose={() => setUpgradeModal(null)}
+        />
+      )}
+
       {/* SIDEBAR */}
       <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'36px',paddingLeft:'8px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',flexShrink:0}}>🔥</div>
           <div>
             <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
@@ -148,34 +316,52 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* PLAN BADGE */}
+        <div style={{background:`rgba(${hexToRgb(planMeta.color)},0.1)`,border:`1px solid ${planMeta.color}44`,borderRadius:'10px',padding:'9px 12px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'8px'}}>
+          <span style={{fontSize:'14px'}}>{planMeta.emoji}</span>
+          <div>
+            <div style={{color:planMeta.color,fontSize:'12px',fontWeight:700,fontFamily:MONO,letterSpacing:'0.05em'}}>{planMeta.name.toUpperCase()}</div>
+            <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:FONT}}>{planMeta.price}</div>
+          </div>
+          {userPlan !== 'elite' && (
+            <a href="https://whop.com/burnrate-os" style={{marginLeft:'auto',fontSize:'10px',color:'rgba(255,255,255,0.3)',textDecoration:'none',fontFamily:FONT}}>↑ up</a>
+          )}
+        </div>
+
         <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
+            const locked = !canAccess(userPlan, item.id)
             return (
-              <button key={item.id} onClick={() => setPage(item.id)}
-                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:active?600:400,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
-                <span style={{fontSize:'14px'}}>{item.icon}</span>{item.label}
+              <button key={item.id} onClick={() => navigateTo(item.id)}
+                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:active?600:400,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:locked?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT,position:'relative'}}>
+                <span style={{fontSize:'14px',opacity:locked?0.5:1}}>{item.icon}</span>
+                <span style={{flex:1}}>{item.label}</span>
+                {locked && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
               </button>
             )
           })}
         </nav>
 
         <div style={{marginBottom:'14px'}}>
-          <button onClick={() => setPage('ai')}
+          <button onClick={() => navigateTo('ai')}
             style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(124,58,237,0.1)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
-            <span style={{fontSize:'15px'}}>🤖</span>
-            <div style={{textAlign:'left'}}>
+            <span style={{fontSize:'15px',opacity:canAccess(userPlan,'ai')?1:0.5}}>🤖</span>
+            <div style={{textAlign:'left',flex:1}}>
               <div style={{fontSize:'13px',fontWeight:600}}>AI Advisor</div>
               <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:MONO}}>powered by claude</div>
             </div>
+            {!canAccess(userPlan,'ai') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
 
         <div style={{marginBottom:'8px'}}>
-          <button onClick={() => setPage('summary')}
-            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:'rgba(255,255,255,0.38)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
-            <span style={{fontSize:'14px'}}>📋</span>Monthly Summary
+          <button onClick={() => navigateTo('summary')}
+            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:canAccess(userPlan,'summary')?'rgba(255,255,255,0.38)':'rgba(255,255,255,0.2)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
+            <span style={{fontSize:'14px',opacity:canAccess(userPlan,'summary')?1:0.5}}>📋</span>
+            <span style={{flex:1}}>Monthly Summary</span>
+            {!canAccess(userPlan,'summary') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
 
@@ -193,14 +379,14 @@ export default function Dashboard() {
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>setPage('summary')} />}
-        {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} />}
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} onUpgrade={setUpgradeModal} />}
+        {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page==='investments'   && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} />}
+        {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page==='goals'         && <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} />}
-        {page==='summary'       && <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} />}
-        {page==='ai'            && <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} />}
+        {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
+        {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
+        {page==='ai'            && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -208,13 +394,15 @@ export default function Dashboard() {
         {[...navItems,{id:'ai',icon:'🤖',label:'AI'},{id:'summary',icon:'📋',label:'Summary'}].map(item => {
           const active = page === item.id
           const t = THEMES[item.id] || THEMES.ai
+          const locked = !canAccess(userPlan, item.id)
           return (
-            <button key={item.id} onClick={() => setPage(item.id)}
+            <button key={item.id} onClick={() => navigateTo(item.id)}
               style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',padding:'6px 2px',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
-              <div style={{width:'32px',height:'32px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.15s'}}>
-                {item.icon}
+              <div style={{width:'32px',height:'32px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.15s',position:'relative'}}>
+                <span style={{opacity:locked?0.4:1}}>{item.icon}</span>
+                {locked && <span style={{position:'absolute',top:'-4px',right:'-4px',fontSize:'8px'}}>🔒</span>}
               </div>
-              <span style={{fontSize:'9px',fontWeight:active?600:400,color:active?t.text:'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>
+              <span style={{fontSize:'9px',fontWeight:active?600:400,color:active?t.text:locked?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>
                 {item.label}
               </span>
             </button>
@@ -285,7 +473,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary }) {
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan, onUpgrade }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -308,7 +496,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <button onClick={onSummary}
           style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
-          📋 Monthly Summary
+          📋 Monthly Summary {!canAccess(userPlan,'summary') && '🔒'}
         </button>
       </div>
 
@@ -751,14 +939,6 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           <ResponsiveContainer width="100%" height={200}>
             <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/></PieChart>
           </ResponsiveContainer>
-          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
-            {pieData.map((d,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'12px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.4)',fontFamily:FONT}}><div style={{width:'7px',height:'7px',borderRadius:'50%',background:theme.chart[i%5]}}></div>{d.name}</div>
-                <span style={{...VAL,color:'rgba(255,255,255,0.6)'}}>${d.value.toFixed(0)}</span>
-              </div>
-            ))}
-          </div>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Current Value</div>
@@ -780,7 +960,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
             <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Symbol','Name','Shares','Buy Price','Live Price','24h','Value','Gain/Loss',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
             <tbody>
-              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet. Search and add your first one.</td></tr>
+              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet.</td></tr>
               : investments.map((inv,i)=>{
                 const livePrice=prices[inv.symbol]||inv.currentPrice, change=changes[inv.symbol]||0
                 const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
@@ -889,10 +1069,6 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             </div>
           </div>
           <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',textAlign:'center',marginBottom:'14px',fontFamily:FONT}}>{sr>=30?'🎉 Above 30% target':sr>=15?'📈 Target is 30%':'⚠️ Below target'}</div>
-          <div>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'rgba(255,255,255,0.28)',marginBottom:'5px',fontFamily:FONT}}><span>Goal: 30%</span><span>{Math.min(Math.round(sr/30*100),100)}%</span></div>
-            <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}><div style={{height:'100%',borderRadius:'100px',width:`${Math.min(sr/30*100,100)}%`,background:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5',transition:'width 0.5s'}}></div></div>
-          </div>
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -921,16 +1097,11 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
   const now = new Date()
   const today = now.getDate()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
-
-  const [completedDays, setCompletedDays] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('burnrate_completed_days')||'[]') } catch { return [] }
-  })
+  const [completedDays, setCompletedDays] = useState(() => { try { return JSON.parse(localStorage.getItem('burnrate_completed_days')||'[]') } catch { return [] } })
   const [selectedDay, setSelectedDay] = useState(null)
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [aiTasks, setAiTasks] = useState({})
-  const [completedTasks, setCompletedTasks] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('burnrate_completed_tasks')||'{}') } catch { return {} }
-  })
+  const [completedTasks, setCompletedTasks] = useState(() => { try { return JSON.parse(localStorage.getItem('burnrate_completed_tasks')||'{}') } catch { return {} } })
 
   async function loadTasksForDay(day) {
     setSelectedDay(day)
@@ -939,23 +1110,11 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
     const defaultTasks = DAILY_TASKS[(day-1) % DAILY_TASKS.length]
     setAiTasks(prev => ({...prev, [day]: defaultTasks}))
     try {
-      const res = await fetch('/api/ai', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          message: `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Each task should take less than 5 minutes. Return ONLY a JSON array of 3 strings, nothing else. Example: ["Task 1","Task 2","Task 3"]`,
-          context: `User spending: $${totalExp}, subscriptions: $${totalSubs}, income: $${totalIncome}`
-        })
-      })
+      const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Each task should take less than 5 minutes. Return ONLY a JSON array of 3 strings, nothing else.`, context: `User spending: $${totalExp}, subscriptions: $${totalSubs}, income: $${totalIncome}` }) })
       const data = await res.json()
       const text = data.reply || ''
       const match = text.match(/\[.*\]/s)
-      if (match) {
-        const tasks = JSON.parse(match[0])
-        if (Array.isArray(tasks) && tasks.length > 0) {
-          setAiTasks(prev => ({...prev, [day]: tasks}))
-        }
-      }
+      if (match) { const tasks = JSON.parse(match[0]); if (Array.isArray(tasks) && tasks.length > 0) setAiTasks(prev => ({...prev, [day]: tasks})) }
     } catch {}
     setLoadingTasks(false)
   }
@@ -968,11 +1127,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
   }
 
   function completeDay(day) {
-    if (!completedDays.includes(day)) {
-      const updated = [...completedDays, day]
-      setCompletedDays(updated)
-      localStorage.setItem('burnrate_completed_days', JSON.stringify(updated))
-    }
+    if (!completedDays.includes(day)) { const updated = [...completedDays, day]; setCompletedDays(updated); localStorage.setItem('burnrate_completed_days', JSON.stringify(updated)) }
     setSelectedDay(null)
   }
 
@@ -986,19 +1141,15 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
         <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>🎯 30-Day Financial Challenge</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — tap a day to see your AI tasks</p>
       </div>
-
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard accent={theme.accent} label="Days Completed" value={completedCount} sub={`of ${today} days so far`} color={theme.text} icon="✅" />
         <StatCard accent={theme.accent} label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?'Outstanding!':streakPct>=50?'Keep going!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
         <StatCard accent={theme.accent} label="Days Remaining" value={30-today} sub="until end of month" color="rgba(255,255,255,0.5)" icon="📅" />
       </div>
-
       <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Select a day to begin your challenge</div>
-          <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>
-            {completedCount}/30 complete
-          </div>
+          <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>{completedCount}/30 complete</div>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'8px'}}>
           {Array.from({length:30},(_,i)=>i+1).map(day => {
@@ -1008,34 +1159,22 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
             const isSelected = selectedDay === day
             return (
               <button key={day} onClick={()=>isPast&&loadTasksForDay(day)}
-                style={{
-                  aspectRatio:'1',borderRadius:'12px',fontSize:'14px',fontWeight:700,
-                  background:isCompleted?`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`:isSelected?theme.bg:isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',
-                  border:isSelected?`2px solid ${theme.accent}`:isCompleted?'none':isToday?`1px solid rgba(255,255,255,0.2)`:'1px solid rgba(255,255,255,0.06)',
-                  color:isCompleted?'#fff':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',
-                  cursor:isPast?'pointer':'not-allowed',
-                  display:'flex',alignItems:'center',justifyContent:'center',
-                  transition:'all 0.15s',fontFamily:FONT,
-                  boxShadow:isCompleted?`0 4px 12px ${theme.accent}44`:'none',
-                  transform:isSelected?'scale(1.08)':'scale(1)',
-                }}>
+                style={{aspectRatio:'1',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:isCompleted?`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`:isSelected?theme.bg:isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',border:isSelected?`2px solid ${theme.accent}`:isCompleted?'none':isToday?`1px solid rgba(255,255,255,0.2)`:'1px solid rgba(255,255,255,0.06)',color:isCompleted?'#fff':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',cursor:isPast?'pointer':'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s',fontFamily:FONT,boxShadow:isCompleted?`0 4px 12px ${theme.accent}44`:'none',transform:isSelected?'scale(1.08)':'scale(1)'}}>
                 {isCompleted ? '✓' : day}
               </button>
             )
           })}
         </div>
       </Card>
-
       {selectedDay && (
         <Card accent={theme.accent} style={{padding:'24px',animation:'fadeIn 0.25s ease'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
             <div>
               <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Day {selectedDay} Tasks</div>
-              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>AI-generated just for you · Complete all 3 tasks</div>
+              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>AI-generated · Complete all 3 tasks</div>
             </div>
             <button onClick={()=>setSelectedDay(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer',lineHeight:1}}>×</button>
           </div>
-
           <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'24px'}}>
             {loadingTasks ? (
               <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'20px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
@@ -1048,20 +1187,15 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
               return (
                 <div key={idx} onClick={()=>toggleTask(selectedDay,idx)}
                   style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px',borderRadius:'12px',background:done?theme.bg:'rgba(255,255,255,0.03)',border:done?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
-                  <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700,transition:'all 0.15s'}}>
-                    {done?'✓':''}
-                  </div>
+                  <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700,transition:'all 0.15s'}}>{done?'✓':''}</div>
                   <span style={{fontSize:'14px',color:done?theme.text:'rgba(255,255,255,0.8)',fontWeight:done?600:400,fontFamily:FONT,flex:1,lineHeight:'1.4'}}>{task}</span>
                   {done && <span style={{fontSize:'11px',color:theme.text,fontFamily:MONO,opacity:0.7}}>done</span>}
                 </div>
               )
             })}
           </div>
-
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>
-              {dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of {dayTasks.length} tasks completed
-            </div>
+            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>{dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of {dayTasks.length} tasks completed</div>
             <button onClick={()=>completeDay(selectedDay)}
               style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
               {completedDays.includes(selectedDay) ? '✓ Day Completed!' : '🎯 Complete Day →'}
@@ -1084,12 +1218,11 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
   const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
   const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-
   const chartData = [
-    {name:'Income',  value:totalIncome, fill:'#6ee7b7'},
-    {name:'Expenses',value:totalExp,    fill:'#f97316'},
-    {name:'Subs',   value:totalSubs,   fill:'#ef4444'},
-    {name:'Saved',  value:Math.max(0,netBal), fill:'#7c3aed'},
+    {name:'Income',value:totalIncome,fill:'#6ee7b7'},
+    {name:'Expenses',value:totalExp,fill:'#f97316'},
+    {name:'Subs',value:totalSubs,fill:'#ef4444'},
+    {name:'Saved',value:Math.max(0,netBal),fill:'#7c3aed'},
   ]
 
   return (
@@ -1098,32 +1231,20 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
         <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>📋 Monthly Summary</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — your complete financial report</p>
       </div>
-
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'24px'}}>
           <div>
             <div style={{...TIP,marginBottom:'10px'}}>Monthly Financial Grade</div>
             <div style={{fontSize:'80px',fontWeight:700,letterSpacing:'-4px',lineHeight:1,color:scoreColor,...VAL}}>{score}</div>
-            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>
-              {sr>=30?'🎉 Outstanding financial discipline!':sr>=20?'💪 Good progress, keep it up!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending'}
-            </div>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending'}</div>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
-            {[
-              ['Net Balance',`$${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],
-              ['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],
-              ['Total Income',`$${totalIncome.toFixed(0)}`,'#6ee7b7'],
-              ['Total Spend',`$${totalSpend.toFixed(0)}`,'#fca5a5'],
-            ].map(([l,v,c])=>(
-              <div key={l}>
-                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div>
-                <div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div>
-              </div>
+            {[['Net Balance',`$${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],['Total Income',`$${totalIncome.toFixed(0)}`,'#6ee7b7'],['Total Spend',`$${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
+              <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div><div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div></div>
             ))}
           </div>
         </div>
       </Card>
-
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Money Flow</div>
@@ -1133,22 +1254,18 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}/>
-              <Bar dataKey="value" radius={[8,8,0,0]}>
-                {chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}
-              </Bar>
+              <Bar dataKey="value" radius={[8,8,0,0]}>{chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}</Bar>
             </BarChart>
           </ResponsiveContainer>
         </Card>
-
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>Key Insights</div>
           <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
             {[
-              { icon:'💸', label:'Biggest expense', value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`, color:'#fca5a5' },
-              { icon:'💀', label:'Wasted on dead subs', value:wastedOnDead>0?`$${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉', color:wastedOnDead>0?'#fca5a5':'#6ee7b7' },
-              { icon:'📈', label:'Savings performance', value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`, color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5' },
-              { icon:'🎯', label:'Next month target', value:`Save $${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`, color:theme.text },
-              { icon:'🔥', label:'Subscriptions tracked', value:`${subs.length} active · $${subs.reduce((a,s)=>a+Number(s.cost),0).toFixed(0)}/mo total`, color:'rgba(255,255,255,0.6)' },
+              {icon:'💸',label:'Biggest expense',value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
+              {icon:'💀',label:'Wasted on dead subs',value:wastedOnDead>0?`$${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉',color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
+              {icon:'📈',label:'Savings performance',value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
+              {icon:'🎯',label:'Next month target',value:`Save $${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`,color:theme.text},
             ].map((item,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
                 <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
@@ -1161,21 +1278,6 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           </div>
         </Card>
       </div>
-
-      <Card accent={theme.accent} style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>Subscription Health Check</div>
-        {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT,textAlign:'center',padding:'32px'}}>No subscriptions tracked yet</div> : (
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-            {subs.map(s=>(
-              <div key={s.id} style={{padding:'16px',borderRadius:'12px',background:'rgba(255,255,255,0.02)',border:`1px solid ${s.status==='dead'?'rgba(239,68,68,0.2)':s.status==='warn'?'rgba(245,158,11,0.2)':'rgba(16,185,129,0.15)'}`}}>
-                <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,marginBottom:'4px',fontFamily:FONT,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</div>
-                <div style={{color:THEMES.subscriptions.text,fontSize:'16px',fontWeight:700,...VAL,marginBottom:'8px'}}>${Number(s.cost).toFixed(2)}<span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:FONT,fontWeight:400}}>/mo</span></div>
-                <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
     </div>
   )
 }
@@ -1188,12 +1290,7 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const suggestions = [
-    "Which subscriptions should I cancel?",
-    "How can I improve my savings rate?",
-    "Give me investment advice",
-    "Where am I leaking money?",
-  ]
+  const suggestions = ["Which subscriptions should I cancel?","How can I improve my savings rate?","Give me investment advice","Where am I leaking money?"]
 
   async function send(msg) {
     const userMsg = msg || input.trim()
@@ -1225,21 +1322,15 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
       </div>
       <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
         {suggestions.map((s,i)=>(
-          <button key={i} onClick={()=>send(s)} style={{fontSize:'12px',padding:'6px 14px',borderRadius:'100px',background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT,fontWeight:500}}>
-            {s}
-          </button>
+          <button key={i} onClick={()=>send(s)} style={{fontSize:'12px',padding:'6px 14px',borderRadius:'100px',background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT,fontWeight:500}}>{s}</button>
         ))}
       </div>
       <Card accent={theme.accent} style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
         <div style={{flex:1,overflowY:'auto',padding:'20px',display:'flex',flexDirection:'column',gap:'14px',minHeight:0}}>
           {messages.map((m,i)=>(
             <div key={i} style={{display:'flex',gap:'10px',flexDirection:m.role==='user'?'row-reverse':'row'}}>
-              <div style={{width:'30px',height:'30px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',flexShrink:0,background:m.role==='user'?`linear-gradient(135deg,${theme.accent},${theme.accent}88)`:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>
-                {m.role==='user'?'👤':'🤖'}
-              </div>
-              <div style={{maxWidth:'520px',padding:'11px 15px',borderRadius:'14px',fontSize:'13px',lineHeight:'1.65',color:'#f5f5f7',background:m.role==='user'?theme.bg:'rgba(255,255,255,0.03)',border:m.role==='user'?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',fontFamily:FONT}}>
-                {m.text}
-              </div>
+              <div style={{width:'30px',height:'30px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',flexShrink:0,background:m.role==='user'?`linear-gradient(135deg,${theme.accent},${theme.accent}88)`:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>{m.role==='user'?'👤':'🤖'}</div>
+              <div style={{maxWidth:'520px',padding:'11px 15px',borderRadius:'14px',fontSize:'13px',lineHeight:'1.65',color:'#f5f5f7',background:m.role==='user'?theme.bg:'rgba(255,255,255,0.03)',border:m.role==='user'?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',fontFamily:FONT}}>{m.text}</div>
             </div>
           ))}
           {loading && (
@@ -1255,9 +1346,7 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Ask anything about your finances..."
             style={{flex:1,padding:'11px 15px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}} />
           <button onClick={()=>send()} disabled={loading||!input.trim()}
-            style={{width:'42px',height:'42px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0}}>
-            ↑
-          </button>
+            style={{width:'42px',height:'42px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0}}>↑</button>
         </div>
       </Card>
     </div>
