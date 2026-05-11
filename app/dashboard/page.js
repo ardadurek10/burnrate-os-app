@@ -19,6 +19,12 @@ const PLAN_META = {
   elite:   { name: 'Elite',   color: '#f59e0b', emoji: '⚡', price: '$39/mo' },
 }
 
+const WHOP_UPGRADE_LINKS = {
+  starter: 'https://whop.com/checkout/plan_69Su8P5fb8BKc',
+  pro:     'https://whop.com/checkout/plan_SFjoNXODXAH6j',
+  elite:   null,
+}
+
 const MODULE_PLAN = {
   subscriptions: 'pro',
   goals:         'pro',
@@ -94,6 +100,7 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
   const currentMeta = PLAN_META[userPlan] || PLAN_META.starter
+  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
 
   const moduleNames = {
     subscriptions: 'Subscription Tracker',
@@ -107,24 +114,12 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{background:'#0f0f1a',border:`1px solid ${requiredMeta.color}44`,borderRadius:'24px',padding:'40px',maxWidth:'440px',width:'100%',boxShadow:`0 0 80px ${requiredMeta.color}22`,animation:'fadeIn 0.2s ease'}}>
-
-        {/* Icon */}
-        <div style={{width:'64px',height:'64px',borderRadius:'18px',background:`rgba(${hexToRgb(requiredMeta.color)},0.12)`,border:`1px solid ${requiredMeta.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',marginBottom:'24px'}}>
-          🔒
-        </div>
-
-        {/* Title */}
-        <div style={{fontFamily:MONO,fontSize:'11px',color:requiredMeta.color,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'10px'}}>
-          {requiredMeta.name} Feature
-        </div>
-        <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,letterSpacing:'-0.03em',margin:'0 0 12px',fontFamily:FONT}}>
-          {moduleNames[moduleId]} is locked
-        </h2>
+        <div style={{width:'64px',height:'64px',borderRadius:'18px',background:`rgba(${hexToRgb(requiredMeta.color)},0.12)`,border:`1px solid ${requiredMeta.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',marginBottom:'24px'}}>🔒</div>
+        <div style={{fontFamily:MONO,fontSize:'11px',color:requiredMeta.color,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'10px'}}>{requiredMeta.name} Feature</div>
+        <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,letterSpacing:'-0.03em',margin:'0 0 12px',fontFamily:FONT}}>{moduleNames[moduleId]} is locked</h2>
         <p style={{color:'#a09ab8',fontSize:'14px',lineHeight:1.6,margin:'0 0 28px',fontFamily:FONT,fontWeight:300}}>
-          You're on the <strong style={{color:currentMeta.color}}>{currentMeta.name}</strong> plan. Upgrade to <strong style={{color:requiredMeta.color}}>{requiredMeta.name}</strong> to unlock this module and {required === 'pro' ? 'AI advisor, subscription audit, and 30-day challenge' : 'live investments, monthly scores, and priority support'}.
+          You're on the <strong style={{color:currentMeta.color}}>{currentMeta.name}</strong> plan. Upgrade to <strong style={{color:requiredMeta.color}}>{requiredMeta.name}</strong> to unlock this module.
         </p>
-
-        {/* Plan comparison */}
         <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'18px',marginBottom:'24px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
             <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>Current plan</span>
@@ -136,9 +131,7 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
             <span style={{color:requiredMeta.color,fontSize:'13px',fontWeight:700,fontFamily:MONO}}>{requiredMeta.name} · {requiredMeta.price}</span>
           </div>
         </div>
-
-        {/* CTA */}
-        <a href="https://whop.com/burnrate-os"
+        <a href={upgradeLink} target="_blank" rel="noreferrer"
           style={{display:'block',textAlign:'center',padding:'16px',borderRadius:'14px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'15px',textDecoration:'none',marginBottom:'12px',boxShadow:`0 0 40px ${requiredMeta.color}44`,fontFamily:FONT}}>
           {requiredMeta.emoji} Upgrade to {requiredMeta.name} →
         </a>
@@ -155,6 +148,8 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
 function LockedPage({ moduleId, userPlan, onUpgrade }) {
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
+  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
+
   const moduleNames = {
     subscriptions: 'Subscription Tracker',
     goals:         '30-Day Challenge',
@@ -173,38 +168,23 @@ function LockedPage({ moduleId, userPlan, onUpgrade }) {
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'40px',background:'#0a0a0f'}}>
       <div style={{maxWidth:'480px',width:'100%',textAlign:'center'}}>
-        <div style={{width:'80px',height:'80px',borderRadius:'24px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',margin:'0 auto 28px'}}>
-          🔒
-        </div>
-        <div style={{fontFamily:MONO,fontSize:'11px',color:requiredMeta.color,letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:'12px'}}>
-          {requiredMeta.name} Plan Required
-        </div>
-        <h2 style={{color:'#f1f0ff',fontSize:'28px',fontWeight:700,letterSpacing:'-0.03em',margin:'0 0 16px',fontFamily:FONT,lineHeight:1.1}}>
-          {moduleNames[moduleId]}
-        </h2>
-        <p style={{color:'#a09ab8',fontSize:'15px',lineHeight:1.7,margin:'0 0 40px',fontFamily:FONT,fontWeight:300}}>
-          {moduleDescs[moduleId]}
-        </p>
-
-        {/* Feature pills */}
+        <div style={{width:'80px',height:'80px',borderRadius:'24px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',margin:'0 auto 28px'}}>🔒</div>
+        <div style={{fontFamily:MONO,fontSize:'11px',color:requiredMeta.color,letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:'12px'}}>{requiredMeta.name} Plan Required</div>
+        <h2 style={{color:'#f1f0ff',fontSize:'28px',fontWeight:700,letterSpacing:'-0.03em',margin:'0 0 16px',fontFamily:FONT,lineHeight:1.1}}>{moduleNames[moduleId]}</h2>
+        <p style={{color:'#a09ab8',fontSize:'15px',lineHeight:1.7,margin:'0 0 40px',fontFamily:FONT,fontWeight:300}}>{moduleDescs[moduleId]}</p>
         <div style={{display:'flex',flexWrap:'wrap',gap:'8px',justifyContent:'center',marginBottom:'40px'}}>
           {(required === 'pro'
             ? ['Subscription Tracker','30-Day Challenge','AI Advisor']
             : ['Live Investments','Monthly Summary','Priority Support']
           ).map(f => (
-            <span key={f} style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 14px',borderRadius:'100px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,color:requiredMeta.color,fontSize:'12px',fontFamily:FONT}}>
-              ✓ {f}
-            </span>
+            <span key={f} style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 14px',borderRadius:'100px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,color:requiredMeta.color,fontSize:'12px',fontFamily:FONT}}>✓ {f}</span>
           ))}
         </div>
-
-        <button onClick={onUpgrade}
-          style={{display:'block',width:'100%',padding:'18px',borderRadius:'16px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'16px',border:'none',cursor:'pointer',boxShadow:`0 0 60px ${requiredMeta.color}44`,fontFamily:FONT,marginBottom:'12px'}}>
+        <a href={upgradeLink} target="_blank" rel="noreferrer"
+          style={{display:'block',width:'100%',padding:'18px',borderRadius:'16px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'16px',textDecoration:'none',boxShadow:`0 0 60px ${requiredMeta.color}44`,fontFamily:FONT,marginBottom:'12px'}}>
           {requiredMeta.emoji} Upgrade to {requiredMeta.name} · {requiredMeta.price}
-        </button>
-        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>
-          Cancel anytime · Instant activation via Whop
-        </div>
+        </a>
+        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>Cancel anytime · Instant activation via Whop</div>
       </div>
     </div>
   )
@@ -246,10 +226,7 @@ export default function Dashboard() {
   }
 
   function navigateTo(moduleId) {
-    if (!canAccess(user?.plan, moduleId)) {
-      setUpgradeModal(moduleId)
-      return
-    }
+    if (!canAccess(user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
     setPage(moduleId)
   }
 
@@ -270,6 +247,7 @@ export default function Dashboard() {
 
   const userPlan = user.plan || 'starter'
   const planMeta = PLAN_META[userPlan] || PLAN_META.starter
+  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan]
 
   const totalIncome = income.reduce((a,i) => a+Number(i.amount), 0)
   const totalExp = expenses.reduce((a,e) => a+Number(e.amount), 0)
@@ -283,15 +261,15 @@ export default function Dashboard() {
   return (
     <div style={{background:'#0a0a0f',fontFamily:FONT,minHeight:'100vh',display:'flex'}}>
       <style>{`
-      .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
-      .recharts-default-tooltip { background: #12121c !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; }
-      .recharts-tooltip-label { color: rgba(255,255,255,0.5) !important; }
-      .recharts-tooltip-item { color: #f5f5f7 !important; }
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
+        .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
+        .recharts-default-tooltip { background: #12121c !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; }
+        .recharts-tooltip-label { color: rgba(255,255,255,0.5) !important; }
+        .recharts-tooltip-item { color: #f5f5f7 !important; }
         @media(max-width:768px){
           .sidebar{display:none!important}
           .tabbar{display:flex!important}
@@ -303,14 +281,7 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* UPGRADE MODAL */}
-      {upgradeModal && (
-        <UpgradeModal
-          moduleId={upgradeModal}
-          userPlan={userPlan}
-          onClose={() => setUpgradeModal(null)}
-        />
-      )}
+      {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
 
       {/* SIDEBAR */}
       <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px'}}>
@@ -325,12 +296,15 @@ export default function Dashboard() {
         {/* PLAN BADGE */}
         <div style={{background:`rgba(${hexToRgb(planMeta.color)},0.1)`,border:`1px solid ${planMeta.color}44`,borderRadius:'10px',padding:'9px 12px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'8px'}}>
           <span style={{fontSize:'14px'}}>{planMeta.emoji}</span>
-          <div>
+          <div style={{flex:1}}>
             <div style={{color:planMeta.color,fontSize:'12px',fontWeight:700,fontFamily:MONO,letterSpacing:'0.05em'}}>{planMeta.name.toUpperCase()}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:FONT}}>{planMeta.price}</div>
           </div>
-          {userPlan !== 'elite' && (
-            <a href="https://whop.com/burnrate-os" style={{marginLeft:'auto',fontSize:'10px',color:'rgba(255,255,255,0.3)',textDecoration:'none',fontFamily:FONT}}>↑ up</a>
+          {upgradeLink && (
+            <a href={upgradeLink} target="_blank" rel="noreferrer"
+              style={{fontSize:'10px',color:'rgba(255,255,255,0.35)',textDecoration:'none',fontFamily:FONT,background:'rgba(255,255,255,0.06)',padding:'3px 8px',borderRadius:'6px',whiteSpace:'nowrap'}}>
+              ↑ upgrade
+            </a>
           )}
         </div>
 
@@ -341,7 +315,7 @@ export default function Dashboard() {
             const locked = !canAccess(userPlan, item.id)
             return (
               <button key={item.id} onClick={() => navigateTo(item.id)}
-                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:active?600:400,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:locked?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT,position:'relative'}}>
+                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:active?600:400,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:locked?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
                 <span style={{fontSize:'14px',opacity:locked?0.5:1}}>{item.icon}</span>
                 <span style={{flex:1}}>{item.label}</span>
                 {locked && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
@@ -385,7 +359,7 @@ export default function Dashboard() {
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} onUpgrade={setUpgradeModal} />}
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
@@ -408,9 +382,7 @@ export default function Dashboard() {
                 <span style={{opacity:locked?0.4:1}}>{item.icon}</span>
                 {locked && <span style={{position:'absolute',top:'-4px',right:'-4px',fontSize:'8px'}}>🔒</span>}
               </div>
-              <span style={{fontSize:'9px',fontWeight:active?600:400,color:active?t.text:locked?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>
-                {item.label}
-              </span>
+              <span style={{fontSize:'9px',fontWeight:active?600:400,color:active?t.text:locked?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>{item.label}</span>
             </button>
           )
         })}
@@ -424,11 +396,7 @@ function Card({ children, style={}, accent=null }) {
   const rgb = accent ? hexToRgb(accent) : null
   const bg = rgb ? `rgba(${rgb},0.06)` : 'rgba(255,255,255,0.03)'
   const border = rgb ? `rgba(${rgb},0.14)` : 'rgba(255,255,255,0.07)'
-  return (
-    <div style={{background:bg,border:`1px solid ${border}`,borderRadius:'16px',animation:'fadeIn 0.3s ease',...style}}>
-      {children}
-    </div>
-  )
+  return <div style={{background:bg,border:`1px solid ${border}`,borderRadius:'16px',animation:'fadeIn 0.3s ease',...style}}>{children}</div>
 }
 
 function StatCard({ label, value, sub, color, icon, accent=null }) {
@@ -479,19 +447,13 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan, onUpgrade }) {
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
-
-  const pieData = [
-    { name:'Subscriptions', value:totalSubs },
-    { name:'Expenses',      value:totalExp },
-    { name:'Saved',         value:Math.max(0, netBal) },
-  ].filter(d => d.value > 0)
-
-  const barData = expenses.slice(-6).map((e,i) => ({ name:e.description?.slice(0,8)||`#${i+1}`, amount:Number(e.amount) }))
+  const pieData = [{name:'Subscriptions',value:totalSubs},{name:'Expenses',value:totalExp},{name:'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
+  const barData = expenses.slice(-6).map((e,i)=>({name:e.description?.slice(0,8)||`#${i+1}`,amount:Number(e.amount)}))
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
@@ -501,11 +463,10 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} days left in month</p>
         </div>
         <button onClick={onSummary}
-          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
+          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
           📋 Monthly Summary {!canAccess(userPlan,'summary') && '🔒'}
         </button>
       </div>
-
       {deadSubs.length > 0 && (
         <div style={{display:'flex',gap:'12px',padding:'14px 18px',borderRadius:'14px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',marginBottom:'20px'}}>
           <span>⚠️</span>
@@ -515,14 +476,12 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           </div>
         </div>
       )}
-
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
         <StatCard accent={theme.accent} label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
         <StatCard accent={theme.accent} label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subs" color="#fb7185" icon="🔥" />
         <StatCard accent={theme.accent} label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
         <StatCard accent={theme.accent} label="Portfolio" value={`$${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
-
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Breakdown</div>
@@ -532,7 +491,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={78} paddingAngle={5} dataKey="value">
                   {pieData.map((_,i) => <Cell key={i} fill={theme.chart[i]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} /> 
+                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
@@ -544,7 +503,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
             ))}
           </div>
         </Card>
-
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Recent Expenses</div>
           {barData.length > 0 ? (
@@ -562,7 +520,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No expenses yet</div>}
         </Card>
       </div>
-
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>⚔️ Top Subscriptions</div>
@@ -580,7 +537,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
               </div>
             ))}
         </Card>
-
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>💸 Recent Spending</div>
           {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No expenses yet</div> :
@@ -675,7 +631,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
                 <Pie data={catData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">
                   {catData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data</div>}
@@ -943,7 +899,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
+            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
           </ResponsiveContainer>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -953,7 +909,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[6,6,0,0]} name="Cost"/>
               <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name="Value"/>
             </BarChart>
@@ -1054,7 +1010,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
                 <Bar dataKey="amount" radius={[6,6,0,0]}>{incomeData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0}/>)}</Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -1074,7 +1030,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
               </div>
             </div>
           </div>
-          <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',textAlign:'center',marginBottom:'14px',fontFamily:FONT}}>{sr>=30?'🎉 Above 30% target':sr>=15?'📈 Target is 30%':'⚠️ Below target'}</div>
+          <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',textAlign:'center',fontFamily:FONT}}>{sr>=30?'🎉 Above 30% target':sr>=15?'📈 Target is 30%':'⚠️ Below target'}</div>
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -1113,31 +1069,28 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
     setSelectedDay(day)
     if (aiTasks[day]) return
     setLoadingTasks(true)
-    const defaultTasks = DAILY_TASKS[(day-1) % DAILY_TASKS.length]
-    setAiTasks(prev => ({...prev, [day]: defaultTasks}))
+    setAiTasks(prev => ({...prev, [day]: DAILY_TASKS[(day-1) % DAILY_TASKS.length]}))
     try {
-      const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Each task should take less than 5 minutes. Return ONLY a JSON array of 3 strings, nothing else.`, context: `User spending: $${totalExp}, subscriptions: $${totalSubs}, income: $${totalIncome}` }) })
+      const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Return ONLY a JSON array of 3 strings.`, context: `spending: $${totalExp}, subs: $${totalSubs}, income: $${totalIncome}` }) })
       const data = await res.json()
-      const text = data.reply || ''
-      const match = text.match(/\[.*\]/s)
-      if (match) { const tasks = JSON.parse(match[0]); if (Array.isArray(tasks) && tasks.length > 0) setAiTasks(prev => ({...prev, [day]: tasks})) }
+      const match = (data.reply||'').match(/\[.*\]/s)
+      if (match) { const tasks = JSON.parse(match[0]); if (Array.isArray(tasks)&&tasks.length>0) setAiTasks(prev=>({...prev,[day]:tasks})) }
     } catch {}
     setLoadingTasks(false)
   }
 
-  function toggleTask(day, taskIdx) {
-    const key = `${day}-${taskIdx}`
-    const updated = {...completedTasks, [key]: !completedTasks[key]}
-    setCompletedTasks(updated)
-    localStorage.setItem('burnrate_completed_tasks', JSON.stringify(updated))
+  function toggleTask(day, idx) {
+    const key = `${day}-${idx}`
+    const updated = {...completedTasks,[key]:!completedTasks[key]}
+    setCompletedTasks(updated); localStorage.setItem('burnrate_completed_tasks',JSON.stringify(updated))
   }
 
   function completeDay(day) {
-    if (!completedDays.includes(day)) { const updated = [...completedDays, day]; setCompletedDays(updated); localStorage.setItem('burnrate_completed_days', JSON.stringify(updated)) }
+    if (!completedDays.includes(day)) { const u=[...completedDays,day]; setCompletedDays(u); localStorage.setItem('burnrate_completed_days',JSON.stringify(u)) }
     setSelectedDay(null)
   }
 
-  const dayTasks = selectedDay ? (aiTasks[selectedDay] || DAILY_TASKS[(selectedDay-1)%DAILY_TASKS.length]) : []
+  const dayTasks = selectedDay ? (aiTasks[selectedDay]||DAILY_TASKS[(selectedDay-1)%DAILY_TASKS.length]) : []
   const completedCount = completedDays.length
   const streakPct = Math.round(completedCount/Math.max(today,1)*100)
 
@@ -1159,14 +1112,11 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'8px'}}>
           {Array.from({length:30},(_,i)=>i+1).map(day => {
-            const isCompleted = completedDays.includes(day)
-            const isToday = day === today
-            const isPast = day <= today
-            const isSelected = selectedDay === day
+            const isCompleted=completedDays.includes(day), isToday=day===today, isPast=day<=today, isSelected=selectedDay===day
             return (
               <button key={day} onClick={()=>isPast&&loadTasksForDay(day)}
                 style={{aspectRatio:'1',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:isCompleted?`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`:isSelected?theme.bg:isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',border:isSelected?`2px solid ${theme.accent}`:isCompleted?'none':isToday?`1px solid rgba(255,255,255,0.2)`:'1px solid rgba(255,255,255,0.06)',color:isCompleted?'#fff':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',cursor:isPast?'pointer':'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s',fontFamily:FONT,boxShadow:isCompleted?`0 4px 12px ${theme.accent}44`:'none',transform:isSelected?'scale(1.08)':'scale(1)'}}>
-                {isCompleted ? '✓' : day}
+                {isCompleted?'✓':day}
               </button>
             )
           })}
@@ -1188,12 +1138,11 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
                 AI is generating your personalized tasks...
               </div>
             ) : dayTasks.map((task,idx) => {
-              const key = `${selectedDay}-${idx}`
-              const done = completedTasks[key]
+              const done = completedTasks[`${selectedDay}-${idx}`]
               return (
                 <div key={idx} onClick={()=>toggleTask(selectedDay,idx)}
                   style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px',borderRadius:'12px',background:done?theme.bg:'rgba(255,255,255,0.03)',border:done?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
-                  <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700,transition:'all 0.15s'}}>{done?'✓':''}</div>
+                  <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700}}>{done?'✓':''}</div>
                   <span style={{fontSize:'14px',color:done?theme.text:'rgba(255,255,255,0.8)',fontWeight:done?600:400,fontFamily:FONT,flex:1,lineHeight:'1.4'}}>{task}</span>
                   {done && <span style={{fontSize:'11px',color:theme.text,fontFamily:MONO,opacity:0.7}}>done</span>}
                 </div>
@@ -1203,8 +1152,8 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
             <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>{dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of {dayTasks.length} tasks completed</div>
             <button onClick={()=>completeDay(selectedDay)}
-              style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
-              {completedDays.includes(selectedDay) ? '✓ Day Completed!' : '🎯 Complete Day →'}
+              style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT}}>
+              {completedDays.includes(selectedDay)?'✓ Day Completed!':'🎯 Complete Day →'}
             </button>
           </div>
         </Card>
@@ -1218,18 +1167,13 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
-  const totalSpend = totalExp + totalSubs
+  const totalSpend = totalExp+totalSubs
   const topExpense = expenses.length>0?expenses.reduce((a,e)=>Number(e.amount)>Number(a.amount)?e:a,expenses[0]):{description:'—',amount:0}
   const deadSubs = subs.filter(s=>s.status==='dead')
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
   const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
   const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-  const chartData = [
-    {name:'Income',value:totalIncome,fill:'#6ee7b7'},
-    {name:'Expenses',value:totalExp,fill:'#f97316'},
-    {name:'Subs',value:totalSubs,fill:'#ef4444'},
-    {name:'Saved',value:Math.max(0,netBal),fill:'#7c3aed'},
-  ]
+  const chartData = [{name:'Income',value:totalIncome,fill:'#6ee7b7'},{name:'Expenses',value:totalExp,fill:'#f97316'},{name:'Subs',value:totalSubs,fill:'#ef4444'},{name:'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
@@ -1259,7 +1203,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle}itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="value" radius={[8,8,0,0]}>{chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}</Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -1299,7 +1243,7 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
   const suggestions = ["Which subscriptions should I cancel?","How can I improve my savings rate?","Give me investment advice","Where am I leaking money?"]
 
   async function send(msg) {
-    const userMsg = msg || input.trim()
+    const userMsg = msg||input.trim()
     if (!userMsg||loading) return
     setInput('')
     setMessages(prev=>[...prev,{role:'user',text:userMsg}])
