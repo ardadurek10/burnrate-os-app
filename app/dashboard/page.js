@@ -6,6 +6,97 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
 const MONO = "'DM Mono',monospace"
 
+// ── LANGUAGE SYSTEM ──────────────────────────────────────────────
+const LANG_STORAGE_KEY = 'burnrate_lang'
+
+const DASHBOARD_TRANSLATIONS = {
+  en: {
+    overview: 'Overview', subscriptions: 'Subscriptions', spending: 'Spending',
+    investments: 'Investments', balance: 'Balance', challenge: 'Challenge',
+    ai_advisor: 'AI Advisor', monthly_summary: 'Monthly Summary',
+    sign_out: 'Sign out →', command_center: 'command center',
+    greeting_morning: 'Good morning', greeting_afternoon: 'Good afternoon',
+    greeting_evening: 'Good evening', greeting_night: 'Good night',
+    days_left: 'days left in month', monthly_summary_btn: '📋 Monthly Summary',
+    powered_by: 'powered by claude',
+  },
+  tr: {
+    overview: 'Genel Bakış', subscriptions: 'Abonelikler', spending: 'Harcamalar',
+    investments: 'Yatırımlar', balance: 'Bakiye', challenge: 'Meydan Okuma',
+    ai_advisor: 'Yapay Zeka', monthly_summary: 'Aylık Özet',
+    sign_out: 'Çıkış Yap →', command_center: 'komuta merkezi',
+    greeting_morning: 'Günaydın', greeting_afternoon: 'İyi öğlenler',
+    greeting_evening: 'İyi akşamlar', greeting_night: 'İyi geceler',
+    days_left: 'gün kaldı', monthly_summary_btn: '📋 Aylık Özet',
+    powered_by: 'claude ile güçlendirildi',
+  }
+}
+
+function getLang() {
+  if (typeof window === 'undefined') return 'en'
+  return localStorage.getItem(LANG_STORAGE_KEY) || 'en'
+}
+
+function setDashboardLang(lang) {
+  if (typeof window !== 'undefined') localStorage.setItem(LANG_STORAGE_KEY, lang)
+}
+
+function t(key) {
+  const lang = getLang()
+  return DASHBOARD_TRANSLATIONS[lang]?.[key] || DASHBOARD_TRANSLATIONS['en'][key] || key
+}
+
+function getGreeting(name) {
+  const hour = new Date().getHours()
+  let key
+  if (hour >= 6 && hour < 12) key = 'greeting_morning'
+  else if (hour >= 12 && hour < 18) key = 'greeting_afternoon'
+  else if (hour >= 18 && hour < 24) key = 'greeting_evening'
+  else key = 'greeting_night'
+  const greet = t(key)
+  const emoji = hour >= 6 && hour < 12 ? '☀️' : hour >= 12 && hour < 18 ? '🌤️' : hour >= 18 && hour < 22 ? '🌙' : '⭐'
+  return `${greet}, ${name} ${emoji}`
+}
+
+// ── LOGO SVG ──────────────────────────────────────────────────────
+const LOGO_SVG = (size = 32) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="dashFireGrad" x1="0.2" y1="1" x2="0.2" y2="0">
+        <stop offset="0%" stopColor="#ef4444"/>
+        <stop offset="40%" stopColor="#f59e0b"/>
+        <stop offset="85%" stopColor="#a78bfa"/>
+        <stop offset="100%" stopColor="#c4b5fd"/>
+      </linearGradient>
+      <linearGradient id="dashBgGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#111120"/>
+        <stop offset="100%" stopColor="#0a0a0f"/>
+      </linearGradient>
+      <linearGradient id="dashBorderGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#7c3aed"/>
+        <stop offset="100%" stopColor="#4c1d95"/>
+      </linearGradient>
+      <clipPath id="dashSq">
+        <rect x="0" y="0" width="100" height="100" rx="22"/>
+      </clipPath>
+    </defs>
+    <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#dashBgGrad)"/>
+    <rect x="0" y="0" width="100" height="100" rx="22" fill="none" stroke="url(#dashBorderGrad)" strokeWidth="1.5"/>
+    <g clipPath="url(#dashSq)" opacity="0.12">
+      <line x1="0" y1="25" x2="100" y2="25" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="0" y1="50" x2="100" y2="50" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="0" y1="75" x2="100" y2="75" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="25" y1="0" x2="25" y2="100" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="50" y1="0" x2="50" y2="100" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="75" y1="0" x2="75" y2="100" stroke="#7c3aed" strokeWidth="0.8"/>
+    </g>
+    <path d="M50 88 C32 88 18 76 19 62 C20 52 28 46 27 36 C27 27 22 20 20 12 C32 20 37 31 36 42 C42 30 44 14 39 2 C54 14 58 32 55 48 C61 36 63 18 58 4 C74 20 77 44 71 60 C77 48 79 32 74 18 C88 36 90 60 82 74 C80 62 80 48 76 36 C86 52 85 74 76 84 C68 90 58 88 50 88Z" fill="url(#dashFireGrad)"/>
+    <path d="M50 80 C36 80 28 70 29 60 C30 52 36 47 35 38 C35 30 32 24 30 17 C40 25 43 35 41 45 C47 35 48 22 44 12 C56 22 58 38 54 52 C59 42 60 28 56 18 C66 32 67 50 62 62 C66 54 67 42 63 34 C70 46 69 62 63 72 C57 80 50 80 50 80Z" fill="#fff" opacity="0.07"/>
+  </svg>
+)
+
+
+
 // ── PLAN CONFIG ───────────────────────────────────────────────────
 const PLAN_ACCESS = {
   starter: ['dashboard', 'spending', 'balance'],
@@ -198,6 +289,16 @@ export default function Dashboard() {
   const [income, setIncome] = useState([])
   const [investments, setInvestments] = useState([])
   const [upgradeModal, setUpgradeModal] = useState(null)
+  const [lang, setLang] = useState('en')
+
+  useEffect(() => {
+    setLang(getLang())
+  }, [])
+
+  function changeLang(l) {
+    setDashboardLang(l)
+    setLang(l)
+  }
 
   useEffect(() => {
     try {
@@ -286,10 +387,10 @@ export default function Dashboard() {
       {/* SIDEBAR */}
       <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
-          <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',flexShrink:0}}>🔥</div>
+          <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
             <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
-            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>command center</div>
+            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{lang==='tr'?'komuta merkezi':'command center'}</div>
           </div>
         </div>
 
@@ -306,6 +407,16 @@ export default function Dashboard() {
               ↑ upgrade
             </a>
           )}
+        </div>
+
+        {/* LANG TOGGLE */}
+        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',overflow:'hidden',marginBottom:'16px'}}>
+          {['en','tr'].map(l => (
+            <button key={l} onClick={()=>changeLang(l)}
+              style={{flex:1,padding:'6px 0',fontSize:'11px',fontFamily:MONO,fontWeight:500,color:lang===l?'#fff':'rgba(255,255,255,0.3)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',letterSpacing:'0.05em',transition:'all 0.2s'}}>
+              {l.toUpperCase()}
+            </button>
+          ))}
         </div>
 
         <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
@@ -359,7 +470,7 @@ export default function Dashboard() {
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} />}
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
@@ -447,7 +558,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan }) {
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan, userName, lang }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -459,12 +570,12 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'28px',flexWrap:'wrap',gap:'12px'}}>
         <div>
-          <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>Good morning ☀️</h1>
-          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} days left in month</p>
+          <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{getGreeting(userName)}</h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} {lang==='tr'?'gün kaldı':'days left in month'}</p>
         </div>
         <button onClick={onSummary}
           style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
-          📋 Monthly Summary {!canAccess(userPlan,'summary') && '🔒'}
+          📋 {lang==='tr'?'📋 Aylık Özet':'📋 Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
         </button>
       </div>
       {deadSubs.length > 0 && (
@@ -771,12 +882,11 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
 }
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
-// Bu kodu dashboard/page.js içindeki InvestmentsPage fonksiyonuyla değiştir
-
 function InvestmentsPage({ theme, investments, setInvestments }) {
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock',currency:'USD',currencySymbol:'$'})
-  const [prices, setPrices] = useState({})       // { AAPL: { price, priceUSD, currency, currencySymbol, change } }
+  const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
+  const [prices, setPrices] = useState({})
+  const [changes, setChanges] = useState({})
   const [loadingPrices, setLoadingPrices] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -787,25 +897,15 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
   async function fetchPrices() {
     if (investments.length === 0) return
     setLoadingPrices(true)
-    const up = {}
+    const up = {}, uc = {}
     for (const inv of investments) {
       try {
         const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
         const data = await res.json()
-        if (data.price) {
-          up[inv.symbol] = {
-            price:          parseFloat(data.price),
-            priceUSD:       parseFloat(data.priceUSD || data.price),
-            change:         parseFloat(data.change || 0),
-            currency:       data.currency || inv.currency || 'USD',
-            currencySymbol: data.currencySymbol || inv.currencySymbol || '$',
-          }
-        }
+        if (data.price) { up[inv.symbol]=parseFloat(data.price); uc[inv.symbol]=parseFloat(data.change) }
       } catch {}
     }
-    setPrices(up)
-    setLastUpdated(new Date().toLocaleTimeString())
-    setLoadingPrices(false)
+    setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString()); setLoadingPrices(false)
   }
 
   useEffect(() => {
@@ -827,147 +927,62 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
   }
 
   async function selectStock(stock) {
-    setSearchQuery(stock.name)
-    setSearchResults([])
-    setFetchingPrice(true)
+    setSearchQuery(stock.name); setSearchResults([]); setFetchingPrice(true)
     try {
       const res = await fetch(`/api/stocks?symbol=${stock.symbol}`)
       const data = await res.json()
-      setForm(f => ({
-        ...f,
-        symbol:         stock.symbol,
-        name:           stock.name,
-        type:           stock.type,
-        currentPrice:   data.price || '',
-        currency:       data.currency || 'USD',
-        currencySymbol: data.currencySymbol || '$',
-      }))
+      setForm(f => ({...f, symbol:stock.symbol, name:stock.name, type:stock.type, currentPrice:data.price||''}))
     } catch {}
     setFetchingPrice(false)
   }
 
   function addInv() {
-    if (!form.symbol || !form.shares || !form.buyPrice) return
-    setInvestments([...investments, {
-      ...form,
-      shares:         parseFloat(form.shares),
-      buyPrice:       parseFloat(form.buyPrice),
-      currentPrice:   parseFloat(form.currentPrice) || 0,
-      id:             Date.now(),
-    }])
-    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock',currency:'USD',currencySymbol:'$'})
-    setSearchQuery('')
-    setAdding(false)
+    if (!form.symbol||!form.shares||!form.buyPrice) return
+    setInvestments([...investments,{...form,shares:parseFloat(form.shares),buyPrice:parseFloat(form.buyPrice),currentPrice:parseFloat(form.currentPrice)||0,id:Date.now()}])
+    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'}); setSearchQuery(''); setAdding(false)
   }
+  function del(id) { setInvestments(investments.filter(i=>i.id!==id)) }
 
-  function del(id) { setInvestments(investments.filter(i => i.id !== id)) }
-
-  // Portfolio hesabı — her zaman USD üzerinden
-  const totalValue = investments.reduce((a, inv) => {
-    const p = prices[inv.symbol]
-    const usdPrice = p ? p.priceUSD : (inv.currentPrice * (inv.currency === 'TRY' ? 0.028 : 1))
-    return a + inv.shares * usdPrice
-  }, 0)
-
-  const totalCost = investments.reduce((a, inv) => {
-    const buyUSD = inv.currency === 'TRY' || inv.buyPriceCurrency === 'TRY'
-      ? inv.buyPrice * 0.028
-      : inv.buyPrice
-    return a + inv.shares * buyUSD
-  }, 0)
-
+  const totalValue = investments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
+  const totalCost = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
   const totalGain = totalValue - totalCost
-  const gainPct = totalCost > 0 ? ((totalGain / totalCost) * 100).toFixed(2) : 0
-
-  const pieData = investments.map(inv => {
-    const p = prices[inv.symbol]
-    const usdPrice = p ? p.priceUSD : inv.currentPrice
-    return { name: inv.symbol, value: inv.shares * usdPrice }
-  })
-
-  const barData = investments.map(inv => {
-    const p = prices[inv.symbol]
-    const usdLive = p ? p.priceUSD : inv.currentPrice
-    const usdBuy = inv.currency === 'TRY' ? inv.buyPrice * 0.028 : inv.buyPrice
-    return {
-      name:  inv.symbol,
-      cost:  parseFloat((inv.shares * usdBuy).toFixed(2)),
-      value: parseFloat((inv.shares * usdLive).toFixed(2)),
-    }
-  })
-
-  const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
-  const MONO = "'DM Mono',monospace"
-  const VAL  = { fontFamily: MONO }
-  const TIP  = { fontFamily:MONO, fontSize:'10px', letterSpacing:'1px', textTransform:'uppercase', color:'rgba(255,255,255,0.25)' }
-  const tooltipStyle = { background:'#12121c', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'12px', color:'#f5f5f7', fontSize:'12px', fontFamily:FONT }
-  const tooltipItemStyle  = { color:'#f5f5f7' }
-  const tooltipLabelStyle = { color:'rgba(255,255,255,0.5)', marginBottom:'4px' }
+  const gainPct = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
+  const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
+  const barData = investments.map(inv=>({name:inv.symbol,cost:parseFloat((inv.shares*inv.buyPrice).toFixed(2)),value:parseFloat((inv.shares*(prices[inv.symbol]||inv.currentPrice)).toFixed(2))}))
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      {/* HEADER */}
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'28px',flexWrap:'wrap',gap:'12px'}}>
-        <div>
-          <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'3px',fontFamily:FONT}}>📈 Investments</h1>
-          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>Live prices · Portfolio in USD</p>
-        </div>
-        <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-          {lastUpdated && (
-            <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-              <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div>
-              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span>
-            </div>
-          )}
-          <button onClick={()=>setAdding(!adding)}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>
-            + Add Position
-          </button>
-        </div>
-      </div>
-
-      {/* STATS */}
-      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        {[
-          ['Portfolio Value','$'+totalValue.toFixed(2),theme.text,'💼'],
-          ['Total Cost (USD)','$'+totalCost.toFixed(2),'rgba(255,255,255,0.6)','💸'],
-          ['Total Gain/Loss',(totalGain>=0?'+':'')+`$${totalGain.toFixed(2)}`,totalGain>=0?'#6ee7b7':'#fca5a5',totalGain>=0?'📈':'📉'],
-          ['Positions',investments.length,theme.text,'🎯'],
-        ].map(([label,value,color,icon])=>(
-          <div key={label} style={{background:`rgba(${require !== undefined ? '' : ''}16,185,129,0.06)`,border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'20px',animation:'fadeIn 0.3s ease'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
-              <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
-              <span style={{fontSize:'18px',opacity:0.6}}>{icon}</span>
-            </div>
-            <div style={{color,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',lineHeight:1,fontFamily:FONT}}>{value}</div>
+      <PageHeader theme={theme} title="📈 Investments" subtitle="Live prices update every 30 seconds."
+        action={
+          <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span></div>}
+            <AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />
           </div>
-        ))}
+        }
+      />
+      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
+        <StatCard accent={theme.accent} label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
+        <StatCard accent={theme.accent} label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
+        <StatCard accent={theme.accent} label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
+        <StatCard accent={theme.accent} label="Positions" value={investments.length} color={theme.text} icon="🎯" />
       </div>
-
-      {/* ADD FORM */}
       {adding && (
-        <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',marginBottom:'18px',animation:'fadeIn 0.3s ease'}}>
+        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div style={{marginBottom:'14px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>Search Stock or Crypto</div>
             <div style={{position:'relative'}}>
-              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)}
-                placeholder="AAPL, ASELS.IS, Bitcoin, Tesla..."
+              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder="Search Apple, Bitcoin, Tesla..."
                 style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
-              {(searching||fetchingPrice) && (
-                <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>
-                  {searching?'Searching...':'Fetching price...'}
-                </div>
-              )}
+              {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Searching...':'Fetching price...'}</div>}
               {searchResults.length > 0 && (
                 <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
                   {searchResults.map((s,i) => (
-                    <div key={i} onClick={()=>selectStock(s)}
-                      style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
+                    <div key={i} onClick={()=>selectStock(s)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
                       onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
                       onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                       <div>
                         <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{s.symbol}</div>
-                        <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{s.name} · {s.exchange}</div>
+                        <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{s.name}</div>
                       </div>
                       <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:s.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.type==='crypto'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.type}</span>
                     </div>
@@ -976,64 +991,30 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               )}
             </div>
           </div>
-
           {form.symbol && (
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-              <div>
-                <div style={{...TIP,marginBottom:'6px'}}>Symbol</div>
-                <div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div>
-              </div>
-              <div>
-                <div style={{...TIP,marginBottom:'6px'}}>Live Price</div>
-                <div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>
-                  {fetchingPrice ? 'Loading...' : form.currentPrice ? `${form.currencySymbol}${form.currentPrice}` : '—'}
-                </div>
-              </div>
-              <div>
-                <div style={{...TIP,marginBottom:'6px'}}>Currency</div>
-                <div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>
-                  {form.currency} {form.currencySymbol}
-                </div>
-              </div>
-              <div>
-                <div style={{...TIP,marginBottom:'6px'}}>Shares / Lot</div>
-                <input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2"
-                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
-              </div>
-              <div>
-                <div style={{...TIP,marginBottom:'6px'}}>Buy Price ({form.currencySymbol})</div>
-                <input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder={form.currency==='TRY'?'400.00':'150.00'}
-                  style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
-              </div>
+            <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Symbol</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Live Price</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Loading...':form.currentPrice?`$${form.currentPrice}`:'—'}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Type</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Shares / Amount</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Buy Price ($)</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
             </div>
           )}
-
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock',currency:'USD',currencySymbol:'$'})}}
-              style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
-            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice}
-              style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>
-              Add Position
-            </button>
+            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
+            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>Add Position</button>
           </div>
-        </div>
+        </Card>
       )}
-
-      {/* CHARTS */}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'14px',marginBottom:'14px'}}>
-        <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',animation:'fadeIn 0.3s ease'}}>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
           <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">
-                {pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}
-              </Pie>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
-            </PieChart>
+            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
           </ResponsiveContainer>
-        </div>
-        <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',animation:'fadeIn 0.3s ease'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Value (USD)</div>
+        </Card>
+        <Card accent={theme.accent} style={{padding:'22px'}}>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Current Value</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
@@ -1044,95 +1025,45 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
               <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name="Value"/>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
-
-      {/* TABLE */}
-      <div style={{background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.14)',borderRadius:'16px',padding:'22px',animation:'fadeIn 0.3s ease'}}>
+      <Card accent={theme.accent} style={{padding:'22px'}}>
         <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>All Positions</div>
         <div style={{overflowX:'auto'}}>
-          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'700px'}}>
-            <thead>
-              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                {['Symbol','Name','Shares','Buy Price','Live Price','24h','Value (USD)','Gain/Loss',''].map(h=>(
-                  <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>
-                ))}
-              </tr>
-            </thead>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
+            <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Symbol','Name','Shares','Buy Price','Live Price','24h','Value','Gain/Loss',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
             <tbody>
-              {investments.length === 0 ? (
-                <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet. Search and add your first one.</td></tr>
-              ) : investments.map((inv, i) => {
-                const p = prices[inv.symbol]
-                const sym = inv.currencySymbol || (p?.currencySymbol) || '$'
-                const cur = inv.currency || (p?.currency) || 'USD'
-                const livePrice    = p?.price || inv.currentPrice
-                const livePriceUSD = p?.priceUSD || (cur === 'TRY' ? inv.currentPrice * 0.028 : inv.currentPrice)
-                const buyUSD       = cur === 'TRY' ? inv.buyPrice * 0.028 : inv.buyPrice
-                const change       = p?.change || 0
-                const val          = inv.shares * livePriceUSD
-                const cost         = inv.shares * buyUSD
-                const gain         = val - cost
-                const gp           = cost > 0 ? ((gain / cost) * 100).toFixed(1) : 0
-                const isLive       = !!p
-                const changePos    = change >= 0
-
+              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet.</td></tr>
+              : investments.map((inv,i)=>{
+                const livePrice=prices[inv.symbol]||inv.currentPrice, change=changes[inv.symbol]||0
+                const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
+                const gp=cost>0?((gain/cost)*100).toFixed(1):0, isLive=!!prices[inv.symbol], changePos=change>=0
                 return (
-                  <tr key={inv.id || i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                    {/* Symbol */}
+                  <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 8px 12px 0',...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</td>
-                    {/* Name */}
                     <td style={{padding:'12px 8px',color:'rgba(255,255,255,0.6)',fontSize:'12px',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:FONT}}>{inv.name}</td>
-                    {/* Shares */}
                     <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
-                    {/* Buy Price — orijinal para biriminde */}
-                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{sym}{inv.buyPrice.toFixed(2)}</td>
-                    {/* Live Price — orijinal para biriminde */}
+                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
                     <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>
-                        {loadingPrices && !isLive ? '...' : `${sym}${parseFloat(livePrice).toFixed(2)}`}
-                      </div>
-                      {cur !== 'USD' && (
-                        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>≈ ${livePriceUSD}</div>
-                      )}
-                      {isLive && (
-                        <div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}>
-                          <div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div>
-                          <span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>LIVE</span>
-                        </div>
-                      )}
+                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>{loadingPrices&&!isLive?'...':`$${livePrice.toFixed(2)}`}</div>
+                      {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>LIVE</span></div>}
                     </td>
-                    {/* 24h change */}
                     <td style={{padding:'12px 8px'}}>
-                      {isLive ? (
-                        <div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}>
-                          <span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span>
-                        </div>
-                      ) : <span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
+                      {isLive?<div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}><span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span></div>:<span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
                     </td>
-                    {/* Value in USD */}
                     <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>${val.toFixed(2)}</td>
-                    {/* Gain/Loss */}
                     <td style={{padding:'12px 8px'}}>
                       <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}${gain.toFixed(2)}</div>
                       <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
                     </td>
-                    {/* Delete */}
-                    <td style={{padding:'12px 0'}}>
-                      <button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button>
-                    </td>
+                    <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
-        {investments.some(inv => (inv.currency || 'USD') !== 'USD') && (
-          <div style={{marginTop:'14px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>
-            ℹ️ Non-USD positions are converted to USD using approximate exchange rates for portfolio calculations.
-          </div>
-        )}
-      </div>
+      </Card>
     </div>
   )
 }
