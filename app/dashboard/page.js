@@ -476,13 +476,13 @@ export default function Dashboard() {
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto'}}>
         {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
-        {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
-        {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} />}
+        {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
+        {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
-        {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} />}
-        {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
-        {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
-        {page==='ai'            && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
+        {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
+        {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
+        {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
+        {page==='ai'            && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -593,10 +593,10 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
       )}
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
-        <StatCard accent={theme.accent} label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subs" color="#fb7185" icon="🔥" />
-        <StatCard accent={theme.accent} label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':'Net Balance'} value={`₺${Math.abs(netBal).toFixed(0)}`} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Harcama':'Monthly Burn'} value={`₺${(totalExp+totalSubs).toFixed(0)}`} sub={lang==='tr'?'harcama + abonelik':'expenses + subs'} color="#fb7185" icon="🔥" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -607,7 +607,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={78} paddingAngle={5} dataKey="value">
                   {pieData.map((_,i) => <Cell key={i} fill={theme.chart[i]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
@@ -627,7 +627,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false} />
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false} />
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                <Tooltip formatter={v=>`₺${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 <Bar dataKey="amount" radius={[6,6,0,0]}>
                   {barData.map((_,i) => <Cell key={i} fill={THEMES.spending.chart[i%5]} />)}
                 </Bar>
@@ -647,7 +647,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                   <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:FONT}}>{s.category}</div>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                  <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>${Number(s.cost).toFixed(2)}</span>
+                  <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>₺${Number(s.cost).toFixed(2)}</span>
                   <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status}</span>
                 </div>
               </div>
@@ -672,7 +672,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 }
 
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
-function SubsPage({ theme, subs, userId, onRefresh }) {
+function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
   const [form, setForm] = useState({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
   const [adding, setAdding] = useState(false)
 
@@ -691,12 +691,12 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title="⚔️ Subscription Guillotine" subtitle="Track every recurring charge. Kill the dead ones."
-        action={<AddBtn theme={theme} label="+ Add Subscription" onClick={()=>setAdding(!adding)} />} />
+      <PageHeader theme={theme} title={lang==='tr'?'⚔️ Abonelik Guillotine':'⚔️ Subscription Guillotine'} subtitle={lang==='tr'?'Tüm yinelenen ücretleri takip et. Ölüleri öldür.':'Track every recurring charge. Kill the dead ones.'}
+        action={<AddBtn theme={theme} label={lang==='tr'?'+ Abonelik Ekle':'+ Add Subscription'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label="Monthly Cost" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label="Dead Tools" value={dead.length} sub={`$${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
-        <StatCard accent={theme.accent} label="Worth Keeping" value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Maliyet':'Monthly Cost'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Ölü Araçlar':'Dead Tools'} value={dead.length} sub={`₺${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Tutmaya Değer':'Worth Keeping'} value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
@@ -728,7 +728,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
                 : subs.map(s=>(
                   <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
-                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>${Number(s.cost).toFixed(2)}</td>
+                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺${Number(s.cost).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{s.category}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{s.days_since_used===0?'Today':`${s.days_since_used}d ago`}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span></td>
@@ -747,7 +747,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
                 <Pie data={catData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">
                   {catData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data</div>}
@@ -758,7 +758,7 @@ function SubsPage({ theme, subs, userId, onRefresh }) {
 }
 
 // ── SPENDING ──────────────────────────────────────────────────────
-function SpendingPage({ theme, expenses, userId, onRefresh }) {
+function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
   const [form, setForm] = useState({description:'',amount:'',category:'impulse',expense_date:''})
   const [adding, setAdding] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -780,13 +780,13 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title="💸 Daily Spending" subtitle="Track impulse buys and convenience leaks."
-        action={<AddBtn theme={theme} label="+ Log Expense" onClick={()=>setAdding(!adding)} />} />
+      <PageHeader theme={theme} title={lang==='tr'?'💸 Günlük Harcama':'💸 Daily Spending'} subtitle={lang==='tr'?'Ani alımları ve sızıntıları takip et.':'Track impulse buys and convenience leaks.'}
+        action={<AddBtn theme={theme} label={lang==='tr'?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label="Total Spent" value={`$${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label="Leak Amount" value={`$${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
-        <StatCard accent={theme.accent} label="Transactions" value={expenses.length} color={theme.text} icon="📋" />
-        <StatCard accent={theme.accent} label="Avg / Transaction" value={expenses.length>0?`$${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
       </div>
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
@@ -827,7 +827,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
                 <XAxis dataKey="day" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+                <Tooltip formatter={v=>`₺${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
                 <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2.5} fill="url(#spendGrad)"/>
               </AreaChart>
             </ResponsiveContainer>
@@ -1074,7 +1074,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
 }
 
 // ── BALANCE ───────────────────────────────────────────────────────
-function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh }) {
+function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, lang='en' }) {
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
 
@@ -1090,16 +1090,16 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title="💰 Balance & Savings" subtitle="Track income and your savings rate."
-        action={<AddBtn theme={theme} label="+ Log Income" onClick={()=>setAdding(!adding)} />} />
+      <PageHeader theme={theme} title={lang==='tr'?'💰 Bakiye & Tasarruf':'💰 Balance & Savings'} subtitle={lang==='tr'?'Gelir ve tasarruf oranını takip et.':'Track income and your savings rate.'}
+        action={<AddBtn theme={theme} label={lang==='tr'?'+ Gelir Ekle':'+ Log Income'} onClick={()=>setAdding(!adding)} />} />
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
-        <div style={{...TIP,marginBottom:'8px'}}>Net Balance</div>
+        <div style={{...TIP,marginBottom:'8px'}}>{lang==='tr'?'Net Bakiye':'Net Balance'}</div>
         <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:700,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px',...VAL}}>
           ${Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
         </div>
-        <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px',fontFamily:FONT}}>{netBal>=0?'↑ You are net positive this month':'↓ Spending exceeds income'}</div>
+        <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px',fontFamily:FONT}}>{lang==='tr'?(netBal>=0?'↑ Bu ay net pozitifsiniz':'↓ Harcamalar geliri aşıyor'):(netBal>=0?'↑ You are net positive this month':'↓ Spending exceeds income')}</div>
         <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'20px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
-          {[['Total Income',`$${totalIncome.toFixed(2)}`,'#6ee7b7'],['Total Expenses',`$${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
+          {[['Total Income',`₺${totalIncome.toFixed(2)}`,'#6ee7b7'],['Total Expenses',`₺${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
             <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginBottom:'4px',fontFamily:FONT}}>{l}</div><div style={{color:c,fontSize:'20px',fontWeight:700,...VAL}}>{v}</div></div>
           ))}
         </div>
@@ -1126,7 +1126,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={v=>`$${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+                <Tooltip formatter={v=>`₺${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
                 <Bar dataKey="amount" radius={[6,6,0,0]}>{incomeData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0}/>)}</Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -1171,7 +1171,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 }
 
 // ── 30-DAY CHALLENGE ──────────────────────────────────────────────
-function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
+function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en' }) {
   const now = new Date()
   const today = now.getDate()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -1279,7 +1279,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome }) {
 }
 
 // ── MONTHLY SUMMARY ───────────────────────────────────────────────
-function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income }) {
+function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, lang='en' }) {
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
@@ -1302,10 +1302,10 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           <div>
             <div style={{...TIP,marginBottom:'10px'}}>Monthly Financial Grade</div>
             <div style={{fontSize:'80px',fontWeight:700,letterSpacing:'-4px',lineHeight:1,color:scoreColor,...VAL}}>{score}</div>
-            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending'}</div>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{lang==='tr'?(sr>=30?'🎉 Mükemmel!':sr>=20?'💪 İyi gidiyorsun!':sr>=10?'📈 Gelişme gerekli':'⚠️ Harcamalar azaltılmalı'):(sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending')}</div>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
-            {[['Net Balance',`$${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],['Total Income',`$${totalIncome.toFixed(0)}`,'#6ee7b7'],['Total Spend',`$${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
+            {[['Net Balance',`₺${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],['Total Income',`₺${totalIncome.toFixed(0)}`,'#6ee7b7'],['Total Spend',`₺${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
               <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div><div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div></div>
             ))}
           </div>
@@ -1319,7 +1319,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+              <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="value" radius={[8,8,0,0]}>{chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}</Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -1329,9 +1329,9 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
             {[
               {icon:'💸',label:'Biggest expense',value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
-              {icon:'💀',label:'Wasted on dead subs',value:wastedOnDead>0?`$${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉',color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
+              {icon:'💀',label:'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉',color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
               {icon:'📈',label:'Savings performance',value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
-              {icon:'🎯',label:'Next month target',value:`Save $${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`,color:theme.text},
+              {icon:'🎯',label:'Next month target',value:`Save ₺${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`,color:theme.text},
             ].map((item,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
                 <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
@@ -1349,14 +1349,14 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 }
 
 // ── AI ADVISOR ────────────────────────────────────────────────────
-function AIPage({ theme, user, subs, expenses, income, investments }) {
+function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
   const [messages, setMessages] = useState([
     { role:'ai', text:"Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const suggestions = ["Which subscriptions should I cancel?","How can I improve my savings rate?","Give me investment advice","Where am I leaking money?"]
+  const suggestions = lang==='tr'?["Hangi abonelikleri iptal etmeliyim?","Tasarruf oranımı nasıl artırabilirim?","Yatırım tavsiyesi ver","Para sızıntım nerede?"]:["Which subscriptions should I cancel?","How can I improve my savings rate?","Give me investment advice","Where am I leaking money?"]
 
   async function send(msg) {
     const userMsg = msg||input.trim()
@@ -1381,8 +1381,8 @@ function AIPage({ theme, user, subs, expenses, income, investments }) {
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
           <div>
-            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>AI Financial Advisor</h1>
-            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>powered by claude · sees your real data</div>
+            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
+            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
           </div>
         </div>
       </div>
