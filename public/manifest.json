@@ -1,28 +1,33 @@
 {
     "name": "BurnRate OS",
     "short_name": "BurnRate",
-    "description": "Your Financial Command Center",
+    "description": "Your Financial Command Center — Stop the leak.",
     "start_url": "/dashboard",
     "display": "standalone",
     "background_color": "#0a0a0f",
     "theme_color": "#7c3aed",
-    "orientation": "portrait",
+    "orientation": "portrait-primary",
     "icons": [
       {
-        "src": "https://burnrate-os.com/logo.svg",
-        "sizes": "any",
-        "type": "image/svg+xml",
+        "src": "/icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png",
         "purpose": "any maskable"
       }
     ],
     "screenshots": [
       {
-        "src": "https://burnrate-os.com/logo.svg",
+        "src": "/icon-512.png",
         "sizes": "512x512",
-        "type": "image/svg+xml"
+        "type": "image/png",
+        "form_factor": "narrow"
       }
     ],
-    "categories": ["finance", "productivity"],
-    "lang": "tr",
-    "dir": "ltr"
+    "categories": ["finance", "productivity"]
   }
