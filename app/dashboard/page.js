@@ -581,7 +581,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
-  const pieData = [{name:'Subscriptions',value:totalSubs},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
+  const pieData = [{name:(lang==='tr')?'Abonelikler':'Subscriptions',value:totalSubs},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
   const barData = expenses.slice(-6).map((e,i)=>({name:e.description?.slice(0,8)||`#${i+1}`,amount:Number(e.amount)}))
 
   return (
@@ -620,7 +620,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={78} paddingAngle={5} dataKey="value">
                   {pieData.map((_,i) => <Cell key={i} fill={theme.chart[i]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
@@ -813,7 +813,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                 <Pie data={catData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">
                   {catData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}
                 </Pie>
-                <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Veri yok':'No data'}</div>}
@@ -1142,7 +1142,7 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portföy Dağılımı</div>
           <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
+            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
           </ResponsiveContainer>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -1152,9 +1152,9 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
-              <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[6,6,0,0]} name="Cost"/>
-              <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name="Value"/>
+              <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+              <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[6,6,0,0]} name={lang==='tr'?'Maliyet':'Cost'}/>
+              <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name={lang==='tr'?'Değer':'Value'}/>
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -1459,7 +1459,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+              <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="value" radius={[8,8,0,0]}>{chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}</Bar>
             </BarChart>
           </ResponsiveContainer>
