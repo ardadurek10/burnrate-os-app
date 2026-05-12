@@ -324,10 +324,7 @@ export default function Dashboard() {
     setSubs(Array.isArray(s) ? s : [])
     setExpenses(Array.isArray(e) ? e : [])
     setIncome(Array.isArray(i) ? i : [])
-    setInvestments([
-      { id:1, symbol:'AAPL', name:'Apple Inc.', shares:2, buyPrice:150, currentPrice:189, type:'stock' },
-      { id:2, symbol:'BTC-USD', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
-    ])
+    setInvestments([])
   }
 
   function navigateTo(moduleId) {
@@ -593,14 +590,14 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
       )}
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':'Net Balance'} value={`₺${Math.abs(netBal).toFixed(0)}`} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':lang==='tr'?'Net Bakiye':'Net Balance'} value={`₺${Math.abs(netBal).toFixed(0)}`} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Harcama':'Monthly Burn'} value={`₺${(totalExp+totalSubs).toFixed(0)}`} sub={lang==='tr'?'harcama + abonelik':'expenses + subs'} color="#fb7185" icon="🔥" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={lang==='tr'?(invGain>=0?`+₺${invGain.toFixed(0)} kazanç`:`-₺${Math.abs(invGain).toFixed(0)} kayıp`):(invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`)} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Breakdown</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Harcama Dağılımı':'Spending Breakdown'}</div>
           {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
@@ -610,7 +607,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
+          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
           <div style={{display:'flex',gap:'14px',justifyContent:'center',marginTop:'8px'}}>
             {pieData.map((d,i) => (
               <div key={i} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:FONT}}>
@@ -620,7 +617,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           </div>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Recent Expenses</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Son Harcamalar':'Recent Expenses'}</div>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={barData} barSize={16}>
@@ -633,13 +630,13 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No expenses yet</div>}
+          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz harcama yok':'No expenses yet'}</div>}
         </Card>
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>⚔️ Top Subscriptions</div>
-          {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No subscriptions yet</div> :
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'⚔️ En Büyük Abonelikler':'⚔️ Top Subscriptions'}</div>
+          {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz abonelik yok':'No subscriptions yet'}</div> :
             subs.slice(0,4).map(s => (
               <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                 <div>
@@ -654,8 +651,8 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
             ))}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>💸 Recent Spending</div>
-          {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No expenses yet</div> :
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'💸 Son Harcamalar':'💸 Recent Spending'}</div>
+          {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz harcama yok':'No expenses yet'}</div> :
             expenses.slice(0,4).map(e => (
               <div key={e.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                 <div>
@@ -705,7 +702,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
             <InputField label="Monthly Cost ($)" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
             <InputField label="Days Since Last Used" value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} type="number" placeholder="0 = used today" />
             <div>
-              <div style={{...TIP,marginBottom:'6px'}}>Category</div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
               <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}}>
                 {['SaaS / Tools','AI Tools','Marketing','Storage','Design','Productivity','Other'].map(c=><option key={c} style={{background:'#12121c'}}>{c}</option>)}
@@ -713,8 +710,8 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
-            <button onClick={addSub} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>Save</button>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
+            <button onClick={addSub} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
           </div>
         </Card>
       )}
@@ -722,9 +719,9 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:'500px'}}>
-              <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>Category</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
+              <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
               <tbody>
-                {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No subscriptions yet</td></tr>
+                {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz abonelik yok':'No subscriptions yet'}</td></tr>
                 : subs.map(s=>(
                   <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
@@ -732,7 +729,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{s.category}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{s.days_since_used===0?'Today':`${s.days_since_used}d ago`}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span></td>
-                    <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>Kill</button></td>
+                    <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Sil':'Kill'}</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -740,7 +737,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
           </div>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>By Category</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Kategoriye Göre':'By Category'}</div>
           {catData.length>0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -750,7 +747,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                 <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data</div>}
+          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Veri yok':'No data'}</div>}
         </Card>
       </div>
     </div>
@@ -795,7 +792,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
             <InputField label="Amount ($)" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
             <InputField label="Date" value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="May 5" />
             <div>
-              <div style={{...TIP,marginBottom:'6px'}}>Category</div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
               <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}}>
                 <option value="impulse" style={{background:'#12121c'}}>Impulse / Leak</option>
@@ -807,14 +804,14 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
-            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>Save</button>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
+            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
           </div>
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Spending Trend</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Harcama Trendi':'Spending Trend'}</div>
           {areaData.length>0 ? (
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={areaData}>
@@ -831,10 +828,10 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
                 <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2.5} fill="url(#spendGrad)"/>
               </AreaChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
+          ) : <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>By Category</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Kategoriye Göre':'By Category'}</div>
           {[...new Set(expenses.map(e=>e.category))].map(cat=>{
             const amt = expenses.filter(e=>e.category===cat).reduce((a,e)=>a+Number(e.amount),0)
             const pct = total>0?(amt/total*100):0
@@ -850,12 +847,12 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
               </div>
             )
           })}
-          {expenses.length===0 && <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No data yet</div>}
+          {expenses.length===0 && <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Expense Log</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Harcama Kayıtları':'Expense Log'}</div>
           <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
             {['all','impulse','food','transport','business'].map(f=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
@@ -866,9 +863,9 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         </div>
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:'400px'}}>
-            <thead><tr><TH>Description</TH><TH>Amount</TH><TH>Category</TH><TH>Date</TH><TH></TH></tr></thead>
+            <thead><tr><TH>{lang==='tr'?'Açıklama':'Description'}</TH><TH>{lang==='tr'?'Miktar':'Amount'}</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>{lang==='tr'?'Tarih':'Date'}</TH><TH></TH></tr></thead>
             <tbody>
-              {filtered.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No expenses yet</td></tr>
+              {filtered.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz harcama yok':'No expenses yet'}</td></tr>
               : filtered.map(e=>(
                 <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                   <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
@@ -1006,7 +1003,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
             </div>
           )}
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
+            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
             <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>Add Position</button>
           </div>
         </Card>
@@ -1093,13 +1090,13 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       <PageHeader theme={theme} title={lang==='tr'?'💰 Bakiye & Tasarruf':'💰 Balance & Savings'} subtitle={lang==='tr'?'Gelir ve tasarruf oranını takip et.':'Track income and your savings rate.'}
         action={<AddBtn theme={theme} label={lang==='tr'?'+ Gelir Ekle':'+ Log Income'} onClick={()=>setAdding(!adding)} />} />
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
-        <div style={{...TIP,marginBottom:'8px'}}>{lang==='tr'?'Net Bakiye':'Net Balance'}</div>
+        <div style={{...TIP,marginBottom:'8px'}}>{lang==='tr'?'Net Bakiye':lang==='tr'?'Net Bakiye':'Net Balance'}</div>
         <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:700,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px',...VAL}}>
           ${Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
         </div>
-        <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px',fontFamily:FONT}}>{lang==='tr'?(netBal>=0?'↑ Bu ay net pozitifsiniz':'↓ Harcamalar geliri aşıyor'):(netBal>=0?'↑ You are net positive this month':'↓ Spending exceeds income')}</div>
+        <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px',fontFamily:FONT}}>{lang==='tr'?(netBal>=0?'↑ Bu ay net pozitifsiniz':'↓ Harcamalar geliri aşıyor'):(netBal>=0?lang==='tr'?'↑ Bu ay net pozitifsiniz':'↑ You are net positive this month':lang==='tr'?'↓ Harcamalar geliri aşıyor':'↓ Spending exceeds income')}</div>
         <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'20px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
-          {[['Total Income',`₺${totalIncome.toFixed(2)}`,'#6ee7b7'],['Total Expenses',`₺${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
+          {[[lang==='tr'?'Toplam Gelir':lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(2)}`,'#6ee7b7'],[lang==='tr'?'Toplam Gider':'Total Expenses',`₺${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
             <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginBottom:'4px',fontFamily:FONT}}>{l}</div><div style={{color:c,fontSize:'20px',fontWeight:700,...VAL}}>{v}</div></div>
           ))}
         </div>
@@ -1112,14 +1109,14 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             <InputField label="Date" value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} placeholder="May 5" />
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>Cancel</button>
-            <button onClick={addIncome} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>Save</button>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
+            <button onClick={addIncome} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
           </div>
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Income Sources</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Gelir Kaynakları':'Income Sources'}</div>
           {incomeData.length>0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={incomeData} barSize={24}>
@@ -1130,10 +1127,10 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
                 <Bar dataKey="amount" radius={[6,6,0,0]}>{incomeData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0}/>)}</Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No income logged yet</div>}
+          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz gelir girilmedi':'No income logged yet'}</div>}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'20px',fontFamily:FONT}}>Savings Goal</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'20px',fontFamily:FONT}}>{lang==='tr'?'Tasarruf Hedefi':'Savings Goal'}</div>
           <div style={{display:'flex',justifyContent:'center',marginBottom:'20px'}}>
             <div style={{position:'relative',width:'120px',height:'120px'}}>
               <svg width="120" height="120" style={{transform:'rotate(-90deg)'}}>
@@ -1146,15 +1143,15 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
               </div>
             </div>
           </div>
-          <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',textAlign:'center',fontFamily:FONT}}>{sr>=30?'🎉 Above 30% target':sr>=15?'📈 Target is 30%':'⚠️ Below target'}</div>
+          <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',textAlign:'center',fontFamily:FONT}}>{sr>=30?lang==='tr'?'🎉 %30 hedefin üzerinde':'🎉 Above 30% target':sr>=15?lang==='tr'?'📈 Hedef %30':'📈 Target is 30%':lang==='tr'?'⚠️ Hedefin altında':'⚠️ Below target'}</div>
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Income Log</div>
+        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Gelir Kayıtları':'Income Log'}</div>
         <table style={{width:'100%',borderCollapse:'collapse'}}>
-          <thead><tr><TH>Source</TH><TH>Amount</TH><TH>Date</TH><TH></TH></tr></thead>
+          <thead><tr><TH>{lang==='tr'?'Kaynak':'Source'}</TH><TH>{lang==='tr'?'Miktar':'Amount'}</TH><TH>{lang==='tr'?'Tarih':'Date'}</TH><TH></TH></tr></thead>
           <tbody>
-            {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No income logged yet</td></tr>
+            {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz gelir girilmedi':'No income logged yet'}</td></tr>
             : income.map(i=>(
               <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                 <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{i.source}</td>
@@ -1218,7 +1215,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
       </div>
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard accent={theme.accent} label="Days Completed" value={completedCount} sub={`of ${today} days so far`} color={theme.text} icon="✅" />
-        <StatCard accent={theme.accent} label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?'Outstanding!':streakPct>=50?'Keep going!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
+        <StatCard accent={theme.accent} label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
         <StatCard accent={theme.accent} label="Days Remaining" value={30-today} sub="until end of month" color="rgba(255,255,255,0.5)" icon="📅" />
       </div>
       <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
@@ -1269,7 +1266,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
             <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>{dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of {dayTasks.length} tasks completed</div>
             <button onClick={()=>completeDay(selectedDay)}
               style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT}}>
-              {completedDays.includes(selectedDay)?'✓ Day Completed!':'🎯 Complete Day →'}
+              {completedDays.includes(selectedDay)?lang==='tr'?'✓ Gün Tamamlandı!':'✓ Day Completed!':lang==='tr'?'🎯 Günü Tamamla →':'🎯 Complete Day →'}
             </button>
           </div>
         </Card>
@@ -1300,12 +1297,12 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'24px'}}>
           <div>
-            <div style={{...TIP,marginBottom:'10px'}}>Monthly Financial Grade</div>
+            <div style={{...TIP,marginBottom:'10px'}}>{lang==='tr'?'Aylık Finansal Puan':'Monthly Financial Grade'}</div>
             <div style={{fontSize:'80px',fontWeight:700,letterSpacing:'-4px',lineHeight:1,color:scoreColor,...VAL}}>{score}</div>
             <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{lang==='tr'?(sr>=30?'🎉 Mükemmel!':sr>=20?'💪 İyi gidiyorsun!':sr>=10?'📈 Gelişme gerekli':'⚠️ Harcamalar azaltılmalı'):(sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending')}</div>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
-            {[['Net Balance',`₺${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],['Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],['Total Income',`₺${totalIncome.toFixed(0)}`,'#6ee7b7'],['Total Spend',`₺${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
+            {[[lang==='tr'?'Net Bakiye':'Net Balance',`₺${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],[lang==='tr'?'Toplam Gelir':lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(0)}`,'#6ee7b7'],[lang==='tr'?'Toplam Harcama':'Total Spend',`₺${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
               <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div><div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div></div>
             ))}
           </div>
@@ -1313,7 +1310,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
       </Card>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Money Flow</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Para Akışı':'Money Flow'}</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} barSize={36}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
@@ -1325,13 +1322,13 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           </ResponsiveContainer>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>Key Insights</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>{lang==='tr'?'Önemli Bulgular':'Key Insights'}</div>
           <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
             {[
-              {icon:'💸',label:'Biggest expense',value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
-              {icon:'💀',label:'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉',color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
-              {icon:'📈',label:'Savings performance',value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
-              {icon:'🎯',label:'Next month target',value:`Save ₺${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`,color:theme.text},
+              {icon:'💸',label:lang==='tr'?'En büyük harcama':'Biggest expense',value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
+              {icon:'💀',label:lang==='tr'?'Ölü aboneliklere harcanan':'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉',color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
+              {icon:'📈',label:lang==='tr'?'Tasarruf performansı':'Savings performance',value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
+              {icon:'🎯',label:lang==='tr'?'Sonraki ay hedefi':'Next month target',value:`Save ₺${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`,color:theme.text},
             ].map((item,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
                 <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
@@ -1409,7 +1406,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
           )}
         </div>
         <div style={{padding:'14px 20px',borderTop:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'10px',alignItems:'center'}}>
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Ask anything about your finances..."
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder={lang==='tr'?'Finanslarınız hakkında her şeyi sorun...':'Ask anything about your finances...'}
             style={{flex:1,padding:'11px 15px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}} />
           <button onClick={()=>send()} disabled={loading||!input.trim()}
             style={{width:'42px',height:'42px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0}}>↑</button>
