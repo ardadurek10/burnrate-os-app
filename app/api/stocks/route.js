@@ -1,23 +1,32 @@
-// Para birimi sembolleri
-const CURRENCY_SYMBOLS = {
-  USD: '$', TRY: '₺', EUR: '€', GBP: '£',
-  JPY: '¥', KRW: '₩', INR: '₹', BTC: '₿',
-  CAD: 'C$', AUD: 'A$', CHF: 'Fr', CNY: '¥',
+// USD/TRY kurunu Yahoo Finance'ten çek
+async function getUSDTRY() {
+  try {
+    const res = await fetch(
+      'https://query1.finance.yahoo.com/v8/finance/chart/USDTRY=X?interval=1d&range=1d',
+      { headers: { 'User-Agent': 'Mozilla/5.0' } }
+    )
+    const data = await res.json()
+    const rate = data?.chart?.result?.[0]?.meta?.regularMarketPrice
+    return rate ? parseFloat(rate) : 38.5
+  } catch {
+    return 38.5
+  }
 }
 
-// USD karşısı yaklaşık kurlar (gerçek zamanlı değil, fallback için)
-const APPROX_USD_RATES = {
-  TRY: 0.028,  // 1 TRY ≈ 0.028 USD
-  EUR: 1.08,
-  GBP: 1.27,
-  JPY: 0.0067,
-  KRW: 0.00075,
-  INR: 0.012,
-  CAD: 0.74,
-  AUD: 0.65,
-  CHF: 1.11,
-  CNY: 0.14,
-  USD: 1,
+function toTRY(price, currency, usdtry) {
+  if (!price) return null
+  if (currency === 'TRY') return price
+  const rates = {
+    USD: usdtry,
+    EUR: usdtry * 1.08,
+    GBP: usdtry * 1.27,
+    JPY: usdtry / 155,
+    CAD: usdtry * 0.74,
+    AUD: usdtry * 0.65,
+    CHF: usdtry * 1.11,
+    CNY: usdtry * 0.14,
+  }
+  return price * (rates[currency] || usdtry)
 }
 
 export async function GET(request) {
@@ -36,14 +45,13 @@ export async function GET(request) {
       const quotes = data?.quotes?.filter(q =>
         q.quoteType === 'EQUITY' || q.quoteType === 'CRYPTOCURRENCY'
       ) || []
-
       return Response.json(quotes.map(q => ({
-        symbol: q.symbol,
-        name: q.shortname || q.longname || q.symbol,
-        type: q.quoteType === 'CRYPTOCURRENCY' ? 'crypto' : 'stock',
+        symbol:   q.symbol,
+        name:     q.shortname || q.longname || q.symbol,
+        type:     q.quoteType === 'CRYPTOCURRENCY' ? 'crypto' : 'stock',
         exchange: q.exchange,
       })))
-    } catch (error) {
+    } catch {
       return Response.json([], { status: 200 })
     }
   }
@@ -51,13 +59,16 @@ export async function GET(request) {
   // ── PRICE ────────────────────────────────────────────────────────
   if (symbol) {
     try {
-      const res = await fetch(
-        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`,
-        { headers: { 'User-Agent': 'Mozilla/5.0' } }
-      )
-      const data = await res.json()
-      const meta = data?.chart?.result?.[0]?.meta
+      const [priceRes, usdtry] = await Promise.all([
+        fetch(
+          `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`,
+          { headers: { 'User-Agent': 'Mozilla/5.0' } }
+        ),
+        getUSDTRY()
+      ])
 
+      const data      = await priceRes.json()
+      const meta      = data?.chart?.result?.[0]?.meta
       const price     = meta?.regularMarketPrice
       const prevClose = meta?.chartPreviousClose
       const currency  = meta?.currency || 'USD'
@@ -66,22 +77,19 @@ export async function GET(request) {
         ? ((price - prevClose) / prevClose * 100).toFixed(2)
         : 0
 
-      // USD'ye çevrilmiş fiyat (portfolio değeri hesabı için)
-      const rate = APPROX_USD_RATES[currency] || 1
-      const priceUSD = price ? (price * rate).toFixed(2) : null
-
-      // Orijinal para birimindeki fiyat gösterim için
-      const currencySymbol = CURRENCY_SYMBOLS[currency] || currency + ' '
+      const priceTRY = toTRY(price, currency, usdtry)
 
       return Response.json({
-        symbol:        symbol.toUpperCase(),
+        symbol:           symbol.toUpperCase(),
         name,
-        price:         price?.toFixed(2),        // orijinal para biriminde
-        priceUSD,                                 // USD karşılığı
+        price:            priceTRY ? priceTRY.toFixed(2) : null,  // TRY fiyat
+        priceOriginal:    price?.toFixed(2),                       // orijinal fiyat
         change,
-        currency,                                 // 'TRY', 'USD', 'EUR' ...
-        currencySymbol,                           // '₺', '$', '€' ...
-        exchange:      meta?.exchangeName || '',
+        currency:         'TRY',
+        currencySymbol:   '₺',
+        originalCurrency: currency,
+        usdtry:           usdtry.toFixed(2),
+        exchange:         meta?.exchangeName || '',
       })
     } catch (error) {
       return Response.json({ error: error.message }, { status: 500 })
