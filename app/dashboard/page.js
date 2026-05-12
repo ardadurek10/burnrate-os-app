@@ -690,15 +690,42 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
 function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
   const TR = lang==='tr'
-  const [form, setForm] = useState({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
+
+  const SUB_CATS = [
+    { v:'saas',          tr:'SaaS / Araçlar',       en:'SaaS / Tools',       icon:'🛠️', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'ai',            tr:'Yapay Zeka',            en:'AI Tools',           icon:'🤖', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'marketing',     tr:'Pazarlama',             en:'Marketing',          icon:'📢', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'design',        tr:'Tasarım',               en:'Design',             icon:'🎨', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'productivity',  tr:'Verimlilik',            en:'Productivity',       icon:'⚡', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'storage',       tr:'Depolama / Bulut',      en:'Storage / Cloud',    icon:'☁️', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'dev',           tr:'Geliştirme',            en:'Development',        icon:'💻', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
+    { v:'streaming',     tr:'Yayın Platformu',       en:'Streaming',          icon:'🎬', g_tr:'Eğlence',         g_en:'Entertainment' },
+    { v:'music',         tr:'Müzik',                 en:'Music',              icon:'🎵', g_tr:'Eğlence',         g_en:'Entertainment' },
+    { v:'gaming',        tr:'Oyun',                  en:'Gaming',             icon:'🎮', g_tr:'Eğlence',         g_en:'Entertainment' },
+    { v:'news',          tr:'Haber / Dergi',         en:'News / Magazine',    icon:'📰', g_tr:'Eğlence',         g_en:'Entertainment' },
+    { v:'fitness',       tr:'Spor & Sağlık',         en:'Fitness & Health',   icon:'💪', g_tr:'Yaşam',           g_en:'Lifestyle' },
+    { v:'food_sub',      tr:'Yemek Aboneliği',       en:'Food Subscription',  icon:'🍱', g_tr:'Yaşam',           g_en:'Lifestyle' },
+    { v:'vpn',           tr:'VPN / Güvenlik',        en:'VPN / Security',     icon:'🔒', g_tr:'Yaşam',           g_en:'Lifestyle' },
+    { v:'education',     tr:'Eğitim / Kurs',         en:'Education / Course', icon:'📚', g_tr:'Eğitim',          g_en:'Education' },
+    { v:'language',      tr:'Dil Öğrenimi',          en:'Language Learning',  icon:'🌍', g_tr:'Eğitim',          g_en:'Education' },
+    { v:'finance',       tr:'Finans / Yatırım',      en:'Finance / Investing',icon:'💰', g_tr:'Finans',          g_en:'Finance' },
+    { v:'insurance',     tr:'Sigorta',               en:'Insurance',          icon:'🛡️', g_tr:'Finans',          g_en:'Finance' },
+    { v:'other_sub',     tr:'Diğer',                 en:'Other',              icon:'📦', g_tr:'Diğer',           g_en:'Other' },
+  ]
+  const getSubCatLabel = (v) => { const cat=SUB_CATS.find(c=>c.v===v); return cat?(TR?cat.tr:cat.en):v }
+
+  const [form, setForm] = useState({name:'',cost:'',category:'saas',days_since_used:'0',notes:''})
   const [adding, setAdding] = useState(false)
+  const [subCatSearch, setSubCatSearch] = useState('')
+  const [subCatOpen, setSubCatOpen]     = useState(false)
+  const filtSubCats = subCatSearch ? SUB_CATS.filter(c=>(TR?c.tr:c.en).toLowerCase().includes(subCatSearch.toLowerCase())) : SUB_CATS
 
   async function addSub() {
     if (!form.name||!form.cost) return
     const days = parseInt(form.days_since_used)||0
     const status = days===0?'keep':days<30?'keep':days<60?'warn':'dead'
     await supabaseInsert('subscriptions',{...form,cost:parseFloat(form.cost),days_since_used:days,status,user_id:userId})
-    setForm({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''}); setAdding(false); onRefresh()
+    setForm({name:'',cost:'',category:'saas',days_since_used:'0',notes:''}); setSubCatSearch(''); setAdding(false); onRefresh()
   }
   async function del(id) { await supabaseDelete('subscriptions',id); onRefresh() }
 
@@ -721,12 +748,38 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
             <InputField label={lang==='tr'?'Hizmet Adı':'Service Name'} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={lang==='tr'?'Shopify, Claude Pro...':'Shopify, Claude Pro...'} />
             <InputField label={lang==='tr'?'Aylık Maliyet (₺)':'Monthly Cost (₺)'} value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
             <InputField label={lang==='tr'?'Son Kullanımdan Bu Yana (gün)':'Days Since Last Used'} value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} type="number" placeholder="0 = used today" />
-            <div>
-              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
-              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
-                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}}>
-                {['SaaS / Tools','AI Tools','Marketing','Storage','Design','Productivity','Other'].map(c=><option key={c} style={{background:'#12121c'}}>{c}</option>)}
-              </select>
+            <div style={{position:'relative'}}>
+              <div style={{...TIP,marginBottom:'6px'}}>{TR?'Kategori':'Category'}</div>
+              <div onClick={()=>{setSubCatSearch('');setSubCatOpen(true)}}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:`1px solid ${subCatOpen?'rgba(239,68,68,0.4)':'rgba(255,255,255,0.09)'}`,color:'#f5f5f7',fontSize:'13px',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'8px',justifyContent:'space-between',transition:'border 0.2s'}}>
+                <span>{SUB_CATS.find(c=>c.v===form.category)?.icon} {getSubCatLabel(form.category)}</span>
+                <span style={{color:'rgba(255,255,255,0.3)',fontSize:'10px'}}>{subCatOpen?'▲':'▼'}</span>
+              </div>
+              {subCatOpen&&(
+                <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#13131f',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:300,boxShadow:'0 12px 40px rgba(0,0,0,0.7)',maxHeight:'260px',overflowY:'auto'}}>
+                  <div style={{padding:'8px 10px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                    <input autoFocus value={subCatSearch} onChange={e=>setSubCatSearch(e.target.value)}
+                      placeholder={TR?'Ara...':'Search...'}
+                      style={{width:'100%',padding:'7px 10px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'12px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}}
+                    />
+                  </div>
+                  {filtSubCats.map((cat,i)=>(
+                    <div key={i}
+                      onMouseDown={()=>{setForm({...form,category:cat.v});setSubCatSearch('');setSubCatOpen(false)}}
+                      style={{padding:'10px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',gap:'10px',background:form.category===cat.v?'rgba(239,68,68,0.08)':'transparent'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}
+                      onMouseLeave={e=>e.currentTarget.style.background=form.category===cat.v?'rgba(239,68,68,0.08)':'transparent'}>
+                      <span style={{fontSize:'16px'}}>{cat.icon}</span>
+                      <div style={{flex:1}}>
+                        <div style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{TR?cat.tr:cat.en}</div>
+                        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?cat.g_tr:cat.g_en}</div>
+                      </div>
+                      {form.category===cat.v&&<span style={{color:'#ef4444',fontSize:'12px'}}>✓</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {subCatOpen&&<div style={{position:'fixed',inset:0,zIndex:299}} onClick={()=>setSubCatOpen(false)}/>}
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
