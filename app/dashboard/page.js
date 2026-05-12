@@ -428,7 +428,7 @@ export default function Dashboard() {
             <a href="https://whop.com/hub/burnrate-os/" target="_blank" rel="noreferrer"
               style={{display:'block',textAlign:'center',padding:'14px',borderRadius:'12px',background:'rgba(255,255,255,0.08)',color:'#f5f5f7',fontWeight:600,fontSize:'14px',textDecoration:'none',marginBottom:'10px',fontFamily:FONT}}
               onClick={()=>setManageModal(false)}>
-              {lang==='tr'?'Whop'ta Görüntüle →':'View on Whop →'}
+              {lang==='tr'?`Whop'ta Görüntüle →`:'View on Whop →'}
             </a>
             <button onClick={()=>setManageModal(false)}
               style={{width:'100%',padding:'12px',borderRadius:'12px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',fontFamily:FONT}}>
