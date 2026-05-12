@@ -754,127 +754,126 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
   )
 }
 
-// ── SPENDING ──────────────────────────────────────────────────────
+// ── SPENDING ──────────────────────────────────────────────────────────────────
 function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
-  const CATEGORIES = [
-    // Ev & Yaşam
-    {value:'kira',          label:'Kira / Mortgage',        labelEn:'Rent / Mortgage',      group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
-    {value:'mobilya',       label:'Mobilya & Dekorasyon',   labelEn:'Furniture & Decor',    group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
-    {value:'ev_aletleri',   label:'Ev Aletleri',            labelEn:'Home Appliances',       group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
-    {value:'tadilat',       label:'Tadilat & Onarım',       labelEn:'Renovation & Repair',  group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
-    {value:'temizlik',      label:'Temizlik',               labelEn:'Cleaning',              group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
-    // Yiyecek
-    {value:'market',        label:'Market & Alışveriş',     labelEn:'Groceries',            group: lang==='tr'?'Yiyecek & İçecek':'Food & Drink'},
-    {value:'restoran',      label:'Restoran & Kafe',        labelEn:'Restaurant & Cafe',    group: lang==='tr'?'Yiyecek & İçecek':'Food & Drink'},
-    {value:'food',          label:'Yemek Siparişi',         labelEn:'Food Delivery',        group: lang==='tr'?'Yiyecek & İçecek':'Food & Drink'},
-    // Ulaşım
-    {value:'akaryakit',     label:'Akaryakıt',              labelEn:'Fuel',                 group: lang==='tr'?'Ulaşım':'Transport'},
-    {value:'transport',     label:'Toplu Taşıma',           labelEn:'Public Transport',     group: lang==='tr'?'Ulaşım':'Transport'},
-    {value:'taksi',         label:'Taksi & Araç Kiralama',  labelEn:'Taxi & Car Rental',    group: lang==='tr'?'Ulaşım':'Transport'},
-    // Sağlık
-    {value:'hastane',       label:'Hastane & Doktor',       labelEn:'Hospital & Doctor',    group: lang==='tr'?'Sağlık':'Health'},
-    {value:'ilac',          label:'İlaç & Eczane',          labelEn:'Pharmacy',             group: lang==='tr'?'Sağlık':'Health'},
-    {value:'spor',          label:'Spor & Fitness',         labelEn:'Sports & Fitness',     group: lang==='tr'?'Sağlık':'Health'},
-    // Eğlence & Sosyal
-    {value:'dugun',         label:'Düğün & Organizasyon',   labelEn:'Wedding & Events',     group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
-    {value:'seyahat',       label:'Seyahat & Tatil',        labelEn:'Travel & Vacation',    group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
-    {value:'eglence',       label:'Sinema & Etkinlik',      labelEn:'Cinema & Events',      group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
-    {value:'hediye',        label:'Hediye & Çiçek',         labelEn:'Gifts & Flowers',      group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
-    // Giyim
-    {value:'giyim',         label:'Giyim & Aksesuar',       labelEn:'Clothing',             group: lang==='tr'?'Giyim & Kişisel':'Fashion & Personal'},
-    {value:'guzellik',      label:'Güzellik & Bakım',       labelEn:'Beauty & Care',        group: lang==='tr'?'Giyim & Kişisel':'Fashion & Personal'},
-    // Eğitim & İş
-    {value:'egitim',        label:'Kurs & Eğitim',          labelEn:'Education',            group: lang==='tr'?'Eğitim & İş':'Education & Work'},
-    {value:'business',      label:'İş Giderleri',           labelEn:'Business Expenses',    group: lang==='tr'?'Eğitim & İş':'Education & Work'},
-    {value:'abonelik',      label:'Abonelikler',            labelEn:'Subscriptions',        group: lang==='tr'?'Eğitim & İş':'Education & Work'},
-    // Diğer
-    {value:'bagis',         label:'Bağış & Yardım',         labelEn:'Donations',            group: lang==='tr'?'Diğer':'Other'},
-    {value:'impulse',       label:'Ani Alım',               labelEn:'Impulse Buy',          group: lang==='tr'?'Diğer':'Other'},
-    {value:'other',         label:'Diğer',                  labelEn:'Other',                group: lang==='tr'?'Diğer':'Other'},
+  const TR = lang==='tr'
+
+  const CATS = [
+    {v:'kira',     tr:'Kira / Mortgage',      en:'Rent / Mortgage',      g_tr:'Ev & Yaşam',       g_en:'Home & Life'},
+    {v:'mobilya',  tr:'Mobilya & Dekorasyon', en:'Furniture & Decor',    g_tr:'Ev & Yaşam',       g_en:'Home & Life'},
+    {v:'tadilat',  tr:'Tadilat & Onarım',     en:'Renovation & Repair',  g_tr:'Ev & Yaşam',       g_en:'Home & Life'},
+    {v:'temizlik', tr:'Temizlik',             en:'Cleaning',             g_tr:'Ev & Yaşam',       g_en:'Home & Life'},
+    {v:'market',   tr:'Market & Alışveriş',   en:'Groceries',            g_tr:'Yiyecek & İçecek', g_en:'Food & Drink'},
+    {v:'restoran', tr:'Restoran & Kafe',      en:'Restaurant & Cafe',    g_tr:'Yiyecek & İçecek', g_en:'Food & Drink'},
+    {v:'food',     tr:'Yemek Siparişi',       en:'Food Delivery',        g_tr:'Yiyecek & İçecek', g_en:'Food & Drink'},
+    {v:'akaryakit',tr:'Akaryakıt',            en:'Fuel',                 g_tr:'Ulaşım',           g_en:'Transport'},
+    {v:'transport',tr:'Toplu Taşıma',         en:'Public Transport',     g_tr:'Ulaşım',           g_en:'Transport'},
+    {v:'taksi',    tr:'Taksi & Araç Kiralama',en:'Taxi & Car Rental',    g_tr:'Ulaşım',           g_en:'Transport'},
+    {v:'hastane',  tr:'Hastane & Doktor',     en:'Hospital & Doctor',    g_tr:'Sağlık',           g_en:'Health'},
+    {v:'ilac',     tr:'İlaç & Eczane',        en:'Pharmacy',             g_tr:'Sağlık',           g_en:'Health'},
+    {v:'spor',     tr:'Spor & Fitness',       en:'Sports & Fitness',     g_tr:'Sağlık',           g_en:'Health'},
+    {v:'dugun',    tr:'Düğün & Organizasyon', en:'Wedding & Events',     g_tr:'Eğlence & Sosyal', g_en:'Events & Social'},
+    {v:'seyahat',  tr:'Seyahat & Tatil',      en:'Travel & Vacation',    g_tr:'Eğlence & Sosyal', g_en:'Events & Social'},
+    {v:'eglence',  tr:'Sinema & Etkinlik',    en:'Cinema & Events',      g_tr:'Eğlence & Sosyal', g_en:'Events & Social'},
+    {v:'hediye',   tr:'Hediye & Çiçek',       en:'Gifts & Flowers',      g_tr:'Eğlence & Sosyal', g_en:'Events & Social'},
+    {v:'giyim',    tr:'Giyim & Aksesuar',     en:'Clothing',             g_tr:'Giyim & Kişisel',  g_en:'Fashion'},
+    {v:'guzellik', tr:'Güzellik & Bakım',     en:'Beauty & Care',        g_tr:'Giyim & Kişisel',  g_en:'Fashion'},
+    {v:'egitim',   tr:'Kurs & Eğitim',        en:'Education',            g_tr:'Eğitim & İş',      g_en:'Education'},
+    {v:'business', tr:'İş Giderleri',         en:'Business Expenses',    g_tr:'Eğitim & İş',      g_en:'Education'},
+    {v:'abonelik', tr:'Abonelikler',          en:'Subscriptions',        g_tr:'Eğitim & İş',      g_en:'Education'},
+    {v:'bagis',    tr:'Bağış & Yardım',       en:'Donations',            g_tr:'Diğer',            g_en:'Other'},
+    {v:'impulse',  tr:'Ani Alım',             en:'Impulse Buy',          g_tr:'Diğer',            g_en:'Other'},
+    {v:'other',    tr:'Diğer',               en:'Other',                g_tr:'Diğer',            g_en:'Other'},
   ]
-  const getCatLabel = (value) => {
-    const cat = CATEGORIES.find(c=>c.value===value)
-    if (!cat) return value
-    return lang==='tr' ? cat.label : cat.labelEn
-  }
-  const getCatGroup = (value) => {
-    const cat = CATEGORIES.find(c=>c.value===value)
-    return cat ? cat.group : (lang==='tr'?'Diğer':'Other')
-  }
-
-  const [form, setForm] = useState({description:'',amount:'',category:'other',expense_date:''})
-  const [adding, setAdding] = useState(false)
-  const [filter, setFilter] = useState('all')
-  const [catSearch, setCatSearch] = useState('')
-
-  async function addExpense() {
-    if (!form.description||!form.amount) return
-    await supabaseInsert('expenses',{...form,amount:parseFloat(form.amount),user_id:userId})
-    setForm({description:'',amount:'',category:'impulse',expense_date:''}); setAdding(false); onRefresh()
-  }
-  async function del(id) { await supabaseDelete('expenses',id); onRefresh() }
-
-  const filtered = filter==='all' ? expenses : expenses.filter(e=>e.category===filter)
-  const total = expenses.reduce((a,e)=>a+Number(e.amount),0)
-  const leaks = expenses.filter(e=>e.category==='impulse'||e.category==='food')
-  const leakAmt = leaks.reduce((a,e)=>a+Number(e.amount),0)
-  const areaData = expenses.slice(-7).map((e,i)=>({day:`D${i+1}`,amount:Number(e.amount)}))
-  const catColors = {
+  const CAT_COLORS_MAP = {
     kira:'#06b6d4',mobilya:'#8b5cf6',tadilat:'#64748b',temizlik:'#67e8f9',
     market:'#10b981',restoran:'#f59e0b',food:'#f97316',
     akaryakit:'#eab308',transport:'#f59e0b',taksi:'#fbbf24',
     hastane:'#ec4899',ilac:'#f43f5e',spor:'#10b981',
     dugun:'#a78bfa',seyahat:'#06b6d4',eglence:'#8b5cf6',hediye:'#f43f5e',
-    giyim:'#a78bfa',guzellik:'#ec4899',
-    egitim:'#3b82f6',business:'#10b981',
-    bagis:'#6ee7b7',impulse:'#ef4444',other:'#8b5cf6',
+    giyim:'#a78bfa',guzellik:'#ec4899',egitim:'#3b82f6',business:'#10b981',
+    abonelik:'#7c3aed',bagis:'#6ee7b7',impulse:'#ef4444',other:'#8b5cf6',
   }
+  const getCL = (val) => { const cat=CATS.find(c=>c.v===val); return cat?(TR?cat.tr:cat.en):val }
+  const getCG = (val) => { const cat=CATS.find(c=>c.v===val); return cat?(TR?cat.g_tr:cat.g_en):(TR?'Diğer':'Other') }
+
+  const [form, setForm]     = useState({description:'',amount:'',category:'other',expense_date:''})
+  const [adding, setAdding] = useState(false)
+  const [filter, setFilter] = useState('all')
+  const [catSearch, setCatSearch] = useState('')
+  const [catOpen, setCatOpen]     = useState(false)
+
+  async function addExpense() {
+    if (!form.description||!form.amount) return
+    await supabaseInsert('expenses',{...form,amount:parseFloat(form.amount),user_id:userId})
+    setForm({description:'',amount:'',category:'other',expense_date:''}); setAdding(false); onRefresh()
+  }
+  async function del(id) { await supabaseDelete('expenses',id); onRefresh() }
+
+  const filtered   = filter==='all'?expenses:expenses.filter(e=>e.category===filter)
+  const total      = expenses.reduce((a,e)=>a+Number(e.amount),0)
+  const leaks      = expenses.filter(e=>['impulse','food','restoran'].includes(e.category))
+  const leakAmt    = leaks.reduce((a,e)=>a+Number(e.amount),0)
+  const areaData   = expenses.slice(-7).map((e,i)=>({day:`G${i+1}`,amount:Number(e.amount)}))
+  const usedCats   = [...new Set(expenses.map(e=>e.category))]
+  const filterOpts = [['all',TR?'Tümü':'All'], ...usedCats.map(v=>[v,getCL(v)])]
+  const filtCats   = catSearch ? CATS.filter(c=>(TR?c.tr:c.en).toLowerCase().includes(catSearch.toLowerCase())||c.g_tr.toLowerCase().includes(catSearch.toLowerCase())) : CATS
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title={lang==='tr'?'💸 Günlük Harcama':'💸 Daily Spending'} subtitle={lang==='tr'?'Ani alımları ve sızıntıları takip et.':'Track impulse buys and convenience leaks.'}
-        action={<AddBtn theme={theme} label={lang==='tr'?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
+      <PageHeader theme={theme} title={TR?'💸 Günlük Harcama':'💸 Daily Spending'} subtitle={TR?'Ani alımları ve sızıntıları takip et.':'Track impulse buys and convenience leaks.'}
+        action={<AddBtn theme={theme} label={TR?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={lang==='tr'?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={lang==='tr'?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'₺0'} color={theme.text} icon="📊" />
+        <StatCard accent={theme.accent} label={TR?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label={TR?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={TR?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard accent={theme.accent} label={TR?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
+        <StatCard accent={theme.accent} label={TR?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'₺0'} color={theme.text} icon="📊" />
       </div>
-      {adding && (
+      {adding&&(
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
-            <InputField label={lang==='tr'?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Late night delivery..." />
-            <InputField label={lang==='tr'?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
-            <InputField label={lang==='tr'?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="May 5" />
+            <InputField label={TR?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Kına gecesi masrafı..." />
+            <InputField label={TR?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
+            <InputField label={TR?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="12 Mayıs" />
             <div style={{position:'relative'}}>
-              <div style={{...TIP,marginBottom:'6px'}}>{TR?'Kategori':'Category'}</div>
-              <input value={catOpen?catSearch:getCL(form.category)} onChange={e=>{setCatSearch(e.target.value);setCatOpen(true)}} onFocus={()=>{setCatSearch('');setCatOpen(true)}} onBlur={()=>setTimeout(()=>setCatOpen(false),200)} placeholder={TR?'Kategori ara...':'Search category...'} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
-              {catOpen&&<div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',maxHeight:'220px',overflowY:'auto'}}>
-                {filtCats.map((cat,i)=><div key={i} onMouseDown={()=>{setForm({...form,category:cat.v});setCatSearch('');setCatOpen(false)}} style={{padding:'9px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',justifyContent:'space-between'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                  <span style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{TR?cat.tr:cat.en}</span>
-                  <span style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?cat.g_tr:cat.g_en}</span>
-                </div>)}
-              </div>}
+              <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{TR?'Kategori':'Category'}</div>
+              <input
+                value={catOpen?catSearch:getCL(form.category)}
+                onChange={e=>{setCatSearch(e.target.value);setCatOpen(true)}}
+                onFocus={()=>{setCatSearch('');setCatOpen(true)}}
+                onBlur={()=>setTimeout(()=>setCatOpen(false),200)}
+                placeholder={TR?'Kategori ara...':'Search category...'}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}}
+              />
+              {catOpen&&(
+                <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',maxHeight:'220px',overflowY:'auto'}}>
+                  {filtCats.map((cat,i)=>(
+                    <div key={i}
+                      onMouseDown={()=>{setForm({...form,category:cat.v});setCatSearch('');setCatOpen(false)}}
+                      style={{padding:'9px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',justifyContent:'space-between',alignItems:'center'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                      <span style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{TR?cat.tr:cat.en}</span>
+                      <span style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?cat.g_tr:cat.g_en}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
-            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{TR?'İptal':'Cancel'}</button>
+            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{TR?'Kaydet':'Save'}</button>
           </div>
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Harcama Trendi':'Spending Trend'}</div>
-          {areaData.length>0 ? (
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{TR?'Harcama Trendi':'Spending Trend'}</div>
+          {areaData.length>0?(
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={areaData}>
-                <defs>
-                  <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={theme.accent} stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor={theme.accent} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={theme.accent} stopOpacity={0.35}/><stop offset="95%" stopColor={theme.accent} stopOpacity={0}/></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
                 <XAxis dataKey="day" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
@@ -882,33 +881,34 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
                 <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2.5} fill="url(#spendGrad)"/>
               </AreaChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
+          ):<div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{TR?'Henüz veri yok':'No data yet'}</div>}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Kategoriye Göre':'By Category'}</div>
-          {[...new Set(expenses.map(e=>e.category))].map(cat=>{
-            const amt = expenses.filter(e=>e.category===cat).reduce((a,e)=>a+Number(e.amount),0)
-            const pct = total>0?(amt/total*100):0
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{TR?'Kategoriye Göre':'By Category'}</div>
+          {usedCats.map(cat=>{
+            const amt=expenses.filter(e=>e.category===cat).reduce((a,e)=>a+Number(e.amount),0)
+            const pct=total>0?(amt/total*100):0
+            const col=CAT_COLORS_MAP[cat]||theme.accent
             return (
               <div key={cat} style={{marginBottom:'12px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'5px'}}>
-                  <span style={{color:'rgba(255,255,255,0.45)',fontFamily:FONT}}>{getCatLabel(cat)}</span>
-                  <span style={{...VAL,color:catColors[cat]||theme.text}}>${amt.toFixed(2)}</span>
+                  <span style={{color:'rgba(255,255,255,0.45)',fontFamily:FONT}}>{getCL(cat)}</span>
+                  <span style={{fontFamily:MONO,color:col}}>₺{amt.toFixed(2)}</span>
                 </div>
                 <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
-                  <div style={{height:'100%',borderRadius:'100px',width:`${pct}%`,background:catColors[cat]||theme.accent,transition:'width 0.5s'}}></div>
+                  <div style={{height:'100%',borderRadius:'100px',width:`${pct}%`,background:col,transition:'width 0.5s'}}></div>
                 </div>
               </div>
             )
           })}
-          {expenses.length===0 && <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
+          {expenses.length===0&&<div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{TR?'Henüz veri yok':'No data yet'}</div>}
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Harcama Kayıtları':'Expense Log'}</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{TR?'Harcama Kayıtları':'Expense Log'}</div>
           <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-            {[['all', lang==='tr'?'Tümü':'All'], ...([...new Set(expenses.map(e=>e.category))].map(v=>[v, getCatLabel(v)]))].map(([f,label])=>(
+            {filterOpts.map(([f,label])=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
                 {label}
               </button>
@@ -917,18 +917,26 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         </div>
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:'400px'}}>
-            <thead><tr><TH>{lang==='tr'?'Açıklama':'Description'}</TH><TH>{lang==='tr'?'Miktar':'Amount'}</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>{lang==='tr'?'Tarih':'Date'}</TH><TH></TH></tr></thead>
+            <thead><tr>
+              <TH>{TR?'Açıklama':'Description'}</TH>
+              <TH>{TR?'Miktar':'Amount'}</TH>
+              <TH>{TR?'Kategori':'Category'}</TH>
+              <TH>{TR?'Tarih':'Date'}</TH>
+              <TH></TH>
+            </tr></thead>
             <tbody>
-              {filtered.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz harcama yok':'No expenses yet'}</td></tr>
-              : filtered.map(e=>(
-                <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                  <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
-                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>-₺{Number(e.amount).toFixed(2)}</td>
-                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${catColors[e.category]||theme.accent}22`,color:catColors[e.category]||theme.text,fontFamily:FONT}}>{getCatLabel(e.category)}</span></td>
-                  <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{e.expense_date||'—'}</td>
-                  <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
-                </tr>
-              ))}
+              {filtered.length===0
+                ?<tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{TR?'Henüz harcama yok':'No expenses yet'}</td></tr>
+                :filtered.map(e=>(
+                  <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
+                    <td style={{padding:'12px 0',fontFamily:MONO,color:theme.text,fontSize:'13px'}}>-₺{Number(e.amount).toFixed(2)}</td>
+                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${CAT_COLORS_MAP[e.category]||theme.accent}22`,color:CAT_COLORS_MAP[e.category]||theme.text,fontFamily:FONT}}>{getCL(e.category)}</span></td>
+                    <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{e.expense_date||'—'}</td>
+                    <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
+                  </tr>
+                ))
+              }
             </tbody>
           </table>
         </div>
