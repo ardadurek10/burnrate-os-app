@@ -1245,9 +1245,23 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
     setSelectedDay(day)
     if (aiTasks[day]) return
     setLoadingTasks(true)
-    setAiTasks(prev => ({...prev, [day]: DAILY_TASKS[(day-1) % DAILY_TASKS.length]}))
+    setAiTasks(prev => ({...prev, [day]: TR ? [
+      ["Bugün harcadığın her kuruşu not et","Anlık bir alım yapmaktan kaçın","Gece tüm harcamalarını kaydet"],
+      ["Dünün harcamalarını gözden geçir","Gereksiz bir alımı atla","Bugün 50₺ biriktir"],
+      ["Kullanılmayan bir aboneliği iptal et","Bugün evde ye","Her işlemi kaydet"],
+      ["Yatırım portföyünü kontrol et","Paket servis uygulamalarını kullanma","Haftalık bütçe belirle"],
+      ["Abonelik listeni gözden geçir","Öğle yemeği hazırla","Gelir kaynaklarını kaydet"],
+      ["Aylık harcama oranını hesapla","Bugün kafede kahve içme","Tasarruf oranını kontrol et"],
+      ["Finansal hedeflerini gözden geçir","Haftalık yemek hazırlığı yap","Bozuk parayı biriktir"],
+      ["Abonelik yenilemelerini kontrol et","Yürüyerek git","Banka ücretlerini gözden geçir"],
+      ["Yarın için harcama limiti belirle","Sosyal medyadan alışveriş yapma","Tüm fişleri kaydet"],
+      ["Kredi kartı ekstresini incele","Akşam yemeğini evde pişir","Acil fonu kontrol et"],
+    ][(day-1) % 10] : DAILY_TASKS[(day-1) % DAILY_TASKS.length]}))
     try {
-      const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Return ONLY a JSON array of 3 strings.`, context: `spending: $${totalExp}, subs: $${totalSubs}, income: $${totalIncome}` }) })
+      const prompt = TR
+        ? `30 günlük para meydan okuması için ${day}. gün - tam olarak 3 kısa uygulanabilir Türkçe finansal görev üret. SADECE JSON dizisi döndür: ["görev1","görev2","görev3"]`
+        : `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Return ONLY a JSON array of 3 strings.`
+      const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: prompt, context: `spending: ₺${totalExp}, subs: ₺${totalSubs}, income: ₺${totalIncome}` }) })
       const data = await res.json()
       const match = (data.reply||'').match(/\[.*\]/s)
       if (match) { const tasks = JSON.parse(match[0]); if (Array.isArray(tasks)&&tasks.length>0) setAiTasks(prev=>({...prev,[day]:tasks})) }
