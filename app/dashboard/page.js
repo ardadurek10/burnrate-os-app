@@ -293,6 +293,7 @@ export default function Dashboard() {
   const [income, setIncome] = useState([])
   const [investments, setInvestments] = useState([])
   const [upgradeModal, setUpgradeModal] = useState(null)
+  const [manageModal, setManageModal] = useState(false)
   const [lang, setLang] = useState('en')
 
   useEffect(() => {
@@ -402,6 +403,41 @@ export default function Dashboard() {
         )
       })()}
 
+      {/* MANAGE MODAL */}
+      {manageModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
+          onClick={e=>e.target===e.currentTarget&&setManageModal(false)}>
+          <div style={{background:'#0f0f1a',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'24px',padding:'36px',maxWidth:'420px',width:'100%'}}>
+            <div style={{fontSize:'32px',marginBottom:'16px',textAlign:'center'}}>⚙️</div>
+            <h2 style={{color:'#f1f0ff',fontSize:'20px',fontWeight:700,margin:'0 0 8px',fontFamily:FONT,textAlign:'center'}}>
+              {lang==='tr'?'Aboneliği Yönet':'Manage Subscription'}
+            </h2>
+            <p style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',lineHeight:1.7,margin:'0 0 24px',fontFamily:FONT,textAlign:'center'}}>
+              {lang==='tr'?'Aboneliğiniz Whop üzerinden yönetilmektedir. Aşağıdaki butona tıklayarak planınızı görüntüleyebilir, yükseltebilir veya iptal edebilirsiniz.':'Your subscription is managed through Whop. Click below to view, upgrade or cancel your plan.'}
+            </p>
+            <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'16px',marginBottom:'20px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'Mevcut Plan':'Current Plan'}</span>
+                <span style={{color:planMeta.color,fontSize:'13px',fontWeight:700,fontFamily:MONO}}>{planMeta.emoji} {planMeta.name}</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'Fiyat':'Price'}</span>
+                <span style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontFamily:MONO}}>{planMeta.price}</span>
+              </div>
+            </div>
+            <a href="https://whop.com/hub/burnrate-os/" target="_blank" rel="noreferrer"
+              style={{display:'block',textAlign:'center',padding:'14px',borderRadius:'12px',background:'rgba(255,255,255,0.08)',color:'#f5f5f7',fontWeight:600,fontSize:'14px',textDecoration:'none',marginBottom:'10px',fontFamily:FONT}}
+              onClick={()=>setManageModal(false)}>
+              {lang==='tr'?'Whop'ta Görüntüle →':'View on Whop →'}
+            </a>
+            <button onClick={()=>setManageModal(false)}
+              style={{width:'100%',padding:'12px',borderRadius:'12px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',fontFamily:FONT}}>
+              {lang==='tr'?'Kapat':'Close'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* SIDEBAR */}
       <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
@@ -479,10 +515,10 @@ export default function Dashboard() {
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>{user.email}</div>
           </div>
-          <a href="https://whop.com/hub/burnrate-os/" target="_blank" rel="noreferrer"
-            style={{display:'block',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.2)',textDecoration:'none',fontFamily:FONT,marginBottom:'2px'}}>
+          <button onClick={()=>setManageModal(true)}
+            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.2)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
             {lang==='tr'?'⚙️ Aboneliği Yönet':'⚙️ Manage Subscription'}
-          </a>
+          </button>
           <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
             style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.25)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
             {lang==='tr'?'Çıkış Yap →':'Sign out →'}
