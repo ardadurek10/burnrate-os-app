@@ -561,6 +561,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
 function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan, userName, lang }) {
+  const TR = lang==='tr'
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -670,6 +671,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
 function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
+  const TR = lang==='tr'
   const [form, setForm] = useState({name:'',cost:'',category:'SaaS / Tools',days_since_used:'0',notes:''})
   const [adding, setAdding] = useState(false)
 
@@ -1135,6 +1137,7 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
 
 // ── BALANCE ───────────────────────────────────────────────────────
 function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, lang='en' }) {
+  const TR = lang==='tr'
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
 
@@ -1232,6 +1235,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 
 // ── 30-DAY CHALLENGE ──────────────────────────────────────────────
 function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en' }) {
+  const TR = lang==='tr'
   const now = new Date()
   const today = now.getDate()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -1354,6 +1358,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
 
 // ── MONTHLY SUMMARY ───────────────────────────────────────────────
 function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, lang='en' }) {
+  const TR = lang==='tr'
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
@@ -1424,6 +1429,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 
 // ── AI ADVISOR ────────────────────────────────────────────────────
 function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
+  const TR = lang==='tr'
   const [messages, setMessages] = useState([
     { role:'ai', text: lang==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
   ])
