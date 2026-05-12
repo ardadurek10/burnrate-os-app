@@ -475,7 +475,7 @@ export default function Dashboard() {
         {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
-        {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
+        {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
         {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
@@ -884,7 +884,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
 }
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
-function InvestmentsPage({ theme, investments, setInvestments }) {
+function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
   const [prices, setPrices] = useState({})
@@ -954,11 +954,11 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title="📈 Investments" subtitle="Canlı fiyatlar · Tüm değerler ₺ cinsinden"
+      <PageHeader theme={theme} title={lang==='tr'?'📈 Yatırımlar':'📈 Investments'} subtitle={lang==='tr'?'Canlı fiyatlar · Tüm değerler ₺ cinsinden':'Live prices · All values in ₺'}
         action={
           <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
             {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span></div>}
-            <AddBtn theme={theme} label="+ Add Position" onClick={()=>setAdding(!adding)} />
+            <AddBtn theme={theme} label={lang==='tr'?'+ Pozisyon Ekle':'+ Add Position'} onClick={()=>setAdding(!adding)} />
           </div>
         }
       />
@@ -966,16 +966,16 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         <StatCard accent={theme.accent} label="Portföy Değeri (₺)" value={`₺${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
         <StatCard accent={theme.accent} label="Toplam Maliyet (₺)" value={`₺${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
         <StatCard accent={theme.accent} label="Kar/Zarar (₺)" value={`${totalGain>=0?'+':''}₺${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
-        <StatCard accent={theme.accent} label="Positions" value={investments.length} color={theme.text} icon="🎯" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Pozisyon':'Positions'} value={investments.length} color={theme.text} icon="🎯" />
       </div>
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div style={{marginBottom:'14px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>Search Stock or Crypto</div>
             <div style={{position:'relative'}}>
-              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder="Search Apple, Bitcoin, Tesla..."
+              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'Apple, Bitcoin, ASELS.IS ara...':'Search Apple, Bitcoin, Tesla...'}
                 style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
-              {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Searching...':'Fetching price...'}</div>}
+              {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?lang==='tr'?'Aranıyor...':'Searching...':lang==='tr'?'Fiyat alınıyor...':'Fetching price...'}</div>}
               {searchResults.length > 0 && (
                 <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
                   {searchResults.map((s,i) => (
@@ -996,7 +996,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           {form.symbol && (
             <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
               <div><div style={{...TIP,marginBottom:'6px'}}>Symbol</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Live Price</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Loading...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Live Price</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?lang==='tr'?'Yükleniyor...':'Loading...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
               <div><div style={{...TIP,marginBottom:'6px'}}>Type</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
               <div><div style={{...TIP,marginBottom:'6px'}}>Shares / Amount</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
               <div><div style={{...TIP,marginBottom:'6px'}}>Buy Price ($)</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
@@ -1004,7 +1004,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           )}
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
             <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
-            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>Add Position</button>
+            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>{lang==='tr'?'Pozisyon Ekle':'Add Position'}</button>
           </div>
         </Card>
       )}
@@ -1214,9 +1214,9 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'bir gün seçin, AI görevlerinizi görün':'tap a day to see your AI tasks'}</p>
       </div>
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
-        <StatCard accent={theme.accent} label="Days Completed" value={completedCount} sub={lang==='tr'?`${today} günden beri`:lang==='tr'?`${today} günden bu yana`:`of ${today} days so far`} color={theme.text} icon="✅" />
-        <StatCard accent={theme.accent} label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
-        <StatCard accent={theme.accent} label="Days Remaining" value={30-today} sub={lang==='tr'?'ay sonuna kadar':'until end of month'} color="rgba(255,255,255,0.5)" icon="📅" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Tamamlanan Gün':'Days Completed'} value={completedCount} sub={lang==='tr'?`${today} günden beri`:`of ${today} days so far`} color={theme.text} icon="✅" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Tamamlama Oranı':'Completion Rate'} value={`${streakPct}%`} sub={streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Kalan Gün':'Days Remaining'} value={30-today} sub={lang==='tr'?'ay sonuna kadar':'until end of month'} color="rgba(255,255,255,0.5)" icon="📅" />
       </div>
       <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
