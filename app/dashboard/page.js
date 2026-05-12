@@ -1020,7 +1020,7 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
       <PageHeader theme={theme} title={lang==='tr'?'📈 Yatırımlar':'📈 Investments'} subtitle={lang==='tr'?'Canlı fiyatlar · Tüm değerler ₺ cinsinden':'Live prices · All values in ₺'}
         action={
           <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span></div>}
+            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{TR?'Canlı':'Live'} · {lastUpdated}</span></div>}
             <AddBtn theme={theme} label={lang==='tr'?'+ Pozisyon Ekle':'+ Add Position'} onClick={()=>setAdding(!adding)} />
           </div>
         }
