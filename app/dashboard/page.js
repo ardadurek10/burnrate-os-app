@@ -590,9 +590,9 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
       )}
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':lang==='tr'?'Net Bakiye':'Net Balance'} value={`₺${Math.abs(netBal).toFixed(0)}`} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':'Net Balance'} value={`₺${Math.abs(netBal).toFixed(0)}`} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Harcama':'Monthly Burn'} value={`₺${(totalExp+totalSubs).toFixed(0)}`} sub={lang==='tr'?'harcama + abonelik':'expenses + subs'} color="#fb7185" icon="🔥" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={lang==='tr'?(invGain>=0?`+₺${invGain.toFixed(0)} kazanç`:`-₺${Math.abs(invGain).toFixed(0)} kayıp`):(invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`)} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
@@ -692,15 +692,15 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
         action={<AddBtn theme={theme} label={lang==='tr'?'+ Abonelik Ekle':'+ Add Subscription'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
         <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Maliyet':'Monthly Cost'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Ölü Araçlar':'Dead Tools'} value={dead.length} sub={`₺${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Ölü Araçlar':'Dead Tools'} value={dead.length} sub={lang==='tr'?`₺${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/ay israf`:`₺${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Tutmaya Değer':'Worth Keeping'} value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
-            <InputField label="Service Name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Shopify, Claude Pro..." />
-            <InputField label="Monthly Cost ($)" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
-            <InputField label="Days Since Last Used" value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} type="number" placeholder="0 = used today" />
+            <InputField label={lang==='tr'?'Hizmet Adı':'Service Name'} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={lang==='tr'?'Shopify, Claude Pro...':'Shopify, Claude Pro...'} />
+            <InputField label={lang==='tr'?'Aylık Maliyet (₺)':'Monthly Cost (₺)'} value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
+            <InputField label={lang==='tr'?'Son Kullanımdan Bu Yana (gün)':'Days Since Last Used'} value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} type="number" placeholder="0 = used today" />
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
               <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
@@ -719,7 +719,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:'500px'}}>
-              <thead><tr><TH>Service</TH><TH>Cost/mo</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>Last Used</TH><TH>Status</TH><TH></TH></tr></thead>
+              <thead><tr><TH>{lang==='tr'?'Hizmet':'Service'}</TH><TH>{lang==='tr'?'Maliyet/ay':'Cost/mo'}</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>{lang==='tr'?'Son Kullanım':'Last Used'}</TH><TH>Status</TH><TH></TH></tr></thead>
               <tbody>
                 {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz abonelik yok':'No subscriptions yet'}</td></tr>
                 : subs.map(s=>(
@@ -727,7 +727,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
                     <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺${Number(s.cost).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{s.category}</span></td>
-                    <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{s.days_since_used===0?'Today':`${s.days_since_used}d ago`}</td>
+                    <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{lang==='tr'?(s.days_since_used===0?'Bugün':`${s.days_since_used}g önce`):(s.days_since_used===0?'Today':`${s.days_since_used}d ago`)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span></td>
                     <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Sil':'Kill'}</button></td>
                   </tr>
@@ -781,16 +781,16 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         action={<AddBtn theme={theme} label={lang==='tr'?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
         <StatCard accent={theme.accent} label={lang==='tr'?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={lang==='tr'?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
         <StatCard accent={theme.accent} label={lang==='tr'?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'$0'} color={theme.text} icon="📊" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'₺0'} color={theme.text} icon="📊" />
       </div>
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
-            <InputField label="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Late night delivery..." />
-            <InputField label="Amount ($)" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
-            <InputField label="Date" value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="May 5" />
+            <InputField label={lang==='tr'?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Late night delivery..." />
+            <InputField label={lang==='tr'?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
+            <InputField label={lang==='tr'?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="May 5" />
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
               <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
@@ -854,9 +854,9 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Harcama Kayıtları':'Expense Log'}</div>
           <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-            {['all','impulse','food','transport','business'].map(f=>(
+            {(lang==='tr'?[['all','Tümü'],['impulse','Ani Alım'],['food','Yemek'],['transport','Ulaşım'],['business','İş']]:[ ['all','All'],['impulse','Impulse'],['food','Food'],['transport','Transport'],['business','Business']]).map(([f,label])=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
-                {f.charAt(0).toUpperCase()+f.slice(1)}
+                {label}
               </button>
             ))}
           </div>
@@ -1090,13 +1090,13 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       <PageHeader theme={theme} title={lang==='tr'?'💰 Bakiye & Tasarruf':'💰 Balance & Savings'} subtitle={lang==='tr'?'Gelir ve tasarruf oranını takip et.':'Track income and your savings rate.'}
         action={<AddBtn theme={theme} label={lang==='tr'?'+ Gelir Ekle':'+ Log Income'} onClick={()=>setAdding(!adding)} />} />
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
-        <div style={{...TIP,marginBottom:'8px'}}>{lang==='tr'?'Net Bakiye':lang==='tr'?'Net Bakiye':'Net Balance'}</div>
+        <div style={{...TIP,marginBottom:'8px'}}>{lang==='tr'?'Net Bakiye':'Net Balance'}</div>
         <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:700,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px',...VAL}}>
-          ${Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+          ₺{Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
         </div>
         <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px',fontFamily:FONT}}>{lang==='tr'?(netBal>=0?'↑ Bu ay net pozitifsiniz':'↓ Harcamalar geliri aşıyor'):(netBal>=0?lang==='tr'?'↑ Bu ay net pozitifsiniz':'↑ You are net positive this month':lang==='tr'?'↓ Harcamalar geliri aşıyor':'↓ Spending exceeds income')}</div>
         <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'20px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
-          {[[lang==='tr'?'Toplam Gelir':lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(2)}`,'#6ee7b7'],[lang==='tr'?'Toplam Gider':'Total Expenses',`₺${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
+          {[[lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(2)}`,'#6ee7b7'],[lang==='tr'?'Toplam Gider':'Total Expenses',`₺${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
             <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginBottom:'4px',fontFamily:FONT}}>{l}</div><div style={{color:c,fontSize:'20px',fontWeight:700,...VAL}}>{v}</div></div>
           ))}
         </div>
@@ -1104,9 +1104,9 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-            <InputField label="Source" value={form.source} onChange={e=>setForm({...form,source:e.target.value})} placeholder="Freelance, Product sale..." />
-            <InputField label="Amount ($)" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
-            <InputField label="Date" value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} placeholder="May 5" />
+            <InputField label={lang==='tr'?'Kaynak':'Source'} value={form.source} onChange={e=>setForm({...form,source:e.target.value})} placeholder="Freelance, Product sale..." />
+            <InputField label={lang==='tr'?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
+            <InputField label={lang==='tr'?'Tarih':'Date'} value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} placeholder="May 5" />
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
             <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
@@ -1139,7 +1139,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
               </svg>
               <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
                 <div style={{color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5',fontSize:'22px',fontWeight:700}}>{sr}%</div>
-                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:FONT}}>saved</div>
+                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:FONT}}>{lang==='tr'?'kaydedildi':'saved'}</div>
               </div>
             </div>
           </div>
@@ -1210,18 +1210,18 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
   return (
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{marginBottom:'28px'}}>
-        <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>🎯 30-Day Financial Challenge</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — tap a day to see your AI tasks</p>
+        <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{lang==='tr'?'🎯 30 Günlük Finansal Meydan Okuma':'🎯 30-Day Financial Challenge'}</h1>
+        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'bir gün seçin, AI görevlerinizi görün':'tap a day to see your AI tasks'}</p>
       </div>
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
-        <StatCard accent={theme.accent} label="Days Completed" value={completedCount} sub={`of ${today} days so far`} color={theme.text} icon="✅" />
+        <StatCard accent={theme.accent} label="Days Completed" value={completedCount} sub={lang==='tr'?`${today} günden beri`:lang==='tr'?`${today} günden bu yana`:`of ${today} days so far`} color={theme.text} icon="✅" />
         <StatCard accent={theme.accent} label="Completion Rate" value={`${streakPct}%`} sub={streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
-        <StatCard accent={theme.accent} label="Days Remaining" value={30-today} sub="until end of month" color="rgba(255,255,255,0.5)" icon="📅" />
+        <StatCard accent={theme.accent} label="Days Remaining" value={30-today} sub={lang==='tr'?'ay sonuna kadar':'until end of month'} color="rgba(255,255,255,0.5)" icon="📅" />
       </div>
       <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>Select a day to begin your challenge</div>
-          <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>{completedCount}/30 complete</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Meydan okumaya başlamak için bir gün seçin':'Select a day to begin your challenge'}</div>
+          <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>{lang==='tr'?`${completedCount}/30 tamamlandı`:`${completedCount}/30 complete`}</div>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'8px'}}>
           {Array.from({length:30},(_,i)=>i+1).map(day => {
@@ -1239,8 +1239,8 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
         <Card accent={theme.accent} style={{padding:'24px',animation:'fadeIn 0.25s ease'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
             <div>
-              <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Day {selectedDay} Tasks</div>
-              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>AI-generated · Complete all 3 tasks</div>
+              <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>{lang==='tr'?`${selectedDay}. Gün Görevleri`:`Day ${selectedDay} Tasks`}</div>
+              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>{lang==='tr'?'Yapay zeka tarafından · 3 görevi tamamla':'AI-generated · Complete all 3 tasks'}</div>
             </div>
             <button onClick={()=>setSelectedDay(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer',lineHeight:1}}>×</button>
           </div>
@@ -1248,7 +1248,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
             {loadingTasks ? (
               <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'20px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
                 <div style={{width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite',flexShrink:0}}></div>
-                AI is generating your personalized tasks...
+                {lang==='tr'?'Yapay zeka görevlerinizi oluşturuyor...':'AI is generating your personalized tasks...'}
               </div>
             ) : dayTasks.map((task,idx) => {
               const done = completedTasks[`${selectedDay}-${idx}`]
@@ -1257,13 +1257,13 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
                   style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px',borderRadius:'12px',background:done?theme.bg:'rgba(255,255,255,0.03)',border:done?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
                   <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700}}>{done?'✓':''}</div>
                   <span style={{fontSize:'14px',color:done?theme.text:'rgba(255,255,255,0.8)',fontWeight:done?600:400,fontFamily:FONT,flex:1,lineHeight:'1.4'}}>{task}</span>
-                  {done && <span style={{fontSize:'11px',color:theme.text,fontFamily:MONO,opacity:0.7}}>done</span>}
+                  {done && <span style={{fontSize:'11px',color:theme.text,fontFamily:MONO,opacity:0.7}}>{lang==='tr'?'tamam':'done'}</span>}
                 </div>
               )
             })}
           </div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>{dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of {dayTasks.length} tasks completed</div>
+            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>{lang==='tr'?`${dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length}/${dayTasks.length} görev tamamlandı`:`${dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of ${dayTasks.length} tasks completed`}</div>
             <button onClick={()=>completeDay(selectedDay)}
               style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT}}>
               {completedDays.includes(selectedDay)?lang==='tr'?'✓ Gün Tamamlandı!':'✓ Day Completed!':lang==='tr'?'🎯 Günü Tamamla →':'🎯 Complete Day →'}
@@ -1292,7 +1292,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{marginBottom:'28px'}}>
         <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>📋 Monthly Summary</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — your complete financial report</p>
+        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'tam finansal raporunuz':'your complete financial report'}</p>
       </div>
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'24px'}}>
@@ -1302,7 +1302,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
             <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{lang==='tr'?(sr>=30?'🎉 Mükemmel!':sr>=20?'💪 İyi gidiyorsun!':sr>=10?'📈 Gelişme gerekli':'⚠️ Harcamalar azaltılmalı'):(sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending')}</div>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
-            {[[lang==='tr'?'Net Bakiye':'Net Balance',`₺${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],[lang==='tr'?'Toplam Gelir':lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(0)}`,'#6ee7b7'],[lang==='tr'?'Toplam Harcama':'Total Spend',`₺${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
+            {[[lang==='tr'?'Net Bakiye':'Net Balance',`₺${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],[lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(0)}`,'#6ee7b7'],[lang==='tr'?'Toplam Harcama':'Total Spend',`₺${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
               <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div><div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div></div>
             ))}
           </div>
@@ -1348,7 +1348,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 // ── AI ADVISOR ────────────────────────────────────────────────────
 function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
   const [messages, setMessages] = useState([
-    { role:'ai', text:"Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
+    { role:'ai', text: lang==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
