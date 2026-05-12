@@ -1473,12 +1473,12 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
   const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
   const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-  const chartData = [{name:(lang==='tr')?'Gelir':'Income',value:totalIncome,fill:'#6ee7b7'},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp,fill:'#f97316'},{name:'Subs',value:totalSubs,fill:'#ef4444'},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
+  const chartData = [{name:(lang==='tr')?'Gelir':'Income',value:totalIncome,fill:'#6ee7b7'},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp,fill:'#f97316'},{name:(lang==='tr')?'Abonelik':'Subs',value:totalSubs,fill:'#ef4444'},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{marginBottom:'28px'}}>
-        <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>📋 Monthly Summary</h1>
+        <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{lang==='tr'?'📋 Aylık Özet':'📋 Monthly Summary'}</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'tam finansal raporunuz':'your complete financial report'}</p>
       </div>
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
@@ -1513,9 +1513,9 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
             {[
               {icon:'💸',label:lang==='tr'?'En büyük harcama':'Biggest expense',value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
-              {icon:'💀',label:lang==='tr'?'Ölü aboneliklere harcanan':'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/mo — cancel them!`:'No dead subscriptions 🎉',color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
-              {icon:'📈',label:lang==='tr'?'Tasarruf performansı':'Savings performance',value:`${sr}% — ${sr>=30?'excellent':sr>=15?'good':'needs work'}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
-              {icon:'🎯',label:lang==='tr'?'Sonraki ay hedefi':'Next month target',value:`Save ₺${Math.max(Math.round(totalIncome*0.3),50)} (30% of income)`,color:theme.text},
+              {icon:'💀',label:lang==='tr'?'Ölü aboneliklere harcanan':'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/${lang==='tr'?'ay':'mo'} — ${lang==='tr'?'iptal et!':'cancel them!'}`:(lang==='tr'?'Ölü abonelik yok 🎉':'No dead subscriptions 🎉'),color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
+              {icon:'📈',label:lang==='tr'?'Tasarruf performansı':'Savings performance',value:`${sr}% — ${sr>=30?(lang==='tr'?'mükemmel':'excellent'):sr>=15?(lang==='tr'?'iyi':'good'):(lang==='tr'?'gelişmeli':'needs work')}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
+              {icon:'🎯',label:lang==='tr'?'Sonraki ay hedefi':'Next month target',value:`${lang==='tr'?'Kaydet':'Save'} ₺${Math.max(Math.round(totalIncome*0.3),50)} (${lang==='tr'?'gelirin %30u':'30% of income'})`,color:theme.text},
             ].map((item,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
                 <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
