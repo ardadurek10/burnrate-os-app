@@ -13,7 +13,7 @@ const DASHBOARD_TRANSLATIONS = {
   en: {
     overview: 'Overview', subscriptions: 'Subscriptions', spending: 'Spending',
     investments: 'Investments', balance: 'Balance', challenge: 'Challenge',
-    ai_advisor: 'AI Advisor', monthly_summary: 'Monthly Summary',
+    ai_advisor: 'AI Advisor', monthly_summary: TR?'Aylık Özet':'Monthly Summary',
     sign_out: 'Sign out →', command_center: 'command center',
     greeting_morning: 'Good morning', greeting_afternoon: 'Good afternoon',
     greeting_evening: 'Good evening', greeting_night: 'Good night',
@@ -191,18 +191,19 @@ const DAILY_TASKS = [
 ]
 
 // ── UPGRADE MODAL ─────────────────────────────────────────────────
-function UpgradeModal({ moduleId, userPlan, onClose }) {
+function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
+  const TR = lang==='tr'
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
   const currentMeta = PLAN_META[userPlan] || PLAN_META.starter
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
 
   const moduleNames = {
-    subscriptions: 'Subscription Tracker',
-    goals:         '30-Day Challenge',
-    ai:            'AI Financial Advisor',
-    investments:   'Live Investments',
-    summary:       'Monthly Summary',
+    subscriptions: TR?'Abonelik Takibi':'Subscription Tracker',
+    goals:         TR?'30 Günlük Meydan Okuma':'30-Day Challenge',
+    ai:            TR?'Yapay Zeka Danışmanı':'AI Financial Advisor',
+    investments:   TR?'Canlı Yatırımlar':'Live Investments',
+    summary:       TR?'Aylık Özet':'Monthly Summary',
   }
 
   return (
@@ -217,12 +218,12 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
         </p>
         <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'18px',marginBottom:'24px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
-            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>Current plan</span>
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{TR?'Mevcut Plan':'Current plan'}</span>
             <span style={{color:currentMeta.color,fontSize:'13px',fontWeight:600,fontFamily:MONO}}>{currentMeta.name} · {currentMeta.price}</span>
           </div>
           <div style={{height:'1px',background:'rgba(255,255,255,0.06)',marginBottom:'14px'}}></div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>Upgrade to</span>
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{TR?'Yükseltilecek Plan':'Upgrade to'}</span>
             <span style={{color:requiredMeta.color,fontSize:'13px',fontWeight:700,fontFamily:MONO}}>{requiredMeta.name} · {requiredMeta.price}</span>
           </div>
         </div>
@@ -232,7 +233,7 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
         </a>
         <button onClick={onClose}
           style={{width:'100%',padding:'12px',borderRadius:'14px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.4)',fontSize:'14px',cursor:'pointer',fontFamily:FONT}}>
-          Maybe later
+          {TR?'Şimdi değil':'Maybe later'}
         </button>
       </div>
     </div>
@@ -240,17 +241,18 @@ function UpgradeModal({ moduleId, userPlan, onClose }) {
 }
 
 // ── LOCKED PAGE ───────────────────────────────────────────────────
-function LockedPage({ moduleId, userPlan, onUpgrade }) {
+function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
+  const TR = lang==='tr'
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
 
   const moduleNames = {
-    subscriptions: 'Subscription Tracker',
-    goals:         '30-Day Challenge',
-    ai:            'AI Financial Advisor',
-    investments:   'Live Investments',
-    summary:       'Monthly Summary Score',
+    subscriptions: TR?'Abonelik Takibi':'Subscription Tracker',
+    goals:         TR?'30 Günlük Meydan Okuma':'30-Day Challenge',
+    ai:            TR?'Yapay Zeka Danışmanı':'AI Financial Advisor',
+    investments:   TR?'Canlı Yatırımlar':'Live Investments',
+    summary:       TR?'Aylık Özet Puanı':'Monthly Summary Score',
   }
   const moduleDescs = {
     subscriptions: 'Track every recurring charge. Auto-label as KEEP, WARN, or DEAD. Cancel what\'s draining you invisibly.',
@@ -269,8 +271,8 @@ function LockedPage({ moduleId, userPlan, onUpgrade }) {
         <p style={{color:'#a09ab8',fontSize:'15px',lineHeight:1.7,margin:'0 0 40px',fontFamily:FONT,fontWeight:300}}>{moduleDescs[moduleId]}</p>
         <div style={{display:'flex',flexWrap:'wrap',gap:'8px',justifyContent:'center',marginBottom:'40px'}}>
           {(required === 'pro'
-            ? ['Subscription Tracker','30-Day Challenge','AI Advisor']
-            : ['Live Investments','Monthly Summary','Priority Support']
+            ? [TR?'Abonelik Takibi':'Subscription Tracker',TR?'30 Günlük Meydan Okuma':'30-Day Challenge','AI Advisor']
+            : [TR?'Canlı Yatırımlar':'Live Investments',TR?'Aylık Özet':'Monthly Summary','Priority Support']
           ).map(f => (
             <span key={f} style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 14px',borderRadius:'100px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,color:requiredMeta.color,fontSize:'12px',fontFamily:FONT}}>✓ {f}</span>
           ))}
@@ -279,7 +281,7 @@ function LockedPage({ moduleId, userPlan, onUpgrade }) {
           style={{display:'block',width:'100%',padding:'18px',borderRadius:'16px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'16px',textDecoration:'none',boxShadow:`0 0 60px ${requiredMeta.color}44`,fontFamily:FONT,marginBottom:'12px'}}>
           {requiredMeta.emoji} Upgrade to {requiredMeta.name} · {requiredMeta.price}
         </a>
-        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>Cancel anytime · Instant activation via Whop</div>
+        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>{TR?'İstediğin zaman iptal · Anında aktivasyon':'Cancel anytime · Instant activation via Whop'}</div>
       </div>
     </div>
   )
@@ -471,7 +473,7 @@ export default function Dashboard() {
           <button onClick={() => navigateTo('summary')}
             style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:canAccess(userPlan,'summary')?'rgba(255,255,255,0.38)':'rgba(255,255,255,0.2)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
             <span style={{fontSize:'14px',opacity:canAccess(userPlan,'summary')?1:0.5}}>📋</span>
-            <span style={{flex:1}}>{lang==='tr'?'Aylık Özet':'Monthly Summary'}</span>
+            <span style={{flex:1}}>{lang==='tr'?'Aylık Özet':TR?'Aylık Özet':'Monthly Summary'}</span>
             {!canAccess(userPlan,'summary') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
@@ -584,7 +586,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
-  const pieData = [{name:'Subscriptions',value:totalSubs},{name:'Expenses',value:totalExp},{name:'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
+  const pieData = [{name:'Subscriptions',value:totalSubs},{name:TR?'Gider':'Expenses',value:totalExp},{name:TR?'Tasarruf':'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
   const barData = expenses.slice(-6).map((e,i)=>({name:e.description?.slice(0,8)||`#${i+1}`,amount:Number(e.amount)}))
 
   return (
@@ -596,7 +598,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <button onClick={onSummary}
           style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
-          📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
+          📋 {lang==='tr'?'Aylık Özet':TR?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
         </button>
       </div>
       {deadSubs.length > 0 && (
@@ -664,7 +666,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                   <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>₺{Number(s.cost).toFixed(2)}</span>
-                  <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status}</span>
+                  <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?(TR?'ölü':'dead'):s.status==='warn'?(TR?'uyarı':'warn'):(TR?'tut':'keep')}</span>
                 </div>
               </div>
             ))}
@@ -799,9 +801,9 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                   <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
                     <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺{Number(s.cost).toFixed(2)}</td>
-                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{s.category}</span></td>
+                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{getSubCatLabel(s.category)}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{lang==='tr'?(s.days_since_used===0?'Bugün':`${s.days_since_used}g önce`):(s.days_since_used===0?'Today':`${s.days_since_used}d ago`)}</td>
-                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span></td>
+                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?(TR?'ÖLÜ':'DEAD'):s.status==='warn'?(TR?'UYARI':'WARN'):(TR?'TUTUN':'KEEP')}</span></td>
                     <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Sil':'Kill'}</button></td>
                   </tr>
                 ))}
@@ -1439,7 +1441,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
   const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
   const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-  const chartData = [{name:'Income',value:totalIncome,fill:'#6ee7b7'},{name:'Expenses',value:totalExp,fill:'#f97316'},{name:'Subs',value:totalSubs,fill:'#ef4444'},{name:'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
+  const chartData = [{name:TR?'Gelir':'Income',value:totalIncome,fill:'#6ee7b7'},{name:TR?'Gider':'Expenses',value:totalExp,fill:'#f97316'},{name:'Subs',value:totalSubs,fill:'#ef4444'},{name:TR?'Tasarruf':'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
@@ -1532,7 +1534,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
           <div>
-            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
+            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':TR?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
             <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
           </div>
         </div>
