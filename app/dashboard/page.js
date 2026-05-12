@@ -1512,7 +1512,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>{lang==='tr'?'Önemli Bulgular':'Key Insights'}</div>
           <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
             {[
-              {icon:'💸',label:lang==='tr'?'En büyük harcama':'Biggest expense',value:`${topExpense.description} ($${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
+              {icon:'💸',label:lang==='tr'?'En büyük harcama':'Biggest expense',value:`${topExpense.description} (₺${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
               {icon:'💀',label:lang==='tr'?'Ölü aboneliklere harcanan':'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/${lang==='tr'?'ay':'mo'} — ${lang==='tr'?'iptal et!':'cancel them!'}`:(lang==='tr'?'Ölü abonelik yok 🎉':'No dead subscriptions 🎉'),color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
               {icon:'📈',label:lang==='tr'?'Tasarruf performansı':'Savings performance',value:`${sr}% — ${sr>=30?(lang==='tr'?'mükemmel':'excellent'):sr>=15?(lang==='tr'?'iyi':'good'):(lang==='tr'?'gelişmeli':'needs work')}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
               {icon:'🎯',label:lang==='tr'?'Sonraki ay hedefi':'Next month target',value:`${lang==='tr'?'Kaydet':'Save'} ₺${Math.max(Math.round(totalIncome*0.3),50)} (${lang==='tr'?'gelirin %30u':'30% of income'})`,color:theme.text},
