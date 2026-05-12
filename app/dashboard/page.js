@@ -1,5 +1,4 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { supabaseQuery, supabaseInsert, supabaseDelete } from '../lib/supabase'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
@@ -14,7 +13,7 @@ const DASHBOARD_TRANSLATIONS = {
   en: {
     overview: 'Overview', subscriptions: 'Subscriptions', spending: 'Spending',
     investments: 'Investments', balance: 'Balance', challenge: 'Challenge',
-    ai_advisor: 'AI Advisor', monthly_summary: TR?'Aylık Özet':'Monthly Summary',
+    ai_advisor: 'AI Advisor', monthly_summary: 'Monthly Summary',
     sign_out: 'Sign out →', command_center: 'command center',
     greeting_morning: 'Good morning', greeting_afternoon: 'Good afternoon',
     greeting_evening: 'Good evening', greeting_night: 'Good night',
@@ -193,18 +192,17 @@ const DAILY_TASKS = [
 
 // ── UPGRADE MODAL ─────────────────────────────────────────────────
 function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
-  const TR = lang==='tr'
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
   const currentMeta = PLAN_META[userPlan] || PLAN_META.starter
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
 
   const moduleNames = {
-    subscriptions: TR?'Abonelik Takibi':'Subscription Tracker',
-    goals:         TR?'30 Günlük Meydan Okuma':'30-Day Challenge',
-    ai:            TR?'Yapay Zeka Danışmanı':'AI Financial Advisor',
-    investments:   TR?'Canlı Yatırımlar':'Live Investments',
-    summary:       TR?'Aylık Özet':'Monthly Summary',
+    subscriptions: (lang==='tr')?'Abonelik Takibi':'Subscription Tracker',
+    goals:         (lang==='tr')?'30 Günlük Meydan Okuma':'30-Day Challenge',
+    ai:            (lang==='tr')?'Yapay Zeka Danışmanı':'AI Financial Advisor',
+    investments:   (lang==='tr')?'Canlı Yatırımlar':'Live Investments',
+    summary:       (lang==='tr')?'Aylık Özet':'Monthly Summary',
   }
 
   return (
@@ -219,12 +217,12 @@ function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
         </p>
         <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'18px',marginBottom:'24px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
-            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{TR?'Mevcut Plan':'Current plan'}</span>
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{(lang==='tr')?'Mevcut Plan':'Current plan'}</span>
             <span style={{color:currentMeta.color,fontSize:'13px',fontWeight:600,fontFamily:MONO}}>{currentMeta.name} · {currentMeta.price}</span>
           </div>
           <div style={{height:'1px',background:'rgba(255,255,255,0.06)',marginBottom:'14px'}}></div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{TR?'Yükseltilecek Plan':'Upgrade to'}</span>
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{(lang==='tr')?'Yükseltilecek Plan':'Upgrade to'}</span>
             <span style={{color:requiredMeta.color,fontSize:'13px',fontWeight:700,fontFamily:MONO}}>{requiredMeta.name} · {requiredMeta.price}</span>
           </div>
         </div>
@@ -234,7 +232,7 @@ function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
         </a>
         <button onClick={onClose}
           style={{width:'100%',padding:'12px',borderRadius:'14px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.4)',fontSize:'14px',cursor:'pointer',fontFamily:FONT}}>
-          {TR?'Şimdi değil':'Maybe later'}
+          {(lang==='tr')?'Şimdi değil':'Maybe later'}
         </button>
       </div>
     </div>
@@ -243,17 +241,16 @@ function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
 
 // ── LOCKED PAGE ───────────────────────────────────────────────────
 function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
-  const TR = lang==='tr'
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
 
   const moduleNames = {
-    subscriptions: TR?'Abonelik Takibi':'Subscription Tracker',
-    goals:         TR?'30 Günlük Meydan Okuma':'30-Day Challenge',
-    ai:            TR?'Yapay Zeka Danışmanı':'AI Financial Advisor',
-    investments:   TR?'Canlı Yatırımlar':'Live Investments',
-    summary:       TR?'Aylık Özet Puanı':'Monthly Summary Score',
+    subscriptions: (lang==='tr')?'Abonelik Takibi':'Subscription Tracker',
+    goals:         (lang==='tr')?'30 Günlük Meydan Okuma':'30-Day Challenge',
+    ai:            (lang==='tr')?'Yapay Zeka Danışmanı':'AI Financial Advisor',
+    investments:   (lang==='tr')?'Canlı Yatırımlar':'Live Investments',
+    summary:       (lang==='tr')?'Aylık Özet Puanı':'Monthly Summary Score',
   }
   const moduleDescs = {
     subscriptions: 'Track every recurring charge. Auto-label as KEEP, WARN, or DEAD. Cancel what\'s draining you invisibly.',
@@ -272,8 +269,8 @@ function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
         <p style={{color:'#a09ab8',fontSize:'15px',lineHeight:1.7,margin:'0 0 40px',fontFamily:FONT,fontWeight:300}}>{moduleDescs[moduleId]}</p>
         <div style={{display:'flex',flexWrap:'wrap',gap:'8px',justifyContent:'center',marginBottom:'40px'}}>
           {(required === 'pro'
-            ? [TR?'Abonelik Takibi':'Subscription Tracker',TR?'30 Günlük Meydan Okuma':'30-Day Challenge','AI Advisor']
-            : [TR?'Canlı Yatırımlar':'Live Investments',TR?'Aylık Özet':'Monthly Summary','Priority Support']
+            ? [(lang==='tr')?'Abonelik Takibi':'Subscription Tracker',(lang==='tr')?'30 Günlük Meydan Okuma':'30-Day Challenge','AI Advisor']
+            : [(lang==='tr')?'Canlı Yatırımlar':'Live Investments',(lang==='tr')?'Aylık Özet':'Monthly Summary','Priority Support']
           ).map(f => (
             <span key={f} style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 14px',borderRadius:'100px',background:`rgba(${hexToRgb(requiredMeta.color)},0.1)`,border:`1px solid ${requiredMeta.color}33`,color:requiredMeta.color,fontSize:'12px',fontFamily:FONT}}>✓ {f}</span>
           ))}
@@ -282,7 +279,7 @@ function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
           style={{display:'block',width:'100%',padding:'18px',borderRadius:'16px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'16px',textDecoration:'none',boxShadow:`0 0 60px ${requiredMeta.color}44`,fontFamily:FONT,marginBottom:'12px'}}>
           {requiredMeta.emoji} Upgrade to {requiredMeta.name} · {requiredMeta.price}
         </a>
-        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>{TR?'İstediğin zaman iptal · Anında aktivasyon':'Cancel anytime · Instant activation via Whop'}</div>
+        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>{(lang==='tr')?'İstediğin zaman iptal · Anında aktivasyon':'Cancel anytime · Instant activation via Whop'}</div>
       </div>
     </div>
   )
@@ -335,7 +332,6 @@ export default function Dashboard() {
     setPage(moduleId)
   }
 
-  const TR = lang === 'tr'
   const navItems = [
     { id:'dashboard',     icon:'⚡', label: TR ? 'Genel Bakış'   : 'Overview' },
     { id:'subscriptions', icon:'⚔️', label: TR ? 'Abonelikler'   : 'Subscriptions' },
@@ -392,16 +388,15 @@ export default function Dashboard() {
       {/* TRIAL BANNER */}
       {user?.is_trial && user?.trial_expires_at && (() => {
         const daysLeft = Math.ceil((new Date(user.trial_expires_at) - new Date()) / (1000*60*60*24))
-        const TR = lang==='tr'
-        if (daysLeft <= 0) return null
+              if (daysLeft <= 0) return null
         return (
           <div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:'linear-gradient(90deg,#7c3aed,#4c1d95)',padding:'10px 20px',display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
             <span style={{color:'#fff',fontSize:'13px',fontFamily:FONT,fontWeight:500}}>
-              {TR?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`}
+              {(lang==='tr')?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`}
             </span>
             <a href={WHOP_UPGRADE_LINKS.starter} target="_blank" rel="noreferrer"
               style={{background:'rgba(255,255,255,0.2)',color:'#fff',padding:'5px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:FONT,whiteSpace:'nowrap'}}>
-              {TR?'Plan Al →':'Upgrade →'}
+              {(lang==='tr')?'Plan Al →':'Upgrade →'}
             </a>
           </div>
         )
@@ -474,7 +469,7 @@ export default function Dashboard() {
           <button onClick={() => navigateTo('summary')}
             style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:canAccess(userPlan,'summary')?'rgba(255,255,255,0.38)':'rgba(255,255,255,0.2)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
             <span style={{fontSize:'14px',opacity:canAccess(userPlan,'summary')?1:0.5}}>📋</span>
-            <span style={{flex:1}}>{lang==='tr'?'Aylık Özet':TR?'Aylık Özet':'Monthly Summary'}</span>
+            <span style={{flex:1}}>{lang==='tr'?'Aylık Özet':(lang==='tr')?'Aylık Özet':'Monthly Summary'}</span>
             {!canAccess(userPlan,'summary') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
@@ -582,12 +577,11 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
 function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan, userName, lang }) {
-  const TR = lang==='tr'
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
-  const pieData = [{name:'Subscriptions',value:totalSubs},{name:TR?'Gider':'Expenses',value:totalExp},{name:TR?'Tasarruf':'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
+  const pieData = [{name:'Subscriptions',value:totalSubs},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
   const barData = expenses.slice(-6).map((e,i)=>({name:e.description?.slice(0,8)||`#${i+1}`,amount:Number(e.amount)}))
 
   return (
@@ -599,7 +593,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <button onClick={onSummary}
           style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
-          📋 {lang==='tr'?'Aylık Özet':TR?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
+          📋 {lang==='tr'?'Aylık Özet':(lang==='tr')?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
         </button>
       </div>
       {deadSubs.length > 0 && (
@@ -667,7 +661,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                   <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>₺{Number(s.cost).toFixed(2)}</span>
-                  <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?(TR?'ölü':'dead'):s.status==='warn'?(TR?'uyarı':'warn'):(TR?'tut':'keep')}</span>
+                  <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?((lang==='tr')?'ölü':'dead'):s.status==='warn'?((lang==='tr')?'uyarı':'warn'):((lang==='tr')?'tut':'keep')}</span>
                 </div>
               </div>
             ))}
@@ -692,7 +686,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
 function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
-  const TR = lang==='tr'
 
   const SUB_CATS = [
     { v:'saas',          tr:'SaaS / Araçlar',       en:'SaaS / Tools',       icon:'🛠️', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
@@ -715,13 +708,13 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
     { v:'insurance',     tr:'Sigorta',               en:'Insurance',          icon:'🛡️', g_tr:'Finans',          g_en:'Finance' },
     { v:'other_sub',     tr:'Diğer',                 en:'Other',              icon:'📦', g_tr:'Diğer',           g_en:'Other' },
   ]
-  const getSubCatLabel = (v) => { const cat=SUB_CATS.find(c=>c.v===v); return cat?(TR?cat.tr:cat.en):v }
+  const getSubCatLabel = (v) => { const cat=SUB_CATS.find(c=>c.v===v); return cat?((lang==='tr')?cat.tr:cat.en):v }
 
   const [form, setForm] = useState({name:'',cost:'',category:'saas',days_since_used:'0',notes:''})
   const [adding, setAdding] = useState(false)
   const [subCatSearch, setSubCatSearch] = useState('')
   const [subCatOpen, setSubCatOpen]     = useState(false)
-  const filtSubCats = subCatSearch ? SUB_CATS.filter(c=>(TR?c.tr:c.en).toLowerCase().includes(subCatSearch.toLowerCase())) : SUB_CATS
+  const filtSubCats = subCatSearch ? SUB_CATS.filter(c=>((lang==='tr')?c.tr:c.en).toLowerCase().includes(subCatSearch.toLowerCase())) : SUB_CATS
 
   async function addSub() {
     if (!form.name||!form.cost) return
@@ -752,7 +745,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
             <InputField label={lang==='tr'?'Aylık Maliyet (₺)':'Monthly Cost (₺)'} value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
             <InputField label={lang==='tr'?'Son Kullanımdan Bu Yana (gün)':'Days Since Last Used'} value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} type="number" placeholder="0 = used today" />
             <div style={{position:'relative'}}>
-              <div style={{...TIP,marginBottom:'6px'}}>{TR?'Kategori':'Category'}</div>
+              <div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
               <div onClick={()=>{setSubCatSearch('');setSubCatOpen(true)}}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:`1px solid ${subCatOpen?'rgba(239,68,68,0.4)':'rgba(255,255,255,0.09)'}`,color:'#f5f5f7',fontSize:'13px',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'8px',justifyContent:'space-between',transition:'border 0.2s'}}>
                 <span>{SUB_CATS.find(c=>c.v===form.category)?.icon} {getSubCatLabel(form.category)}</span>
@@ -762,7 +755,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                 <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#13131f',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:300,boxShadow:'0 12px 40px rgba(0,0,0,0.7)',maxHeight:'260px',overflowY:'auto'}}>
                   <div style={{padding:'8px 10px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                     <input autoFocus value={subCatSearch} onChange={e=>setSubCatSearch(e.target.value)}
-                      placeholder={TR?'Ara...':'Search...'}
+                      placeholder={(lang==='tr')?'Ara...':'Search...'}
                       style={{width:'100%',padding:'7px 10px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'12px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}}
                     />
                   </div>
@@ -774,8 +767,8 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                       onMouseLeave={e=>e.currentTarget.style.background=form.category===cat.v?'rgba(239,68,68,0.08)':'transparent'}>
                       <span style={{fontSize:'16px'}}>{cat.icon}</span>
                       <div style={{flex:1}}>
-                        <div style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{TR?cat.tr:cat.en}</div>
-                        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?cat.g_tr:cat.g_en}</div>
+                        <div style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?cat.tr:cat.en}</div>
+                        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{(lang==='tr')?cat.g_tr:cat.g_en}</div>
                       </div>
                       {form.category===cat.v&&<span style={{color:'#ef4444',fontSize:'12px'}}>✓</span>}
                     </div>
@@ -804,7 +797,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                     <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺{Number(s.cost).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{getSubCatLabel(s.category)}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{lang==='tr'?(s.days_since_used===0?'Bugün':`${s.days_since_used}g önce`):(s.days_since_used===0?'Today':`${s.days_since_used}d ago`)}</td>
-                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?(TR?'ÖLÜ':'DEAD'):s.status==='warn'?(TR?'UYARI':'WARN'):(TR?'TUTUN':'KEEP')}</span></td>
+                    <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?((lang==='tr')?'ÖLÜ':'DEAD'):s.status==='warn'?((lang==='tr')?'UYARI':'WARN'):((lang==='tr')?'TUTUN':'KEEP')}</span></td>
                     <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Sil':'Kill'}</button></td>
                   </tr>
                 ))}
@@ -832,7 +825,6 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
 
 // ── SPENDING ──────────────────────────────────────────────────────────────────
 function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
-  const TR = lang==='tr'
 
   const CATS = [
     {v:'kira',     tr:'Kira / Mortgage',      en:'Rent / Mortgage',      g_tr:'Ev & Yaşam',       g_en:'Home & Life'},
@@ -870,8 +862,8 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
     giyim:'#a78bfa',guzellik:'#ec4899',egitim:'#3b82f6',business:'#10b981',
     abonelik:'#7c3aed',bagis:'#6ee7b7',impulse:'#ef4444',other:'#8b5cf6',
   }
-  const getCL = (val) => { const cat=CATS.find(c=>c.v===val); return cat?(TR?cat.tr:cat.en):val }
-  const getCG = (val) => { const cat=CATS.find(c=>c.v===val); return cat?(TR?cat.g_tr:cat.g_en):(TR?'Diğer':'Other') }
+  const getCL = (val) => { const cat=CATS.find(c=>c.v===val); return cat?((lang==='tr')?cat.tr:cat.en):val }
+  const getCG = (val) => { const cat=CATS.find(c=>c.v===val); return cat?((lang==='tr')?cat.g_tr:cat.g_en):((lang==='tr')?'Diğer':'Other') }
 
   const [form, setForm]     = useState({description:'',amount:'',category:'other',expense_date:''})
   const [adding, setAdding] = useState(false)
@@ -892,33 +884,33 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
   const leakAmt    = leaks.reduce((a,e)=>a+Number(e.amount),0)
   const areaData   = expenses.slice(-7).map((e,i)=>({day:`G${i+1}`,amount:Number(e.amount)}))
   const usedCats   = [...new Set(expenses.map(e=>e.category))]
-  const filterOpts = [['all',TR?'Tümü':'All'], ...usedCats.map(v=>[v,getCL(v)])]
-  const filtCats   = catSearch ? CATS.filter(c=>(TR?c.tr:c.en).toLowerCase().includes(catSearch.toLowerCase())||c.g_tr.toLowerCase().includes(catSearch.toLowerCase())) : CATS
+  const filterOpts = [['all',(lang==='tr')?'Tümü':'All'], ...usedCats.map(v=>[v,getCL(v)])]
+  const filtCats   = catSearch ? CATS.filter(c=>((lang==='tr')?c.tr:c.en).toLowerCase().includes(catSearch.toLowerCase())||c.g_tr.toLowerCase().includes(catSearch.toLowerCase())) : CATS
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title={TR?'💸 Günlük Harcama':'💸 Daily Spending'} subtitle={TR?'Ani alımları ve sızıntıları takip et.':'Track impulse buys and convenience leaks.'}
-        action={<AddBtn theme={theme} label={TR?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
+      <PageHeader theme={theme} title={(lang==='tr')?'💸 Günlük Harcama':'💸 Daily Spending'} subtitle={(lang==='tr')?'Ani alımları ve sızıntıları takip et.':'Track impulse buys and convenience leaks.'}
+        action={<AddBtn theme={theme} label={(lang==='tr')?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={TR?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label={TR?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={TR?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
-        <StatCard accent={theme.accent} label={TR?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
-        <StatCard accent={theme.accent} label={TR?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'₺0'} color={theme.text} icon="📊" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={(lang==='tr')?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'₺0'} color={theme.text} icon="📊" />
       </div>
       {adding&&(
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
-            <InputField label={TR?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Kına gecesi masrafı..." />
-            <InputField label={TR?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
-            <InputField label={TR?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="12 Mayıs" />
+            <InputField label={(lang==='tr')?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Kına gecesi masrafı..." />
+            <InputField label={(lang==='tr')?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
+            <InputField label={(lang==='tr')?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="12 Mayıs" />
             <div style={{position:'relative'}}>
-              <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{TR?'Kategori':'Category'}</div>
+              <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
               <input
                 value={catOpen?catSearch:getCL(form.category)}
                 onChange={e=>{setCatSearch(e.target.value);setCatOpen(true)}}
                 onFocus={()=>{setCatSearch('');setCatOpen(true)}}
                 onBlur={()=>setTimeout(()=>setCatOpen(false),200)}
-                placeholder={TR?'Kategori ara...':'Search category...'}
+                placeholder={(lang==='tr')?'Kategori ara...':'Search category...'}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}}
               />
               {catOpen&&(
@@ -929,8 +921,8 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
                       style={{padding:'9px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',justifyContent:'space-between',alignItems:'center'}}
                       onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
                       onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                      <span style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{TR?cat.tr:cat.en}</span>
-                      <span style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?cat.g_tr:cat.g_en}</span>
+                      <span style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?cat.tr:cat.en}</span>
+                      <span style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{(lang==='tr')?cat.g_tr:cat.g_en}</span>
                     </div>
                   ))}
                 </div>
@@ -938,14 +930,14 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{TR?'İptal':'Cancel'}</button>
-            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{TR?'Kaydet':'Save'}</button>
+            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{(lang==='tr')?'İptal':'Cancel'}</button>
+            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{(lang==='tr')?'Kaydet':'Save'}</button>
           </div>
         </Card>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{TR?'Harcama Trendi':'Spending Trend'}</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{(lang==='tr')?'Harcama Trendi':'Spending Trend'}</div>
           {areaData.length>0?(
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={areaData}>
@@ -957,10 +949,10 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
                 <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2.5} fill="url(#spendGrad)"/>
               </AreaChart>
             </ResponsiveContainer>
-          ):<div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{TR?'Henüz veri yok':'No data yet'}</div>}
+          ):<div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz veri yok':'No data yet'}</div>}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{TR?'Kategoriye Göre':'By Category'}</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{(lang==='tr')?'Kategoriye Göre':'By Category'}</div>
           {usedCats.map(cat=>{
             const amt=expenses.filter(e=>e.category===cat).reduce((a,e)=>a+Number(e.amount),0)
             const pct=total>0?(amt/total*100):0
@@ -977,12 +969,12 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
               </div>
             )
           })}
-          {expenses.length===0&&<div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{TR?'Henüz veri yok':'No data yet'}</div>}
+          {expenses.length===0&&<div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz veri yok':'No data yet'}</div>}
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{TR?'Harcama Kayıtları':'Expense Log'}</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{(lang==='tr')?'Harcama Kayıtları':'Expense Log'}</div>
           <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
             {filterOpts.map(([f,label])=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
@@ -994,15 +986,15 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:'400px'}}>
             <thead><tr>
-              <TH>{TR?'Açıklama':'Description'}</TH>
-              <TH>{TR?'Miktar':'Amount'}</TH>
-              <TH>{TR?'Kategori':'Category'}</TH>
-              <TH>{TR?'Tarih':'Date'}</TH>
+              <TH>{(lang==='tr')?'Açıklama':'Description'}</TH>
+              <TH>{(lang==='tr')?'Miktar':'Amount'}</TH>
+              <TH>{(lang==='tr')?'Kategori':'Category'}</TH>
+              <TH>{(lang==='tr')?'Tarih':'Date'}</TH>
               <TH></TH>
             </tr></thead>
             <tbody>
               {filtered.length===0
-                ?<tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{TR?'Henüz harcama yok':'No expenses yet'}</td></tr>
+                ?<tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz harcama yok':'No expenses yet'}</td></tr>
                 :filtered.map(e=>(
                   <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
@@ -1023,7 +1015,6 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
 function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
-  const TR = lang==='tr'
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
   const [prices, setPrices] = useState({})
@@ -1096,7 +1087,7 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
       <PageHeader theme={theme} title={lang==='tr'?'📈 Yatırımlar':'📈 Investments'} subtitle={lang==='tr'?'Canlı fiyatlar · Tüm değerler ₺ cinsinden':'Live prices · All values in ₺'}
         action={
           <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{TR?'Canlı':'Live'} · {lastUpdated}</span></div>}
+            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{(lang==='tr')?'Canlı':'Live'} · {lastUpdated}</span></div>}
             <AddBtn theme={theme} label={lang==='tr'?'+ Pozisyon Ekle':'+ Add Position'} onClick={()=>setAdding(!adding)} />
           </div>
         }
@@ -1110,7 +1101,7 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div style={{marginBottom:'14px'}}>
-            <div style={{...TIP,marginBottom:'6px'}}>{TR?'Hisse / Kripto Ara':'Search Stock or Crypto'}</div>
+            <div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Hisse / Kripto Ara':'Search Stock or Crypto'}</div>
             <div style={{position:'relative'}}>
               <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'Apple, Bitcoin, ASELS.IS ara...':'Search Apple, Bitcoin, Tesla...'}
                 style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
@@ -1134,11 +1125,11 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
           </div>
           {form.symbol && (
             <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{TR?'Sembol':'Symbol'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{TR?'Canlı Fiyat':'Live Price'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?lang==='tr'?'Yükleniyor...':'Loading...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{TR?'Tür':'Type'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{TR?'Adet / Lot':'Shares / Amount'}</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{TR?'Alış Fiyatı (₺)':'Buy Price (₺)'}</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Sembol':'Symbol'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Canlı Fiyat':'Live Price'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?lang==='tr'?'Yükleniyor...':'Loading...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Tür':'Type'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Adet / Lot':'Shares / Amount'}</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Alış Fiyatı (₺)':'Buy Price (₺)'}</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
             </div>
           )}
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
@@ -1211,7 +1202,6 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
 
 // ── BALANCE ───────────────────────────────────────────────────────
 function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, lang='en' }) {
-  const TR = lang==='tr'
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
 
@@ -1309,7 +1299,6 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 
 // ── 30-DAY CHALLENGE ──────────────────────────────────────────────
 function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en' }) {
-  const TR = lang==='tr'
   const now = new Date()
   const today = now.getDate()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -1432,7 +1421,6 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
 
 // ── MONTHLY SUMMARY ───────────────────────────────────────────────
 function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, lang='en' }) {
-  const TR = lang==='tr'
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
@@ -1442,7 +1430,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
   const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
   const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-  const chartData = [{name:TR?'Gelir':'Income',value:totalIncome,fill:'#6ee7b7'},{name:TR?'Gider':'Expenses',value:totalExp,fill:'#f97316'},{name:'Subs',value:totalSubs,fill:'#ef4444'},{name:TR?'Tasarruf':'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
+  const chartData = [{name:(lang==='tr')?'Gelir':'Income',value:totalIncome,fill:'#6ee7b7'},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp,fill:'#f97316'},{name:'Subs',value:totalSubs,fill:'#ef4444'},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
@@ -1503,7 +1491,6 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 
 // ── AI ADVISOR ────────────────────────────────────────────────────
 function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
-  const TR = lang==='tr'
   const [messages, setMessages] = useState([
     { role:'ai', text: lang==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
   ])
@@ -1535,7 +1522,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
           <div>
-            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':TR?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
+            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':(lang==='tr')?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
             <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
           </div>
         </div>
