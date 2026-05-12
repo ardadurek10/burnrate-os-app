@@ -6,32 +6,26 @@ const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
 const MONO = "'DM Mono',monospace"
 
 const PLAN_META = {
-  starter: { name: 'Starter', color: '#06b6d4', emoji: '🚀', desc: 'Overview, Spending, Balance' },
-  pro:     { name: 'Pro',     color: '#7c3aed', emoji: '💜', desc: 'AI Advisor, Subscriptions, Goals' },
-  elite:   { name: 'Elite',   color: '#f59e0b', emoji: '⚡', desc: 'Investments, Summary, Priority Support' },
+  starter: { name:'Starter', color:'#06b6d4', emoji:'🚀', desc_en:'Overview, Spending, Balance',         desc_tr:'Genel Bakış, Harcama, Bakiye' },
+  pro:     { name:'Pro',     color:'#7c3aed', emoji:'💜', desc_en:'AI Advisor, Subscriptions, Goals',    desc_tr:'Yapay Zeka, Abonelikler, Hedefler' },
+  elite:   { name:'Elite',   color:'#f59e0b', emoji:'⚡', desc_en:'Investments, Summary, Priority Support', desc_tr:'Yatırımlar, Özet, Öncelikli Destek' },
 }
 
-function FlameLogo({ size = 40 }) {
+function FlameLogo({ size=40 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="lf" x1="0.2" y1="1" x2="0.2" y2="0">
-          <stop offset="0%" stopColor="#ef4444"/>
-          <stop offset="40%" stopColor="#f59e0b"/>
-          <stop offset="85%" stopColor="#a78bfa"/>
-          <stop offset="100%" stopColor="#c4b5fd"/>
+          <stop offset="0%" stopColor="#ef4444"/><stop offset="40%" stopColor="#f59e0b"/>
+          <stop offset="85%" stopColor="#a78bfa"/><stop offset="100%" stopColor="#c4b5fd"/>
         </linearGradient>
         <linearGradient id="lb" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#111120"/>
-          <stop offset="100%" stopColor="#0a0a0f"/>
+          <stop offset="0%" stopColor="#111120"/><stop offset="100%" stopColor="#0a0a0f"/>
         </linearGradient>
         <linearGradient id="lbd" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#7c3aed"/>
-          <stop offset="100%" stopColor="#4c1d95"/>
+          <stop offset="0%" stopColor="#7c3aed"/><stop offset="100%" stopColor="#4c1d95"/>
         </linearGradient>
-        <clipPath id="lsq">
-          <rect x="0" y="0" width="100" height="100" rx="22"/>
-        </clipPath>
+        <clipPath id="lsq"><rect x="0" y="0" width="100" height="100" rx="22"/></clipPath>
       </defs>
       <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#lb)"/>
       <rect x="0" y="0" width="100" height="100" rx="22" fill="none" stroke="url(#lbd)" strokeWidth="1.5"/>
@@ -56,6 +50,17 @@ export default function LoginPage() {
   const [loading, setLoading]       = useState(false)
   const [loggedIn, setLoggedIn]     = useState(false)
   const [userData, setUserData]     = useState(null)
+  const [lang, setLang]             = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('burnrate_lang') || 'en'
+    return 'en'
+  })
+
+  const TR = lang === 'tr'
+
+  function changeLang(l) {
+    setLang(l)
+    if (typeof window !== 'undefined') localStorage.setItem('burnrate_lang', l)
+  }
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -67,7 +72,7 @@ export default function LoginPage() {
         license_key: licenseKey.trim()
       })
       if (!data || data.length === 0) {
-        setError('Invalid email or license key. Check your purchase confirmation email.')
+        setError(TR ? 'Geçersiz e-posta veya lisans anahtarı. Satın alma onay e-postanızı kontrol edin.' : 'Invalid email or license key. Check your purchase confirmation email.')
         setLoading(false)
         return
       }
@@ -75,11 +80,9 @@ export default function LoginPage() {
       localStorage.setItem('burnrate_user', JSON.stringify(user))
       setUserData(user)
       setLoggedIn(true)
-      setTimeout(() => {
-        window.location.replace(window.location.origin + '/dashboard')
-      }, 1800)
-    } catch(err) {
-      setError('Connection error. Please try again.')
+      setTimeout(() => { window.location.replace(window.location.origin + '/dashboard') }, 1800)
+    } catch {
+      setError(TR ? 'Bağlantı hatası. Tekrar deneyin.' : 'Connection error. Please try again.')
       setLoading(false)
     }
   }
@@ -91,31 +94,41 @@ export default function LoginPage() {
     <div style={{minHeight:'100vh',background:'#0a0a0f',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px',fontFamily:FONT,position:'relative',overflow:'hidden'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-        * { box-sizing: border-box; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes scaleIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        input:focus { border-color: rgba(124,58,237,0.5) !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        *{box-sizing:border-box}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+        input::placeholder{color:rgba(255,255,255,0.2)}
+        input:focus{border-color:rgba(124,58,237,0.5)!important;box-shadow:0 0 0 3px rgba(124,58,237,0.1)}
       `}</style>
 
-      <div style={{position:'fixed',inset:0,backgroundImage:'linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px)',backgroundSize:'60px 60px',pointerEvents:'none'}}></div>
-      <div style={{position:'fixed',inset:0,background:'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%)',pointerEvents:'none'}}></div>
+      <div style={{position:'fixed',inset:0,backgroundImage:'linear-gradient(rgba(124,58,237,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,0.04) 1px,transparent 1px)',backgroundSize:'60px 60px',pointerEvents:'none'}}></div>
+      <div style={{position:'fixed',inset:0,background:'radial-gradient(ellipse at 50% 0%,rgba(124,58,237,0.08) 0%,transparent 60%)',pointerEvents:'none'}}></div>
+
+      {/* LANG TOGGLE */}
+      <div style={{position:'fixed',top:'20px',right:'20px',display:'flex',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'8px',overflow:'hidden',zIndex:10}}>
+        {['en','tr'].map(l=>(
+          <button key={l} onClick={()=>changeLang(l)}
+            style={{padding:'6px 14px',fontSize:'12px',fontFamily:MONO,fontWeight:500,color:lang===l?'#fff':'rgba(255,255,255,0.35)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',transition:'all 0.2s'}}>
+            {l.toUpperCase()}
+          </button>
+        ))}
+      </div>
 
       <div style={{width:'100%',maxWidth:'420px',position:'relative',zIndex:1}}>
 
         {/* LOGO */}
         <div style={{textAlign:'center',marginBottom:'36px',animation:'fadeUp 0.6s ease both'}}>
           <a href="https://burnrate-os.com" style={{textDecoration:'none'}}>
-            <div style={{display:'inline-flex',alignItems:'center',gap:'12px',marginBottom:'20px'}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:'12px',marginBottom:'16px'}}>
               <FlameLogo size={44} />
               <div style={{textAlign:'left'}}>
                 <div style={{color:'#f5f5f7',fontSize:'18px',fontWeight:700,letterSpacing:'-0.3px',fontFamily:FONT}}>BurnRate OS</div>
-                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>command center</div>
+                <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?'komuta merkezi':'command center'}</div>
               </div>
             </div>
           </a>
-          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',margin:0,fontWeight:300}}>Sign in to your financial command center</p>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',margin:0,fontWeight:300}}>{TR?'Finansal komuta merkezinize giriş yapın':'Sign in to your financial command center'}</p>
         </div>
 
         {/* SUCCESS STATE */}
@@ -123,55 +136,57 @@ export default function LoginPage() {
           <div style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${planMeta.color}44`,borderRadius:'20px',padding:'36px',textAlign:'center',animation:'scaleIn 0.4s ease'}}>
             <div style={{fontSize:'48px',marginBottom:'16px'}}>{planMeta.emoji}</div>
             <div style={{fontFamily:MONO,fontSize:'11px',color:planMeta.color,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'10px'}}>{planMeta.name} Plan</div>
-            <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,margin:'0 0 8px',letterSpacing:'-0.03em',fontFamily:FONT}}>Welcome back! 👋</h2>
-            <p style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',margin:'0 0 24px',fontFamily:FONT,fontWeight:300}}>{planMeta.desc}</p>
+            <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,margin:'0 0 8px',letterSpacing:'-0.03em',fontFamily:FONT}}>{TR?'Tekrar hoş geldiniz! 👋':'Welcome back! 👋'}</h2>
+            <p style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',margin:'0 0 24px',fontFamily:FONT,fontWeight:300}}>{TR?planMeta.desc_tr:planMeta.desc_en}</p>
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
               <div style={{width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${planMeta.color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
-              Redirecting to dashboard...
+              {TR?'Panele yönlendiriliyorsunuz...':'Redirecting to dashboard...'}
             </div>
           </div>
         ) : (
           <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'20px',padding:'32px',animation:'fadeUp 0.6s 0.1s ease both',backdropFilter:'blur(10px)'}}>
             {error && (
               <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'12px',padding:'12px 16px',marginBottom:'20px',color:'#fca5a5',fontSize:'13px',fontFamily:FONT,display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                <span style={{flexShrink:0}}>⚠️</span>
-                <span>{error}</span>
+                <span style={{flexShrink:0}}>⚠️</span><span>{error}</span>
               </div>
             )}
             <form onSubmit={handleLogin}>
               <div style={{marginBottom:'16px'}}>
-                <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>Email Address</label>
-                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required
-                  style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',fontFamily:FONT,transition:'border-color 0.2s, box-shadow 0.2s'}}/>
+                <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'E-Posta Adresi':'Email Address'}</label>
+                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ornek@email.com" required
+                  style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',fontFamily:FONT,transition:'border-color 0.2s,box-shadow 0.2s'}}/>
               </div>
               <div style={{marginBottom:'24px'}}>
-                <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>License Key</label>
+                <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'Lisans Anahtarı':'License Key'}</label>
                 <input type="text" value={licenseKey} onChange={e=>setLicenseKey(e.target.value.toUpperCase())} placeholder="BRNOS-XXX-XXXX-XXXX" required
-                  style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#a78bfa',fontSize:'14px',outline:'none',fontFamily:MONO,letterSpacing:'1px',transition:'border-color 0.2s, box-shadow 0.2s'}}/>
+                  style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#a78bfa',fontSize:'14px',outline:'none',fontFamily:MONO,letterSpacing:'1px',transition:'border-color 0.2s,box-shadow 0.2s'}}/>
               </div>
               <button type="submit" disabled={loading}
                 style={{width:'100%',padding:'14px',borderRadius:'12px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',fontSize:'15px',fontWeight:600,border:'none',cursor:loading?'not-allowed':'pointer',opacity:loading?0.7:1,transition:'all 0.2s',fontFamily:FONT,boxShadow:'0 0 40px rgba(124,58,237,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
-                {loading ? (<><div style={{width:'16px',height:'16px',borderRadius:'50%',border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',animation:'spin 0.8s linear infinite'}}></div>Signing in...</>) : 'Access Dashboard →'}
+                {loading?(<><div style={{width:'16px',height:'16px',borderRadius:'50%',border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',animation:'spin 0.8s linear infinite'}}></div>{TR?'Giriş yapılıyor...':'Signing in...'}</>):(TR?'Panele Giriş →':'Access Dashboard →')}
               </button>
             </form>
             <div style={{marginTop:'20px',padding:'14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
               <p style={{textAlign:'center',color:'rgba(255,255,255,0.25)',fontSize:'12px',margin:0,lineHeight:'1.6',fontFamily:FONT}}>
-                Your license key was emailed after purchase.<br/>Check spam if you can't find it.
+                {TR?<>Lisans anahtarınız satın alma sonrası e-posta ile gönderildi.<br/>Bulamazsanız spam klasörünü kontrol edin.</> : <>Your license key was emailed after purchase.<br/>Check spam if you can't find it.</>}
               </p>
             </div>
           </div>
         )}
 
-        {/* FOOTER */}
         <div style={{textAlign:'center',marginTop:'28px',animation:'fadeUp 0.6s 0.2s ease both'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'20px',marginBottom:'14px'}}>
             <a href="https://burnrate-os.com" style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',textDecoration:'none',fontFamily:FONT}}
               onMouseEnter={e=>e.target.style.color='rgba(255,255,255,0.5)'}
-              onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>← Back to site</a>
+              onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>
+              {TR?'← Siteye dön':'← Back to site'}
+            </a>
             <span style={{color:'rgba(255,255,255,0.08)'}}>·</span>
             <a href="https://whop.com/burnrate-os" style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',textDecoration:'none',fontFamily:FONT}}
               onMouseEnter={e=>e.target.style.color='rgba(255,255,255,0.5)'}
-              onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>Get access →</a>
+              onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>
+              {TR?'Erişim satın al →':'Get access →'}
+            </a>
           </div>
           <p style={{color:'rgba(255,255,255,0.1)',fontSize:'11px',margin:0,fontFamily:MONO}}>burnrate-os.com · Stop the leak.</p>
         </div>
