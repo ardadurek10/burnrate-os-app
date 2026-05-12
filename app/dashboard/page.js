@@ -320,7 +320,10 @@ export default function Dashboard() {
     setSubs(Array.isArray(s) ? s : [])
     setExpenses(Array.isArray(e) ? e : [])
     setIncome(Array.isArray(i) ? i : [])
-    setInvestments([])
+    setInvestments([
+      { id:1, symbol:'AAPL', name:'Apple Inc.', shares:2, buyPrice:150, currentPrice:189, type:'stock' },
+      { id:2, symbol:'BTC-USD', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
+    ])
   }
 
   function navigateTo(moduleId) {
@@ -949,7 +952,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title="📈 Investments" subtitle="Live prices update every 30 seconds."
+      <PageHeader theme={theme} title="📈 Investments" subtitle="Canlı fiyatlar · Tüm değerler ₺ cinsinden"
         action={
           <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
             {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>Live · {lastUpdated}</span></div>}
@@ -958,9 +961,9 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         }
       />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label="Portfolio Value" value={`$${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
-        <StatCard accent={theme.accent} label="Total Cost" value={`$${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
-        <StatCard accent={theme.accent} label="Total Gain/Loss" value={`${totalGain>=0?'+':''}$${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
+        <StatCard accent={theme.accent} label="Portföy Değeri (₺)" value={`₺${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
+        <StatCard accent={theme.accent} label="Toplam Maliyet (₺)" value={`₺${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
+        <StatCard accent={theme.accent} label="Kar/Zarar (₺)" value={`${totalGain>=0?'+':''}₺${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
         <StatCard accent={theme.accent} label="Positions" value={investments.length} color={theme.text} icon="🎯" />
       </div>
       {adding && (
@@ -991,7 +994,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
           {form.symbol && (
             <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
               <div><div style={{...TIP,marginBottom:'6px'}}>Symbol</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>Live Price</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Loading...':form.currentPrice?`$${form.currentPrice}`:'—'}</div></div>
+              <div><div style={{...TIP,marginBottom:'6px'}}>Live Price</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Loading...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
               <div><div style={{...TIP,marginBottom:'6px'}}>Type</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
               <div><div style={{...TIP,marginBottom:'6px'}}>Shares / Amount</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
               <div><div style={{...TIP,marginBottom:'6px'}}>Buy Price ($)</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
@@ -1005,19 +1008,19 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portfolio Split</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portföy Dağılımı</div>
           <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
+            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
           </ResponsiveContainer>
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Cost vs Current Value</div>
+          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Maliyet vs Güncel Değer (₺)</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
               <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={v=>`$${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
+              <Tooltip formatter={v=>`₺${v.toFixed(2)}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
               <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[6,6,0,0]} name="Cost"/>
               <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name="Value"/>
             </BarChart>
@@ -1025,12 +1028,12 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>All Positions</div>
+        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Tüm Pozisyonlar</div>
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
-            <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Symbol','Name','Shares','Buy Price','Live Price','24h','Value','Gain/Loss',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
+            <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Sembol','İsim','Adet','Alış Fiyatı','Canlı Fiyat','24s','Değer (₺)','Kar/Zarar',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
             <tbody>
-              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>No positions yet.</td></tr>
+              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>Henüz pozisyon yok. Hisse veya kripto arayın.</td></tr>
               : investments.map((inv,i)=>{
                 const livePrice=prices[inv.symbol]||inv.currentPrice, change=changes[inv.symbol]||0
                 const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
@@ -1042,7 +1045,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
                     <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
                     <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
                     <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>{loadingPrices&&!isLive?'...':`$${livePrice.toFixed(2)}`}</div>
+                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>{loadingPrices&&!isLive?'...':`₺${livePrice.toFixed(2)}`}</div>
                       {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>LIVE</span></div>}
                     </td>
                     <td style={{padding:'12px 8px'}}>
@@ -1050,7 +1053,7 @@ function InvestmentsPage({ theme, investments, setInvestments }) {
                     </td>
                     <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>${val.toFixed(2)}</td>
                     <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}${gain.toFixed(2)}</div>
+                      <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}₺${gain.toFixed(2)}</div>
                       <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
                     </td>
                     <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
