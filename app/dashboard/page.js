@@ -320,10 +320,7 @@ export default function Dashboard() {
     setSubs(Array.isArray(s) ? s : [])
     setExpenses(Array.isArray(e) ? e : [])
     setIncome(Array.isArray(i) ? i : [])
-    setInvestments([
-      { id:1, symbol:'AAPL', name:'Apple Inc.', shares:2, buyPrice:150, currentPrice:189, type:'stock' },
-      { id:2, symbol:'BTC-USD', name:'Bitcoin', shares:0.01, buyPrice:40000, currentPrice:62000, type:'crypto' },
-    ])
+    setInvestments([])
   }
 
   function navigateTo(moduleId) {
