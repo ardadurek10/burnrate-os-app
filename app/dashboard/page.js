@@ -947,6 +947,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
 function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
+  const TR = lang==='tr'
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
   const [prices, setPrices] = useState({})
