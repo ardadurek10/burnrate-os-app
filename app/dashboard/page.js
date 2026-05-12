@@ -46,14 +46,18 @@ function t(key) {
   return DASHBOARD_TRANSLATIONS[lang]?.[key] || DASHBOARD_TRANSLATIONS['en'][key] || key
 }
 
-function getGreeting(name) {
+function getGreeting(name, lang = 'en') {
   const hour = new Date().getHours()
-  let key
-  if (hour >= 6 && hour < 12) key = 'greeting_morning'
-  else if (hour >= 12 && hour < 18) key = 'greeting_afternoon'
-  else if (hour >= 18 && hour < 24) key = 'greeting_evening'
-  else key = 'greeting_night'
-  const greet = t(key)
+  const greetings = {
+    en: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', night: 'Good night' },
+    tr: { morning: 'Günaydın', afternoon: 'İyi öğlenler', evening: 'İyi akşamlar', night: 'İyi geceler' }
+  }
+  const g = greetings[lang] || greetings.en
+  let greet
+  if (hour >= 6 && hour < 12) greet = g.morning
+  else if (hour >= 12 && hour < 18) greet = g.afternoon
+  else if (hour >= 18 && hour < 24) greet = g.evening
+  else greet = g.night
   const emoji = hour >= 6 && hour < 12 ? '☀️' : hour >= 12 && hour < 18 ? '🌤️' : hour >= 18 && hour < 22 ? '🌙' : '⭐'
   return `${greet}, ${name} ${emoji}`
 }
@@ -331,13 +335,14 @@ export default function Dashboard() {
     setPage(moduleId)
   }
 
+  const TR = lang === 'tr'
   const navItems = [
-    { id:'dashboard',     icon:'⚡', label:'Overview' },
-    { id:'subscriptions', icon:'⚔️', label:'Subscriptions' },
-    { id:'spending',      icon:'💸', label:'Spending' },
-    { id:'investments',   icon:'📈', label:'Investments' },
-    { id:'balance',       icon:'💰', label:'Balance' },
-    { id:'goals',         icon:'🎯', label:'Challenge' },
+    { id:'dashboard',     icon:'⚡', label: TR ? 'Genel Bakış'   : 'Overview' },
+    { id:'subscriptions', icon:'⚔️', label: TR ? 'Abonelikler'   : 'Subscriptions' },
+    { id:'spending',      icon:'💸', label: TR ? 'Harcamalar'    : 'Spending' },
+    { id:'investments',   icon:'📈', label: TR ? 'Yatırımlar'    : 'Investments' },
+    { id:'balance',       icon:'💰', label: TR ? 'Bakiye'        : 'Balance' },
+    { id:'goals',         icon:'🎯', label: TR ? 'Meydan Okuma'  : 'Challenge' },
   ]
 
   if (!user) return (
@@ -440,8 +445,8 @@ export default function Dashboard() {
             style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(124,58,237,0.1)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
             <span style={{fontSize:'15px',opacity:canAccess(userPlan,'ai')?1:0.5}}>🤖</span>
             <div style={{textAlign:'left',flex:1}}>
-              <div style={{fontSize:'13px',fontWeight:600}}>AI Advisor</div>
-              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:MONO}}>powered by claude</div>
+              <div style={{fontSize:'13px',fontWeight:600}}>{lang==='tr'?'Yapay Zeka':'AI Advisor'}</div>
+              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
             </div>
             {!canAccess(userPlan,'ai') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
@@ -451,7 +456,7 @@ export default function Dashboard() {
           <button onClick={() => navigateTo('summary')}
             style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:canAccess(userPlan,'summary')?'rgba(255,255,255,0.38)':'rgba(255,255,255,0.2)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
             <span style={{fontSize:'14px',opacity:canAccess(userPlan,'summary')?1:0.5}}>📋</span>
-            <span style={{flex:1}}>Monthly Summary</span>
+            <span style={{flex:1}}>{lang==='tr'?'Aylık Özet':'Monthly Summary'}</span>
             {!canAccess(userPlan,'summary') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
@@ -463,7 +468,7 @@ export default function Dashboard() {
           </div>
           <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
             style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.25)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
-            Sign out →
+            {lang==='tr'?'Çıkış Yap →':'Sign out →'}
           </button>
         </div>
       </div>
@@ -482,7 +487,7 @@ export default function Dashboard() {
 
       {/* MOBILE TAB BAR */}
       <div className="tabbar" style={{display:'none',position:'fixed',bottom:0,left:0,right:0,background:'rgba(10,10,15,0.97)',borderTop:'1px solid rgba(255,255,255,0.07)',backdropFilter:'blur(24px)',zIndex:50,padding:'8px 0 20px'}}>
-        {[...navItems,{id:'ai',icon:'🤖',label:'AI'},{id:'summary',icon:'📋',label:'Summary'}].map(item => {
+        {[...navItems,{id:'ai',icon:'🤖',label:lang==='tr'?'Yapay Zeka':'AI'},{id:'summary',icon:'📋',label:lang==='tr'?'Özet':'Summary'}].map(item => {
           const active = page === item.id
           const t = THEMES[item.id] || THEMES.ai
           const locked = !canAccess(userPlan, item.id)
@@ -570,12 +575,12 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
     <div className="page-pad" style={{padding:'36px'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'28px',flexWrap:'wrap',gap:'12px'}}>
         <div>
-          <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{getGreeting(userName)}</h1>
-          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} {lang==='tr'?'gün kaldı':'days left in month'}</p>
+          <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{getGreeting(userName, lang)}</h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} {lang==='tr'?'gün kaldı':'days left'}</p>
         </div>
         <button onClick={onSummary}
           style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
-          📋 {lang==='tr'?'📋 Aylık Özet':'📋 Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
+          📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
         </button>
       </div>
       {deadSubs.length > 0 && (
@@ -591,7 +596,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         <StatCard accent={theme.accent} label="Net Balance" value={`$${Math.abs(netBal).toFixed(0)}`} sub={netBal>=0?'↑ Positive':'↓ In the red'} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
         <StatCard accent={theme.accent} label="Monthly Burn" value={`$${(totalExp+totalSubs).toFixed(0)}`} sub="expenses + subs" color="#fb7185" icon="🔥" />
         <StatCard accent={theme.accent} label="Savings Rate" value={`${sr}%`} sub={sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work'} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
-        <StatCard accent={theme.accent} label="Portfolio" value={`$${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={invGain>=0?`+$${invGain.toFixed(0)} gain`:`-$${Math.abs(invGain).toFixed(0)} loss`} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
