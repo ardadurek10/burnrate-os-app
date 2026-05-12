@@ -479,6 +479,10 @@ export default function Dashboard() {
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>{user.email}</div>
           </div>
+          <a href="https://whop.com/burnrate-os" target="_blank" rel="noreferrer"
+            style={{display:'block',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.2)',textDecoration:'none',fontFamily:FONT,marginBottom:'2px'}}>
+            {lang==='tr'?'⚙️ Aboneliği Yönet':'⚙️ Manage Subscription'}
+          </a>
           <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
             style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.25)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
             {lang==='tr'?'Çıkış Yap →':'Sign out →'}
