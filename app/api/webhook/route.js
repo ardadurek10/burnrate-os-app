@@ -2,9 +2,10 @@ import { supabaseInsert } from '../../lib/supabase'
 
 // ─── PLAN CONFIG ────────────────────────────────────────────────────────────
 const PLANS = {
-  'plan_fPw7wIxGVEc7g': 'starter',
-  'plan_69Su8P5fb8BKc': 'pro',
-  'plan_SFjoNXODXAH6j': 'elite',
+  // Whop plan ID'lerini buraya ekle (Whop dashboard → Plans → Plan ID)
+  'plan_starter_id': 'starter',   // ← Whop'taki Starter plan ID'si
+  'plan_pro_id':     'pro',       // ← Whop'taki Pro plan ID'si
+  'plan_elite_id':   'elite',     // ← Whop'taki Elite plan ID'si
 }
 
 const PLAN_META = {
@@ -115,7 +116,7 @@ function buildEmailHtml(name, licenseKey, plan) {
 
     <!-- HERO -->
     <div style="text-align:center;margin-bottom:40px">
-      <div style="font-size:48px;margin-bottom:16px">${meta.emoji}</div>
+      <img src="https://burnrate-os.com/logo.svg" width="72" height="72" style="border-radius:18px;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto" alt="BurnRate OS"/>
       <h1 style="color:#f1f0ff;font-size:28px;font-weight:700;margin:0 0 12px;letter-spacing:-0.02em">${meta.headline}</h1>
       <p style="color:#a09ab8;font-size:16px;margin:0;line-height:1.6;font-weight:300">${meta.subline}</p>
     </div>
@@ -200,7 +201,6 @@ export async function POST(request) {
     // Webhook imzasını logla (debug için)
     console.log('[Webhook] action:', action)
     console.log('[Webhook] data keys:', Object.keys(data || {}))
-    console.log('[Webhook] full data:', JSON.stringify(data, null, 2))
 
     if (action === 'membership.went_valid') {
       const email = (

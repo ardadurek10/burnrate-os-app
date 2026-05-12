@@ -92,7 +92,8 @@ export async function POST(request) {
           subject: TR ? '🔥 7 Günlük Ücretsiz Denemeniz Başladı!' : '🔥 Your 7-Day Free Trial Has Started!',
           html: TR ? `
             <div style="background:#0a0a0f;color:#f1f0ff;font-family:sans-serif;padding:40px;max-width:560px;margin:0 auto;border-radius:16px;border:1px solid rgba(124,58,237,0.3)">
-              <h1 style="color:#a78bfa;font-size:28px;margin-bottom:8px">🔥 BurnRate OS</h1>
+              <img src="https://burnrate-os.com/logo.svg" width="64" height="64" style="border-radius:16px;margin-bottom:16px;display:block" alt="BurnRate OS"/>
+              <h1 style="color:#a78bfa;font-size:28px;margin-bottom:8px">BurnRate OS</h1>
               <h2 style="font-size:20px;margin-bottom:16px">7 Günlük Ücretsiz Denemeniz Başladı!</h2>
               <p style="color:rgba(255,255,255,0.7);line-height:1.7">Deneme süreniz <strong style="color:#a78bfa">${expireStr}</strong> tarihinde sona erecek.</p>
               <div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:12px;padding:20px;margin:24px 0">
@@ -104,7 +105,8 @@ export async function POST(request) {
             </div>
           ` : `
             <div style="background:#0a0a0f;color:#f1f0ff;font-family:sans-serif;padding:40px;max-width:560px;margin:0 auto;border-radius:16px;border:1px solid rgba(124,58,237,0.3)">
-              <h1 style="color:#a78bfa;font-size:28px;margin-bottom:8px">🔥 BurnRate OS</h1>
+              <img src="https://burnrate-os.com/logo.svg" width="64" height="64" style="border-radius:16px;margin-bottom:16px;display:block" alt="BurnRate OS"/>
+              <h1 style="color:#a78bfa;font-size:28px;margin-bottom:8px">BurnRate OS</h1>
               <h2 style="font-size:20px;margin-bottom:16px">Your 7-Day Free Trial Has Started!</h2>
               <p style="color:rgba(255,255,255,0.7);line-height:1.7">Your trial expires on <strong style="color:#a78bfa">${expireStr}</strong>.</p>
               <div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:12px;padding:20px;margin:24px 0">
