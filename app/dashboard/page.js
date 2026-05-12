@@ -413,7 +413,11 @@ export default function Dashboard() {
               {lang==='tr'?'Aboneliği Yönet':'Manage Subscription'}
             </h2>
             <p style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',lineHeight:1.7,margin:'0 0 24px',fontFamily:FONT,textAlign:'center'}}>
-              {lang==='tr'?'Aboneliğiniz Whop üzerinden yönetilmektedir. Aşağıdaki butona tıklayarak planınızı görüntüleyebilir, yükseltebilir veya iptal edebilirsiniz.':'Your subscription is managed through Whop. Click below to view, upgrade or cancel your plan.'}
+              {lang==='tr'?
+                <span>Aboneliğiniz <strong style={{color:'#a78bfa'}}>Whop</strong> üzerinden yönetilmektedir.<br/><br/>İptal etmek için:<br/>1. Aşağıdaki butona tıklayın<br/>2. Aboneliğinize tıklayın<br/>3. <strong>Cancel membership</strong> butonuna basın</span>
+                :
+                <span>Your subscription is managed through <strong style={{color:'#a78bfa'}}>Whop</strong>.<br/><br/>To cancel:<br/>1. Click button below<br/>2. Click your subscription<br/>3. Press <strong>Cancel membership</strong></span>
+              }
             </p>
             <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'16px',marginBottom:'20px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
@@ -425,10 +429,10 @@ export default function Dashboard() {
                 <span style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontFamily:MONO}}>{planMeta.price}</span>
               </div>
             </div>
-            <a href="https://whop.com/hub/burnrate-os/" target="_blank" rel="noreferrer"
+            <a href="https://whop.com/@me/settings/orders/" target="_blank" rel="noreferrer"
               style={{display:'block',textAlign:'center',padding:'14px',borderRadius:'12px',background:'rgba(255,255,255,0.08)',color:'#f5f5f7',fontWeight:600,fontSize:'14px',textDecoration:'none',marginBottom:'10px',fontFamily:FONT}}
               onClick={()=>setManageModal(false)}>
-              {lang==='tr'?`Whop'ta Görüntüle →`:'View on Whop →'}
+              {lang==='tr'?`Whop'ta Aboneliğimi Yönet →`:'Manage My Subscription on Whop →'}
             </a>
             <button onClick={()=>setManageModal(false)}
               style={{width:'100%',padding:'12px',borderRadius:'12px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',fontFamily:FONT}}>
