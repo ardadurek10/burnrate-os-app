@@ -644,7 +644,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                   <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:FONT}}>{s.category}</div>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                  <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>₺${Number(s.cost).toFixed(2)}</span>
+                  <span style={{color:THEMES.subscriptions.text,fontSize:'13px',...VAL}}>₺{Number(s.cost).toFixed(2)}</span>
                   <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status}</span>
                 </div>
               </div>
@@ -659,7 +659,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                   <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</div>
                   <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:FONT}}>{e.expense_date||'—'}</div>
                 </div>
-                <span style={{color:THEMES.spending.text,fontSize:'13px',...VAL}}>-${Number(e.amount).toFixed(2)}</span>
+                <span style={{color:THEMES.spending.text,fontSize:'13px',...VAL}}>-₺{Number(e.amount).toFixed(2)}</span>
               </div>
             ))}
         </Card>
@@ -725,7 +725,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
                 : subs.map(s=>(
                   <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
-                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺${Number(s.cost).toFixed(2)}</td>
+                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺{Number(s.cost).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{s.category}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{lang==='tr'?(s.days_since_used===0?'Bugün':`${s.days_since_used}g önce`):(s.days_since_used===0?'Today':`${s.days_since_used}d ago`)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status.toUpperCase()}</span></td>
@@ -756,9 +756,56 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
 
 // ── SPENDING ──────────────────────────────────────────────────────
 function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
-  const [form, setForm] = useState({description:'',amount:'',category:'impulse',expense_date:''})
+  const CATEGORIES = [
+    // Ev & Yaşam
+    {value:'kira',          label:'Kira / Mortgage',        labelEn:'Rent / Mortgage',      group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
+    {value:'mobilya',       label:'Mobilya & Dekorasyon',   labelEn:'Furniture & Decor',    group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
+    {value:'ev_aletleri',   label:'Ev Aletleri',            labelEn:'Home Appliances',       group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
+    {value:'tadilat',       label:'Tadilat & Onarım',       labelEn:'Renovation & Repair',  group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
+    {value:'temizlik',      label:'Temizlik',               labelEn:'Cleaning',              group: lang==='tr'?'Ev & Yaşam':'Home & Life'},
+    // Yiyecek
+    {value:'market',        label:'Market & Alışveriş',     labelEn:'Groceries',            group: lang==='tr'?'Yiyecek & İçecek':'Food & Drink'},
+    {value:'restoran',      label:'Restoran & Kafe',        labelEn:'Restaurant & Cafe',    group: lang==='tr'?'Yiyecek & İçecek':'Food & Drink'},
+    {value:'food',          label:'Yemek Siparişi',         labelEn:'Food Delivery',        group: lang==='tr'?'Yiyecek & İçecek':'Food & Drink'},
+    // Ulaşım
+    {value:'akaryakit',     label:'Akaryakıt',              labelEn:'Fuel',                 group: lang==='tr'?'Ulaşım':'Transport'},
+    {value:'transport',     label:'Toplu Taşıma',           labelEn:'Public Transport',     group: lang==='tr'?'Ulaşım':'Transport'},
+    {value:'taksi',         label:'Taksi & Araç Kiralama',  labelEn:'Taxi & Car Rental',    group: lang==='tr'?'Ulaşım':'Transport'},
+    // Sağlık
+    {value:'hastane',       label:'Hastane & Doktor',       labelEn:'Hospital & Doctor',    group: lang==='tr'?'Sağlık':'Health'},
+    {value:'ilac',          label:'İlaç & Eczane',          labelEn:'Pharmacy',             group: lang==='tr'?'Sağlık':'Health'},
+    {value:'spor',          label:'Spor & Fitness',         labelEn:'Sports & Fitness',     group: lang==='tr'?'Sağlık':'Health'},
+    // Eğlence & Sosyal
+    {value:'dugun',         label:'Düğün & Organizasyon',   labelEn:'Wedding & Events',     group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
+    {value:'seyahat',       label:'Seyahat & Tatil',        labelEn:'Travel & Vacation',    group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
+    {value:'eglence',       label:'Sinema & Etkinlik',      labelEn:'Cinema & Events',      group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
+    {value:'hediye',        label:'Hediye & Çiçek',         labelEn:'Gifts & Flowers',      group: lang==='tr'?'Eğlence & Sosyal':'Events & Social'},
+    // Giyim
+    {value:'giyim',         label:'Giyim & Aksesuar',       labelEn:'Clothing',             group: lang==='tr'?'Giyim & Kişisel':'Fashion & Personal'},
+    {value:'guzellik',      label:'Güzellik & Bakım',       labelEn:'Beauty & Care',        group: lang==='tr'?'Giyim & Kişisel':'Fashion & Personal'},
+    // Eğitim & İş
+    {value:'egitim',        label:'Kurs & Eğitim',          labelEn:'Education',            group: lang==='tr'?'Eğitim & İş':'Education & Work'},
+    {value:'business',      label:'İş Giderleri',           labelEn:'Business Expenses',    group: lang==='tr'?'Eğitim & İş':'Education & Work'},
+    {value:'abonelik',      label:'Abonelikler',            labelEn:'Subscriptions',        group: lang==='tr'?'Eğitim & İş':'Education & Work'},
+    // Diğer
+    {value:'bagis',         label:'Bağış & Yardım',         labelEn:'Donations',            group: lang==='tr'?'Diğer':'Other'},
+    {value:'impulse',       label:'Ani Alım',               labelEn:'Impulse Buy',          group: lang==='tr'?'Diğer':'Other'},
+    {value:'other',         label:'Diğer',                  labelEn:'Other',                group: lang==='tr'?'Diğer':'Other'},
+  ]
+  const getCatLabel = (value) => {
+    const cat = CATEGORIES.find(c=>c.value===value)
+    if (!cat) return value
+    return lang==='tr' ? cat.label : cat.labelEn
+  }
+  const getCatGroup = (value) => {
+    const cat = CATEGORIES.find(c=>c.value===value)
+    return cat ? cat.group : (lang==='tr'?'Diğer':'Other')
+  }
+
+  const [form, setForm] = useState({description:'',amount:'',category:'other',expense_date:''})
   const [adding, setAdding] = useState(false)
   const [filter, setFilter] = useState('all')
+  const [catSearch, setCatSearch] = useState('')
 
   async function addExpense() {
     if (!form.description||!form.amount) return
@@ -772,8 +819,16 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
   const leaks = expenses.filter(e=>e.category==='impulse'||e.category==='food')
   const leakAmt = leaks.reduce((a,e)=>a+Number(e.amount),0)
   const areaData = expenses.slice(-7).map((e,i)=>({day:`D${i+1}`,amount:Number(e.amount)}))
-  const catLabels = {impulse:'Impulse',food:'Food',transport:'Transport',business:'Business',other:'Other'}
-  const catColors = {impulse:'#ef4444',food:'#f97316',transport:'#f59e0b',business:'#10b981',other:'#8b5cf6'}
+  const catColors = {
+    kira:'#06b6d4',mobilya:'#8b5cf6',tadilat:'#64748b',temizlik:'#67e8f9',
+    market:'#10b981',restoran:'#f59e0b',food:'#f97316',
+    akaryakit:'#eab308',transport:'#f59e0b',taksi:'#fbbf24',
+    hastane:'#ec4899',ilac:'#f43f5e',spor:'#10b981',
+    dugun:'#a78bfa',seyahat:'#06b6d4',eglence:'#8b5cf6',hediye:'#f43f5e',
+    giyim:'#a78bfa',guzellik:'#ec4899',
+    egitim:'#3b82f6',business:'#10b981',
+    bagis:'#6ee7b7',impulse:'#ef4444',other:'#8b5cf6',
+  }
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
@@ -791,16 +846,15 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
             <InputField label={lang==='tr'?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Late night delivery..." />
             <InputField label={lang==='tr'?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
             <InputField label={lang==='tr'?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="May 5" />
-            <div>
-              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
-              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
-                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}}>
-                <option value="impulse" style={{background:'#12121c'}}>Impulse / Leak</option>
-                <option value="food" style={{background:'#12121c'}}>Food & Delivery</option>
-                <option value="transport" style={{background:'#12121c'}}>Transport</option>
-                <option value="business" style={{background:'#12121c'}}>Business</option>
-                <option value="other" style={{background:'#12121c'}}>Other</option>
-              </select>
+            <div style={{position:'relative'}}>
+              <div style={{...TIP,marginBottom:'6px'}}>{TR?'Kategori':'Category'}</div>
+              <input value={catOpen?catSearch:getCL(form.category)} onChange={e=>{setCatSearch(e.target.value);setCatOpen(true)}} onFocus={()=>{setCatSearch('');setCatOpen(true)}} onBlur={()=>setTimeout(()=>setCatOpen(false),200)} placeholder={TR?'Kategori ara...':'Search category...'} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
+              {catOpen&&<div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',maxHeight:'220px',overflowY:'auto'}}>
+                {filtCats.map((cat,i)=><div key={i} onMouseDown={()=>{setForm({...form,category:cat.v});setCatSearch('');setCatOpen(false)}} style={{padding:'9px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',justifyContent:'space-between'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                  <span style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{TR?cat.tr:cat.en}</span>
+                  <span style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{TR?cat.g_tr:cat.g_en}</span>
+                </div>)}
+              </div>}
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
@@ -838,7 +892,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
             return (
               <div key={cat} style={{marginBottom:'12px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'5px'}}>
-                  <span style={{color:'rgba(255,255,255,0.45)',fontFamily:FONT}}>{catLabels[cat]||cat}</span>
+                  <span style={{color:'rgba(255,255,255,0.45)',fontFamily:FONT}}>{getCatLabel(cat)}</span>
                   <span style={{...VAL,color:catColors[cat]||theme.text}}>${amt.toFixed(2)}</span>
                 </div>
                 <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
@@ -854,7 +908,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Harcama Kayıtları':'Expense Log'}</div>
           <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-            {(lang==='tr'?[['all','Tümü'],['impulse','Ani Alım'],['food','Yemek'],['transport','Ulaşım'],['business','İş']]:[ ['all','All'],['impulse','Impulse'],['food','Food'],['transport','Transport'],['business','Business']]).map(([f,label])=>(
+            {[['all', lang==='tr'?'Tümü':'All'], ...([...new Set(expenses.map(e=>e.category))].map(v=>[v, getCatLabel(v)]))].map(([f,label])=>(
               <button key={f} onClick={()=>setFilter(f)} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'100px',background:filter===f?theme.bg:'transparent',color:filter===f?theme.text:'rgba(255,255,255,0.28)',border:filter===f?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
                 {label}
               </button>
@@ -869,8 +923,8 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
               : filtered.map(e=>(
                 <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                   <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
-                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>-${Number(e.amount).toFixed(2)}</td>
-                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${catColors[e.category]||theme.accent}22`,color:catColors[e.category]||theme.text,fontFamily:FONT}}>{catLabels[e.category]||e.category}</span></td>
+                  <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>-₺{Number(e.amount).toFixed(2)}</td>
+                  <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${catColors[e.category]||theme.accent}22`,color:catColors[e.category]||theme.text,fontFamily:FONT}}>{getCatLabel(e.category)}</span></td>
                   <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{e.expense_date||'—'}</td>
                   <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
                 </tr>
@@ -1045,17 +1099,17 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
                     <td style={{padding:'12px 8px 12px 0',...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</td>
                     <td style={{padding:'12px 8px',color:'rgba(255,255,255,0.6)',fontSize:'12px',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:FONT}}>{inv.name}</td>
                     <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
-                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>${inv.buyPrice.toFixed(2)}</td>
+                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>₺{inv.buyPrice.toFixed(2)}</td>
                     <td style={{padding:'12px 8px'}}>
                       <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>{loadingPrices&&!isLive?'...':`₺${livePrice.toFixed(2)}`}</div>
-                      {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>LIVE</span></div>}
+                      {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>{lang==='tr'?'CANLI':'LIVE'}</span></div>}
                     </td>
                     <td style={{padding:'12px 8px'}}>
                       {isLive?<div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}><span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span></div>:<span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
                     </td>
-                    <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>${val.toFixed(2)}</td>
+                    <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>₺{val.toFixed(2)}</td>
                     <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}₺${gain.toFixed(2)}</div>
+                      <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}₺{gain.toFixed(2)}</div>
                       <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
                     </td>
                     <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
@@ -1155,7 +1209,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             : income.map(i=>(
               <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                 <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{i.source}</td>
-                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+${Number(i.amount).toFixed(2)}</td>
+                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+₺{Number(i.amount).toFixed(2)}</td>
                 <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{i.income_date||'—'}</td>
                 <td style={{padding:'12px 0'}}><button onClick={()=>del(i.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
               </tr>
