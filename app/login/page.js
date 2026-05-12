@@ -6,8 +6,8 @@ const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
 const MONO = "'DM Mono',monospace"
 
 const PLAN_META = {
-  starter: { name:'Starter', color:'#06b6d4', emoji:'🚀', desc_en:'Overview, Spending, Balance',         desc_tr:'Genel Bakış, Harcama, Bakiye' },
-  pro:     { name:'Pro',     color:'#7c3aed', emoji:'💜', desc_en:'AI Advisor, Subscriptions, Goals',    desc_tr:'Yapay Zeka, Abonelikler, Hedefler' },
+  starter: { name:'Starter', color:'#06b6d4', emoji:'🚀', desc_en:'Overview, Spending, Balance', desc_tr:'Genel Bakış, Harcama, Bakiye' },
+  pro:     { name:'Pro',     color:'#7c3aed', emoji:'💜', desc_en:'AI Advisor, Subscriptions, Goals', desc_tr:'Yapay Zeka, Abonelikler, Hedefler' },
   elite:   { name:'Elite',   color:'#f59e0b', emoji:'⚡', desc_en:'Investments, Summary, Priority Support', desc_tr:'Yatırımlar, Özet, Öncelikli Destek' },
 }
 
@@ -44,17 +44,19 @@ function FlameLogo({ size=40 }) {
 }
 
 export default function LoginPage() {
+  const [mode, setMode]             = useState('login') // 'login' | 'trial'
   const [email, setEmail]           = useState('')
+  const [trialEmail, setTrialEmail] = useState('')
   const [licenseKey, setLicenseKey] = useState('')
   const [error, setError]           = useState('')
   const [loading, setLoading]       = useState(false)
-  const [loggedIn, setLoggedIn]     = useState(false)
+  const [success, setSuccess]       = useState(false)
   const [userData, setUserData]     = useState(null)
+  const [trialDone, setTrialDone]   = useState(false)
   const [lang, setLang]             = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('burnrate_lang') || 'en'
     return 'en'
   })
-
   const TR = lang === 'tr'
 
   function changeLang(l) {
@@ -64,31 +66,72 @@ export default function LoginPage() {
 
   async function handleLogin(e) {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
       const data = await supabaseQuery('users', {
         email: email.toLowerCase().trim(),
         license_key: licenseKey.trim()
       })
       if (!data || data.length === 0) {
-        setError(TR ? 'Geçersiz e-posta veya lisans anahtarı. Satın alma onay e-postanızı kontrol edin.' : 'Invalid email or license key. Check your purchase confirmation email.')
-        setLoading(false)
-        return
+        setError(TR ? 'Geçersiz e-posta veya lisans anahtarı.' : 'Invalid email or license key.')
+        setLoading(false); return
       }
       const user = data[0]
+
+      // Check if trial expired
+      if (user.is_trial && user.trial_expires_at) {
+        const expires = new Date(user.trial_expires_at)
+        if (expires < new Date()) {
+          setError(TR ? 'Deneme süreniz doldu. Lütfen bir plan satın alın.' : 'Your trial has expired. Please purchase a plan.')
+          setLoading(false); return
+        }
+      }
+
       localStorage.setItem('burnrate_user', JSON.stringify(user))
-      setUserData(user)
-      setLoggedIn(true)
+      setUserData(user); setSuccess(true)
       setTimeout(() => { window.location.replace(window.location.origin + '/dashboard') }, 1800)
     } catch {
-      setError(TR ? 'Bağlantı hatası. Tekrar deneyin.' : 'Connection error. Please try again.')
+      setError(TR ? 'Bağlantı hatası.' : 'Connection error.')
       setLoading(false)
     }
   }
 
-  const plan = userData?.plan || 'starter'
-  const planMeta = PLAN_META[plan] || PLAN_META.starter
+  async function handleTrial(e) {
+    e.preventDefault()
+    setLoading(true); setError('')
+    try {
+      const res = await fetch('/api/trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trialEmail, lang })
+      })
+      const data = await res.json()
+
+      if (data.error) {
+        if (data.redirect === '/login') {
+          setError(TR ? 'Bu e-posta zaten kayıtlı. Giriş yapın.' : 'Email already registered. Sign in instead.')
+          setMode('login'); setEmail(trialEmail)
+        } else {
+          setError(data.error)
+        }
+        setLoading(false); return
+      }
+
+      if (data.success) {
+        // Auto login
+        const user = data.user
+        localStorage.setItem('burnrate_user', JSON.stringify(user))
+        setUserData(user); setTrialDone(true)
+        setTimeout(() => { window.location.replace(window.location.origin + '/dashboard') }, 2200)
+      }
+    } catch {
+      setError(TR ? 'Bağlantı hatası.' : 'Connection error.')
+      setLoading(false)
+    }
+  }
+
+  const plan = userData?.plan || 'pro'
+  const planMeta = PLAN_META[plan] || PLAN_META.pro
 
   return (
     <div style={{minHeight:'100vh',background:'#0a0a0f',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px',fontFamily:FONT,position:'relative',overflow:'hidden'}}>
@@ -98,6 +141,7 @@ export default function LoginPage() {
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes scaleIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         input::placeholder{color:rgba(255,255,255,0.2)}
         input:focus{border-color:rgba(124,58,237,0.5)!important;box-shadow:0 0 0 3px rgba(124,58,237,0.1)}
       `}</style>
@@ -118,9 +162,9 @@ export default function LoginPage() {
       <div style={{width:'100%',maxWidth:'420px',position:'relative',zIndex:1}}>
 
         {/* LOGO */}
-        <div style={{textAlign:'center',marginBottom:'36px',animation:'fadeUp 0.6s ease both'}}>
+        <div style={{textAlign:'center',marginBottom:'32px',animation:'fadeUp 0.6s ease both'}}>
           <a href="https://burnrate-os.com" style={{textDecoration:'none'}}>
-            <div style={{display:'inline-flex',alignItems:'center',gap:'12px',marginBottom:'16px'}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:'12px',marginBottom:'12px'}}>
               <FlameLogo size={44} />
               <div style={{textAlign:'left'}}>
                 <div style={{color:'#f5f5f7',fontSize:'18px',fontWeight:700,letterSpacing:'-0.3px',fontFamily:FONT}}>BurnRate OS</div>
@@ -128,54 +172,125 @@ export default function LoginPage() {
               </div>
             </div>
           </a>
-          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',margin:0,fontWeight:300}}>{TR?'Finansal komuta merkezinize giriş yapın':'Sign in to your financial command center'}</p>
         </div>
 
-        {/* SUCCESS STATE */}
-        {loggedIn ? (
+        {/* SUCCESS STATE - Login */}
+        {success && (
           <div style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${planMeta.color}44`,borderRadius:'20px',padding:'36px',textAlign:'center',animation:'scaleIn 0.4s ease'}}>
             <div style={{fontSize:'48px',marginBottom:'16px'}}>{planMeta.emoji}</div>
-            <div style={{fontFamily:MONO,fontSize:'11px',color:planMeta.color,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'10px'}}>{planMeta.name} Plan</div>
-            <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,margin:'0 0 8px',letterSpacing:'-0.03em',fontFamily:FONT}}>{TR?'Tekrar hoş geldiniz! 👋':'Welcome back! 👋'}</h2>
-            <p style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',margin:'0 0 24px',fontFamily:FONT,fontWeight:300}}>{TR?planMeta.desc_tr:planMeta.desc_en}</p>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
+            <div style={{fontFamily:MONO,fontSize:'11px',color:planMeta.color,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'10px'}}>{planMeta.name} {userData?.is_trial?(TR?'Deneme':'Trial'):''}</div>
+            <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,margin:'0 0 8px',fontFamily:FONT}}>{TR?'Hoş geldiniz! 👋':'Welcome back! 👋'}</h2>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT,marginTop:'20px'}}>
               <div style={{width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${planMeta.color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
               {TR?'Panele yönlendiriliyorsunuz...':'Redirecting to dashboard...'}
             </div>
           </div>
-        ) : (
-          <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'20px',padding:'32px',animation:'fadeUp 0.6s 0.1s ease both',backdropFilter:'blur(10px)'}}>
-            {error && (
-              <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'12px',padding:'12px 16px',marginBottom:'20px',color:'#fca5a5',fontSize:'13px',fontFamily:FONT,display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                <span style={{flexShrink:0}}>⚠️</span><span>{error}</span>
-              </div>
-            )}
-            <form onSubmit={handleLogin}>
-              <div style={{marginBottom:'16px'}}>
-                <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'E-Posta Adresi':'Email Address'}</label>
-                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ornek@email.com" required
-                  style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',fontFamily:FONT,transition:'border-color 0.2s,box-shadow 0.2s'}}/>
-              </div>
-              <div style={{marginBottom:'24px'}}>
-                <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'Lisans Anahtarı':'License Key'}</label>
-                <input type="text" value={licenseKey} onChange={e=>setLicenseKey(e.target.value.toUpperCase())} placeholder="BRNOS-XXX-XXXX-XXXX" required
-                  style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#a78bfa',fontSize:'14px',outline:'none',fontFamily:MONO,letterSpacing:'1px',transition:'border-color 0.2s,box-shadow 0.2s'}}/>
-              </div>
-              <button type="submit" disabled={loading}
-                style={{width:'100%',padding:'14px',borderRadius:'12px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',fontSize:'15px',fontWeight:600,border:'none',cursor:loading?'not-allowed':'pointer',opacity:loading?0.7:1,transition:'all 0.2s',fontFamily:FONT,boxShadow:'0 0 40px rgba(124,58,237,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
-                {loading?(<><div style={{width:'16px',height:'16px',borderRadius:'50%',border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',animation:'spin 0.8s linear infinite'}}></div>{TR?'Giriş yapılıyor...':'Signing in...'}</>):(TR?'Panele Giriş →':'Access Dashboard →')}
-              </button>
-            </form>
-            <div style={{marginTop:'20px',padding:'14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
-              <p style={{textAlign:'center',color:'rgba(255,255,255,0.25)',fontSize:'12px',margin:0,lineHeight:'1.6',fontFamily:FONT}}>
-                {TR?<>Lisans anahtarınız satın alma sonrası e-posta ile gönderildi.<br/>Bulamazsanız spam klasörünü kontrol edin.</> : <>Your license key was emailed after purchase.<br/>Check spam if you can't find it.</>}
-              </p>
+        )}
+
+        {/* SUCCESS STATE - Trial */}
+        {trialDone && (
+          <div style={{background:'rgba(124,58,237,0.08)',border:'1px solid rgba(124,58,237,0.3)',borderRadius:'20px',padding:'36px',textAlign:'center',animation:'scaleIn 0.4s ease'}}>
+            <div style={{fontSize:'48px',marginBottom:'16px'}}>🎉</div>
+            <h2 style={{color:'#f1f0ff',fontSize:'22px',fontWeight:700,margin:'0 0 12px',fontFamily:FONT}}>{TR?'Denemeniz Başladı!':'Trial Started!'}</h2>
+            <p style={{color:'rgba(255,255,255,0.5)',fontSize:'14px',margin:'0 0 8px',fontFamily:FONT}}>{TR?'7 günlük ücretsiz Pro erişimi aktif.':'7-day free Pro access activated.'}</p>
+            <p style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',margin:'0 0 24px',fontFamily:FONT}}>{TR?'Lisans anahtarı e-postanıza gönderildi.':'License key sent to your email.'}</p>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
+              <div style={{width:'16px',height:'16px',borderRadius:'50%',border:'2px solid #7c3aed',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
+              {TR?'Panele yönlendiriliyorsunuz...':'Redirecting to dashboard...'}
             </div>
           </div>
         )}
 
-        <div style={{textAlign:'center',marginTop:'28px',animation:'fadeUp 0.6s 0.2s ease both'}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'20px',marginBottom:'14px'}}>
+        {/* MAIN FORM */}
+        {!success && !trialDone && (
+          <>
+            {/* MODE TABS */}
+            <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',padding:'4px',marginBottom:'24px',animation:'fadeUp 0.6s 0.05s ease both'}}>
+              <button onClick={()=>{setMode('trial');setError('')}}
+                style={{flex:1,padding:'10px',borderRadius:'9px',fontSize:'13px',fontWeight:600,background:mode==='trial'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'transparent',color:mode==='trial'?'#fff':'rgba(255,255,255,0.4)',border:'none',cursor:'pointer',transition:'all 0.2s',fontFamily:FONT}}>
+                {TR?'🎁 Ücretsiz Dene':'🎁 Free Trial'}
+              </button>
+              <button onClick={()=>{setMode('login');setError('')}}
+                style={{flex:1,padding:'10px',borderRadius:'9px',fontSize:'13px',fontWeight:500,background:mode==='login'?'rgba(255,255,255,0.08)':'transparent',color:mode==='login'?'#f5f5f7':'rgba(255,255,255,0.4)',border:'none',cursor:'pointer',transition:'all 0.2s',fontFamily:FONT}}>
+                {TR?'Giriş Yap':'Sign In'}
+              </button>
+            </div>
+
+            {/* TRIAL MODE */}
+            {mode==='trial' && (
+              <div style={{animation:'fadeUp 0.3s ease both'}}>
+                {/* Trial badge */}
+                <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(124,58,237,0.08)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'12px',padding:'14px 16px',marginBottom:'20px'}}>
+                  <span style={{fontSize:'20px'}}>🎁</span>
+                  <div>
+                    <div style={{color:'#c4b5fd',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{TR?'7 Gün Ücretsiz — Kart Gerekmez':'7 Days Free — No Credit Card'}</div>
+                    <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>{TR?'Pro özelliklerin tamamına erişim':'Full access to all Pro features'}</div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px',color:'#fca5a5',fontSize:'13px',fontFamily:FONT,display:'flex',gap:'8px'}}>
+                    <span>⚠️</span><span>{error}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleTrial}>
+                  <div style={{marginBottom:'20px'}}>
+                    <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'E-Posta Adresiniz':'Your Email Address'}</label>
+                    <input type="email" value={trialEmail} onChange={e=>setTrialEmail(e.target.value)} placeholder={TR?'ornek@email.com':'you@example.com'} required
+                      style={{width:'100%',padding:'13px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',fontFamily:FONT,transition:'all 0.2s'}}/>
+                    <p style={{color:'rgba(255,255,255,0.25)',fontSize:'11px',margin:'8px 0 0',fontFamily:FONT}}>{TR?'Lisans anahtarı bu adrese gönderilecek.':'License key will be sent to this address.'}</p>
+                  </div>
+                  <button type="submit" disabled={loading}
+                    style={{width:'100%',padding:'15px',borderRadius:'12px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',fontSize:'15px',fontWeight:700,border:'none',cursor:loading?'not-allowed':'pointer',opacity:loading?0.7:1,fontFamily:FONT,boxShadow:'0 0 40px rgba(124,58,237,0.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
+                    {loading?(<><div style={{width:'16px',height:'16px',borderRadius:'50%',border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',animation:'spin 0.8s linear infinite'}}></div>{TR?'Hesap oluşturuluyor...':'Creating account...'}</>):(TR?'7 Günlük Denemeyi Başlat →':'Start 7-Day Free Trial →')}
+                  </button>
+                </form>
+
+                <div style={{display:'flex',gap:'16px',marginTop:'16px',justifyContent:'center'}}>
+                  {[TR?'✓ Kart gerekmez':'✓ No credit card',TR?'✓ Anında erişim':'✓ Instant access',TR?'✓ İstediğin zaman iptal':'✓ Cancel anytime'].map((item,i)=>(
+                    <span key={i} style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT}}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* LOGIN MODE */}
+            {mode==='login' && (
+              <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'20px',padding:'28px',animation:'fadeUp 0.3s ease both',backdropFilter:'blur(10px)'}}>
+                {error && (
+                  <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px',color:'#fca5a5',fontSize:'13px',fontFamily:FONT,display:'flex',gap:'8px'}}>
+                    <span>⚠️</span><span>{error}</span>
+                  </div>
+                )}
+                <form onSubmit={handleLogin}>
+                  <div style={{marginBottom:'14px'}}>
+                    <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'E-Posta':'Email'}</label>
+                    <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder={TR?'ornek@email.com':'you@example.com'} required
+                      style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'14px',outline:'none',fontFamily:FONT,transition:'all 0.2s'}}/>
+                  </div>
+                  <div style={{marginBottom:'20px'}}>
+                    <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'Lisans Anahtarı':'License Key'}</label>
+                    <input type="text" value={licenseKey} onChange={e=>setLicenseKey(e.target.value.toUpperCase())} placeholder="BRNOS-XXX-XXXX-XXXX" required
+                      style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#a78bfa',fontSize:'14px',outline:'none',fontFamily:MONO,letterSpacing:'1px',transition:'all 0.2s'}}/>
+                  </div>
+                  <button type="submit" disabled={loading}
+                    style={{width:'100%',padding:'13px',borderRadius:'12px',background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',fontSize:'15px',fontWeight:600,border:'none',cursor:loading?'not-allowed':'pointer',opacity:loading?0.7:1,fontFamily:FONT,boxShadow:'0 0 30px rgba(124,58,237,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
+                    {loading?(<><div style={{width:'16px',height:'16px',borderRadius:'50%',border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',animation:'spin 0.8s linear infinite'}}></div>{TR?'Giriş yapılıyor...':'Signing in...'}</>):(TR?'Panele Giriş →':'Access Dashboard →')}
+                  </button>
+                </form>
+                <div style={{marginTop:'16px',padding:'12px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',textAlign:'center'}}>
+                  <p style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',margin:0,lineHeight:'1.6',fontFamily:FONT}}>
+                    {TR?'Lisans anahtarı satın alma sonrası e-posta ile gönderildi.':'License key was emailed after purchase.'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        <div style={{textAlign:'center',marginTop:'24px',animation:'fadeUp 0.6s 0.2s ease both'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'20px',marginBottom:'12px'}}>
             <a href="https://burnrate-os.com" style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',textDecoration:'none',fontFamily:FONT}}
               onMouseEnter={e=>e.target.style.color='rgba(255,255,255,0.5)'}
               onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>
@@ -185,10 +300,10 @@ export default function LoginPage() {
             <a href="https://whop.com/burnrate-os" style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',textDecoration:'none',fontFamily:FONT}}
               onMouseEnter={e=>e.target.style.color='rgba(255,255,255,0.5)'}
               onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>
-              {TR?'Erişim satın al →':'Get access →'}
+              {TR?'Plan satın al →':'Get a plan →'}
             </a>
           </div>
-          <p style={{color:'rgba(255,255,255,0.1)',fontSize:'11px',margin:0,fontFamily:MONO}}>burnrate-os.com · Stop the leak.</p>
+          <p style={{color:'rgba(255,255,255,0.08)',fontSize:'11px',margin:0,fontFamily:MONO}}>burnrate-os.com · Stop the leak.</p>
         </div>
 
       </div>
