@@ -1446,7 +1446,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
     setLoading(true)
     const context = `Subscriptions: ${subs.map(s=>`${s.name} $${s.cost}/mo status:${s.status}`).join(', ')||'none'}. Expenses: ${expenses.map(e=>`${e.description} $${e.amount}`).join(', ')||'none'}. Income: ${income.map(i=>`${i.source} $${i.amount}`).join(', ')||'none'}. Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:$${inv.buyPrice}`).join(', ')||'none'}.`
     try {
-      const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userMsg,context})})
+      const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userMsg,context,lang})})
       const data = await res.json()
       setMessages(prev=>[...prev,{role:'ai',text:data.reply||'Could not get a response.'}])
     } catch {
