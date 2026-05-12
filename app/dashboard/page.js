@@ -333,12 +333,12 @@ export default function Dashboard() {
   }
 
   const navItems = [
-    { id:'dashboard',     icon:'⚡', label: TR ? 'Genel Bakış'   : 'Overview' },
-    { id:'subscriptions', icon:'⚔️', label: TR ? 'Abonelikler'   : 'Subscriptions' },
-    { id:'spending',      icon:'💸', label: TR ? 'Harcamalar'    : 'Spending' },
-    { id:'investments',   icon:'📈', label: TR ? 'Yatırımlar'    : 'Investments' },
-    { id:'balance',       icon:'💰', label: TR ? 'Bakiye'        : 'Balance' },
-    { id:'goals',         icon:'🎯', label: TR ? 'Meydan Okuma'  : 'Challenge' },
+    { id:'dashboard',     icon:'⚡', label: (lang==='tr') ? 'Genel Bakış'   : 'Overview' },
+    { id:'subscriptions', icon:'⚔️', label: (lang==='tr') ? 'Abonelikler'   : 'Subscriptions' },
+    { id:'spending',      icon:'💸', label: (lang==='tr') ? 'Harcamalar'    : 'Spending' },
+    { id:'investments',   icon:'📈', label: (lang==='tr') ? 'Yatırımlar'    : 'Investments' },
+    { id:'balance',       icon:'💰', label: (lang==='tr') ? 'Bakiye'        : 'Balance' },
+    { id:'goals',         icon:'🎯', label: (lang==='tr') ? 'Meydan Okuma'  : 'Challenge' },
   ]
 
   if (!user) return (
@@ -1312,7 +1312,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
     setSelectedDay(day)
     if (aiTasks[day]) return
     setLoadingTasks(true)
-    setAiTasks(prev => ({...prev, [day]: TR ? [
+    setAiTasks(prev => ({...prev, [day]: (lang==='tr') ? [
       ["Bugün harcadığın her kuruşu not et","Anlık bir alım yapmaktan kaçın","Gece tüm harcamalarını kaydet"],
       ["Dünün harcamalarını gözden geçir","Gereksiz bir alımı atla","Bugün 50₺ biriktir"],
       ["Kullanılmayan bir aboneliği iptal et","Bugün evde ye","Her işlemi kaydet"],
@@ -1325,8 +1325,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
       ["Kredi kartı ekstresini incele","Akşam yemeğini evde pişir","Acil fonu kontrol et"],
     ][(day-1) % 10] : DAILY_TASKS[(day-1) % DAILY_TASKS.length]}))
     try {
-      const prompt = TR
-        ? `30 günlük para meydan okuması için ${day}. gün - tam olarak 3 kısa uygulanabilir Türkçe finansal görev üret. SADECE JSON dizisi döndür: ["görev1","görev2","görev3"]`
+      const prompt = (lang==='tr') ? `30 günlük para meydan okuması için ${day}. gün - tam olarak 3 kısa uygulanabilir Türkçe finansal görev üret. SADECE JSON dizisi döndür: ["görev1","görev2","görev3"]`
         : `Generate exactly 3 short, actionable financial tasks for Day ${day} of a 30-day money challenge. Return ONLY a JSON array of 3 strings.`
       const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: prompt, context: `spending: ₺${totalExp}, subs: ₺${totalSubs}, income: ₺${totalIncome}` }) })
       const data = await res.json()
