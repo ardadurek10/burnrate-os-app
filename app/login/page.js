@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabaseQuery } from '../lib/supabase'
 
 const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
