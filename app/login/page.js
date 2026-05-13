@@ -54,7 +54,7 @@ export default function LoginPage() {
   const [userData, setUserData]     = useState(null)
   const [trialDone, setTrialDone]   = useState(false)
   const [lang, setLang]             = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('burnrate_lang') || 'en'
+    if (typeof window !== 'undefined') return localStorage.getItem('burnrate_lang') || 'tr'
     return 'en'
   })
   const TR = lang === 'tr'

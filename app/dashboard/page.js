@@ -34,7 +34,7 @@ const DASHBOARD_TRANSLATIONS = {
 
 function getLang() {
   if (typeof window === 'undefined') return 'en'
-  return localStorage.getItem(LANG_STORAGE_KEY) || 'en'
+  return localStorage.getItem(LANG_STORAGE_KEY) || 'tr'
 }
 
 function setDashboardLang(lang) {
@@ -294,7 +294,7 @@ export default function Dashboard() {
   const [investments, setInvestments] = useState([])
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
-  const [lang, setLang] = useState('en')
+  const [lang, setLang] = useState('tr')
 
   useEffect(() => {
     setLang(getLang())
