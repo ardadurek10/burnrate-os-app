@@ -53,10 +53,11 @@ export default function LoginPage() {
   const [success, setSuccess]       = useState(false)
   const [userData, setUserData]     = useState(null)
   const [trialDone, setTrialDone]   = useState(false)
-  const [lang, setLang]             = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('burnrate_lang') || 'tr'
-    return 'tr'
-  })
+  const [lang, setLang]             = useState('tr')
+  useEffect(() => {
+    const saved = localStorage.getItem('burnrate_lang')
+    if (saved) setLang(saved)
+  }, [])
   const TR = lang === 'tr'
 
   function changeLang(l) {
