@@ -362,7 +362,7 @@ export default function Dashboard() {
   const invGain = totalInvValue - totalInvCost
 
   return (
-    <div style={{background:'#0a0a0f',fontFamily:FONT,minHeight:'100vh',display:'flex'}}>
+    <div style={{background:'#0a0a0f',fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
@@ -1430,7 +1430,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
 
       {/* KUTLAMA ANİMASYONU */}
       {showCelebration && (
-        <div style={{position:'fixed',inset:0,zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',overflow:'hidden'}}>
           <div style={{background:'linear-gradient(135deg,rgba(244,63,94,0.95),rgba(124,58,237,0.95))',borderRadius:'24px',padding:'36px 48px',textAlign:'center',animation:'fadeIn 0.3s ease',boxShadow:'0 0 80px rgba(244,63,94,0.4)'}}>
             <div style={{fontSize:'52px',marginBottom:'12px'}}>🎉</div>
             <div style={{color:'#fff',fontSize:'22px',fontWeight:700,fontFamily:FONT,marginBottom:'6px'}}>{lang==='tr'?`${celebrationDay}. Gün Tamamlandı!`:`Day ${celebrationDay} Complete!`}</div>
