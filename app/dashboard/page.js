@@ -946,7 +946,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
             <InputField label={(lang==='tr')?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Kına gecesi masrafı..." />
             <InputField label={(lang==='tr')?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
-            <InputField label={(lang==='tr')?'Tarih':'Date'} value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} placeholder="12 Mayıs" />
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Tarih':'Date'}</div><input type="date" value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
             <div style={{position:'relative'}}>
               <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
               <input
@@ -1280,7 +1280,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
             <InputField label={lang==='tr'?'Kaynak':'Source'} value={form.source} onChange={e=>setForm({...form,source:e.target.value})} placeholder="Freelance, Product sale..." />
             <InputField label={lang==='tr'?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
-            <InputField label={lang==='tr'?'Tarih':'Date'} value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} placeholder="May 5" />
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Tarih':'Date'}</div><input type="date" value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
             <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
