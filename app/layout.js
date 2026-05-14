@@ -30,17 +30,6 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="https://burnrate-os.com/logo.svg" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
-                  .then(function() { console.log('SW registered'); })
-                  .catch(function(err) { console.log('SW error:', err); });
-              });
-            }
-          `
-        }} />
       </head>
       <body className={inter.className} style={{margin:0,padding:0,background:'#0a0a0f'}}>
         {children}
