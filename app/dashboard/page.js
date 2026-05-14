@@ -532,7 +532,7 @@ export default function Dashboard() {
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
@@ -620,7 +620,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, userPlan, userName, lang }) {
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, onQuickAdd, userPlan, userName, lang }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
@@ -635,10 +635,16 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{getGreeting(userName, lang)}</h1>
           <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} {lang==='tr'?'gün kaldı':'days left'}</p>
         </div>
-        <button onClick={onSummary}
-          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
-          📋 {lang==='tr'?'Aylık Özet':(lang==='tr')?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
-        </button>
+        <div style={{display:'flex',gap:'10px'}}>
+          <button onClick={onQuickAdd}
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(245,158,11,0.12)',color:'#fde68a',border:'1px solid rgba(245,158,11,0.25)',cursor:'pointer',fontFamily:FONT}}>
+            + {lang==='tr'?'Hızlı Harcama':'Quick Expense'}
+          </button>
+          <button onClick={onSummary}
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
+            📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
+          </button>
+        </div>
       </div>
       {deadSubs.length > 0 && (
         <div style={{display:'flex',gap:'12px',padding:'14px 18px',borderRadius:'14px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',marginBottom:'20px'}}>
@@ -754,7 +760,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
   ]
   const getSubCatLabel = (v) => { const cat=SUB_CATS.find(c=>c.v===v); return cat?((lang==='tr')?cat.tr:cat.en):v }
 
-  const [form, setForm] = useState({name:'',cost:'',category:'saas',days_since_used:'0',notes:''})
+  const [form, setForm] = useState({name:'',cost:'',category:'saas',days_since_used:0,last_used_date:new Date().toISOString().split('T')[0],billing_period:'monthly',notes:''})
   const [adding, setAdding] = useState(false)
   const [subCatSearch, setSubCatSearch] = useState('')
   const [subCatOpen, setSubCatOpen]     = useState(false)
@@ -764,8 +770,8 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
     if (!form.name||!form.cost) return
     const days = parseInt(form.days_since_used)||0
     const status = days===0?'keep':days<30?'keep':days<60?'warn':'dead'
-    await supabaseInsert('subscriptions',{...form,cost:parseFloat(form.cost),days_since_used:days,status,user_id:userId})
-    setForm({name:'',cost:'',category:'saas',days_since_used:'0',notes:''}); setSubCatSearch(''); setAdding(false); onRefresh()
+    const monthlyCost=form.billing_period==='yearly'?parseFloat(form.cost)/12:parseFloat(form.cost); await supabaseInsert('subscriptions',{...form,cost:parseFloat(monthlyCost.toFixed(2)),days_since_used:days,status,user_id:userId})
+    setForm({name:'',cost:'',category:'saas',days_since_used:0,last_used_date:new Date().toISOString().split('T')[0],billing_period:'monthly',notes:''}); setSubCatSearch(''); setAdding(false); onRefresh()
   }
   async function del(id) { await supabaseDelete('subscriptions',id); onRefresh() }
 
@@ -786,8 +792,9 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
             <InputField label={lang==='tr'?'Hizmet Adı':'Service Name'} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={lang==='tr'?'Shopify, Claude Pro...':'Shopify, Claude Pro...'} />
-            <InputField label={lang==='tr'?'Aylık Maliyet (₺)':'Monthly Cost (₺)'} value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} type="number" placeholder="29.00" />
-            <InputField label={lang==='tr'?'Son Kullanımdan Bu Yana (gün)':'Days Since Last Used'} value={form.days_since_used} onChange={e=>setForm({...form,days_since_used:e.target.value})} type="number" placeholder="0 = used today" />
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'8px'}}>{lang==='tr'?'Fatura Dönemi':'Billing Period'}</div><div style={{display:'flex',background:'rgba(255,255,255,0.04)',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.09)',overflow:'hidden'}}>{['monthly','yearly'].map(p=>(<button key={p} onClick={()=>setForm({...form,billing_period:p})} style={{flex:1,padding:'10px',fontSize:'13px',fontFamily:FONT,fontWeight:form.billing_period===p?600:400,color:form.billing_period===p?'#fff':'rgba(255,255,255,0.35)',background:form.billing_period===p?'rgba(239,68,68,0.4)':'transparent',border:'none',cursor:'pointer',transition:'all 0.2s'}}>{p==='monthly'?(lang==='tr'?'📅 Aylık':'📅 Monthly'):(lang==='tr'?'📆 Yıllık (÷12)':'📆 Yearly (÷12)')}</button>))}</div>{form.billing_period==='yearly'&&form.cost&&<div style={{marginTop:'6px',fontSize:'11px',color:'rgba(245,158,11,0.8)',fontFamily:FONT}}>≈ ₺{(parseFloat(form.cost)/12).toFixed(2)}/{lang==='tr'?'ay':'mo'}</div>}</div>
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Aylık Maliyet (₺)':'Monthly Cost (₺)'}</div><div style={{position:'relative'}}><span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span><input type="number" min="0" step="0.01" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} placeholder="29.00" style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:MONO}} /></div></div>
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Son Kullanım Tarihi':'Last Used Date'}</div><input type="date" value={form.last_used_date||new Date().toISOString().split('T')[0]} onChange={e=>{const days=Math.floor((new Date()-new Date(e.target.value))/(1000*60*60*24));setForm({...form,last_used_date:e.target.value,days_since_used:days<0?0:days})}} max={new Date().toISOString().split('T')[0]} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
             <div style={{position:'relative'}}>
               <div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
               <div onClick={()=>{setSubCatSearch('');setSubCatOpen(true)}}
@@ -909,7 +916,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
   const getCL = (val) => { const cat=CATS.find(c=>c.v===val); return cat?((lang==='tr')?cat.tr:cat.en):val }
   const getCG = (val) => { const cat=CATS.find(c=>c.v===val); return cat?((lang==='tr')?cat.g_tr:cat.g_en):((lang==='tr')?'Diğer':'Other') }
 
-  const [form, setForm]     = useState({description:'',amount:'',category:'other',expense_date:''})
+  const [form, setForm]     = useState({description:'',amount:'',category:'other',expense_date:'',recurring:false})
   const [adding, setAdding] = useState(false)
   const [filter, setFilter] = useState('all')
   const [catSearch, setCatSearch] = useState('')
@@ -918,7 +925,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
   async function addExpense() {
     if (!form.description||!form.amount) return
     await supabaseInsert('expenses',{...form,amount:parseFloat(form.amount),user_id:userId})
-    setForm({description:'',amount:'',category:'other',expense_date:''}); setAdding(false); onRefresh()
+    setForm({description:'',amount:'',category:'other',expense_date:'',recurring:false}); setAdding(false); onRefresh()
   }
   async function del(id) { await supabaseDelete('expenses',id); onRefresh() }
 
@@ -945,7 +952,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
             <InputField label={(lang==='tr')?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Kına gecesi masrafı..." />
-            <InputField label={(lang==='tr')?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Miktar (₺)':'Amount (₺)'}</div><div style={{position:'relative'}}><span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span><input type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00" style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:MONO}} /></div></div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Tarih':'Date'}</div><input type="date" value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
             <div style={{position:'relative'}}>
               <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
@@ -973,9 +980,17 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
               )}
             </div>
           </div>
-          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{(lang==='tr')?'İptal':'Cancel'}</button>
-            <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{(lang==='tr')?'Kaydet':'Save'}</button>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',userSelect:'none'}}>
+              <div onClick={()=>setForm({...form,recurring:!form.recurring})} style={{width:'20px',height:'20px',borderRadius:'6px',background:form.recurring?theme.accent:'transparent',border:`1.5px solid ${form.recurring?theme.accent:'rgba(255,255,255,0.2)'}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all 0.2s',flexShrink:0}}>
+                {form.recurring&&<span style={{color:'#fff',fontSize:'12px',fontWeight:700}}>✓</span>}
+              </div>
+              <span style={{fontSize:'12px',color:'rgba(255,255,255,0.45)',fontFamily:FONT}}>{(lang==='tr')?'Her ay tekrarla':'Repeat monthly'}</span>
+            </label>
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{(lang==='tr')?'İptal':'Cancel'}</button>
+              <button onClick={addExpense} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{(lang==='tr')?'Kaydet':'Save'}</button>
+            </div>
           </div>
         </Card>
       )}
@@ -1278,8 +1293,8 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-            <InputField label={lang==='tr'?'Kaynak':'Source'} value={form.source} onChange={e=>setForm({...form,source:e.target.value})} placeholder="Freelance, Product sale..." />
-            <InputField label={lang==='tr'?'Miktar (₺)':'Amount (₺)'} value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} type="number" placeholder="0.00" />
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><select value={form.source} onChange={e=>setForm({...form,source:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(30,30,50,0.9)',border:'1px solid rgba(255,255,255,0.09)',color:form.source?'#f5f5f7':'rgba(255,255,255,0.3)',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,cursor:'pointer',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.3)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 14px center'}}><option value="" disabled>{lang==='tr'?'Kaynak seçin...':'Select source...'}</option><option value={lang==='tr'?'Maaş':'Salary'}>{lang==='tr'?'💼 Maaş':'💼 Salary'}</option><option value={lang==='tr'?'Freelance':'Freelance'}>{lang==='tr'?'💻 Freelance':'💻 Freelance'}</option><option value={lang==='tr'?'Ürün Satışı':'Product Sale'}>{lang==='tr'?'📦 Ürün Satışı':'📦 Product Sale'}</option><option value={lang==='tr'?'Kira Geliri':'Rental Income'}>{lang==='tr'?'🏠 Kira Geliri':'🏠 Rental Income'}</option><option value={lang==='tr'?'Yatırım Getirisi':'Investment Return'}>{lang==='tr'?'📈 Yatırım Getirisi':'📈 Investment Return'}</option><option value={lang==='tr'?'Temettü':'Dividend'}>{lang==='tr'?'💰 Temettü':'💰 Dividend'}</option><option value={lang==='tr'?'Proje Ödemesi':'Project Payment'}>{lang==='tr'?'🎯 Proje Ödemesi':'🎯 Project Payment'}</option><option value={lang==='tr'?'İkramiye':'Bonus'}>{lang==='tr'?'🎁 İkramiye':'🎁 Bonus'}</option><option value={lang==='tr'?'Diğer':'Other'}>{lang==='tr'?'📌 Diğer':'📌 Other'}</option></select></div>
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Miktar (₺)':'Amount (₺)'}</div><div style={{position:'relative'}}><span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span><input type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00" style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:MONO}} /></div></div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Tarih':'Date'}</div><input type="date" value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
@@ -1406,9 +1421,13 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
         <StatCard accent={theme.accent} label={lang==='tr'?'Kalan Gün':'Days Remaining'} value={30-today} sub={lang==='tr'?'ay sonuna kadar':'until end of month'} color="rgba(255,255,255,0.5)" icon="📅" />
       </div>
       <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Meydan okumaya başlamak için bir gün seçin':'Select a day to begin your challenge'}</div>
           <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>{lang==='tr'?`${completedCount}/30 tamamlandı`:`${completedCount}/30 complete`}</div>
+        </div>
+        <div style={{marginBottom:'16px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO,marginBottom:'6px'}}><span>{lang==='tr'?'İlerleme':'Progress'}</span><span>{Math.round(completedCount/30*100)}%</span></div>
+          <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}><div style={{height:'100%',borderRadius:'100px',width:`${Math.round(completedCount/30*100)}%`,background:`linear-gradient(90deg,${theme.accent},${theme.accent}88)`,transition:'width 0.5s ease'}}></div></div>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'8px'}}>
           {Array.from({length:30},(_,i)=>i+1).map(day => {
@@ -1534,9 +1553,13 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 
 // ── AI ADVISOR ────────────────────────────────────────────────────
 function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
-  const [messages, setMessages] = useState([
-    { role:'ai', text: lang==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }
-  ])
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('burnrate_ai_chat')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return [{ role:'ai', text: lang==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }]
+  })
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -1546,15 +1569,15 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
     const userMsg = msg||input.trim()
     if (!userMsg||loading) return
     setInput('')
-    setMessages(prev=>[...prev,{role:'user',text:userMsg}])
+    setMessages(prev=>{const updated=[...prev,{role:'user',text:userMsg}];try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(updated.slice(-50)))}catch{};return updated})
     setLoading(true)
     const context = `Subscriptions: ${subs.map(s=>`${s.name} $${s.cost}/mo status:${s.status}`).join(', ')||'none'}. Expenses: ${expenses.map(e=>`${e.description} $${e.amount}`).join(', ')||'none'}. Income: ${income.map(i=>`${i.source} $${i.amount}`).join(', ')||'none'}. Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:$${inv.buyPrice}`).join(', ')||'none'}.`
     try {
       const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userMsg,context,lang})})
       const data = await res.json()
-      setMessages(prev=>[...prev,{role:'ai',text:data.reply||'Could not get a response.'}])
+      setMessages(prev=>{const updated=[...prev,{role:'ai',text:data.reply||'Could not get a response.'}];try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(updated.slice(-50)))}catch{};return updated})
     } catch {
-      setMessages(prev=>[...prev,{role:'ai',text:'Connection error. Please try again.'}])
+      setMessages(prev=>{const updated=[...prev,{role:'ai',text:'Connection error. Please try again.'}];try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(updated.slice(-50)))}catch{};return updated})
     }
     setLoading(false)
   }
@@ -1562,12 +1585,15 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
   return (
     <div className="page-pad" style={{padding:'36px',height:'100vh',display:'flex',flexDirection:'column',maxHeight:'100vh',boxSizing:'border-box'}}>
       <div style={{marginBottom:'18px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
-          <div>
-            <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':(lang==='tr')?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
-            <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+            <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
+            <div>
+              <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
+              <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
+            </div>
           </div>
+          <button onClick={()=>{const init=[{role:'ai',text:lang==='tr'?'Sohbet temizlendi. Size nasıl yardımcı olabilirim?':'Chat cleared. How can I help you?'}];setMessages(init);try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(init))}catch{}}} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'🗑️ Temizle':'🗑️ Clear'}</button>
         </div>
       </div>
       <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>

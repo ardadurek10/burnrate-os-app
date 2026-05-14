@@ -272,7 +272,7 @@ export default function LoginPage() {
                   </div>
                   <div style={{marginBottom:'20px'}}>
                     <label style={{display:'block',color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>{TR?'Lisans Anahtarı':'License Key'}</label>
-                    <input type="text" value={licenseKey} onChange={e=>setLicenseKey(e.target.value.toUpperCase())} placeholder="BRNOS-XXX-XXXX-XXXX" required
+                    <input type="text" value={licenseKey} onChange={e=>{const raw=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");const parts=[raw.slice(0,5),raw.slice(5,8),raw.slice(8,12),raw.slice(12,16)].filter(Boolean);setLicenseKey(parts.join("-"))}} placeholder="BRNOS-XXX-XXXX-XXXX" required
                       style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#a78bfa',fontSize:'14px',outline:'none',fontFamily:MONO,letterSpacing:'1px',transition:'all 0.2s'}}/>
                   </div>
                   <button type="submit" disabled={loading}
@@ -284,6 +284,7 @@ export default function LoginPage() {
                   <p style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',margin:0,lineHeight:'1.6',fontFamily:FONT}}>
                     {TR?'Lisans anahtarı satın alma sonrası e-posta ile gönderildi.':'License key was emailed after purchase.'}
                   </p>
+                  <a href='mailto:hello@burnrate-os.com?subject=License%20Key%20Help' style={{display:'inline-block',marginTop:'8px',color:'rgba(124,58,237,0.7)',fontSize:'12px',fontFamily:FONT,textDecoration:'none'}}>{TR?'🔑 Anahtarımı kaybettim →':'🔑 Lost my key →'}</a>
                 </div>
               </div>
             )}
