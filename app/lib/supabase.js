@@ -5,9 +5,8 @@ const supabaseKey =
 export async function supabaseQuery(table, filters = {}) {
   let url = `${supabaseUrl}/rest/v1/${table}?select=*`;
   Object.entries(filters).forEach(([key, value]) => {
-    url += `&${key}=eq.${encodeURIComponent(value)}`;
+    url += `&${key}=eq.${value}`;
   });
-  console.log('URL:', url);
   const res = await fetch(url, {
     headers: {
       apikey: supabaseKey,
@@ -15,9 +14,7 @@ export async function supabaseQuery(table, filters = {}) {
       'Content-Type': 'application/json',
     },
   });
-  const json = await res.json();
-  console.log('Result:', json);
-  return json;
+  return res.json();
 }
 
 export async function supabaseInsert(table, data) {
