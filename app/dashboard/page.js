@@ -1401,7 +1401,14 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
   }
 
   function completeDay(day) {
-    if (!completedDays.includes(day)) { const u=[...completedDays,day]; setCompletedDays(u); localStorage.setItem('burnrate_completed_days',JSON.stringify(u)) }
+    if (!completedDays.includes(day)) {
+      const u=[...completedDays,day]
+      setCompletedDays(u)
+      localStorage.setItem('burnrate_completed_days',JSON.stringify(u))
+      setCelebrationDay(day)
+      setShowCelebration(true)
+      setTimeout(() => setShowCelebration(false), 3500)
+    }
     setSelectedDay(null)
   }
 
@@ -1411,10 +1418,67 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
+
+      {/* KUTLAMA ANİMASYONU */}
+      {showCelebration && (
+        <div style={{position:'fixed',inset:0,zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+          <div style={{background:'linear-gradient(135deg,rgba(244,63,94,0.95),rgba(124,58,237,0.95))',borderRadius:'24px',padding:'36px 48px',textAlign:'center',animation:'fadeIn 0.3s ease',boxShadow:'0 0 80px rgba(244,63,94,0.4)'}}>
+            <div style={{fontSize:'52px',marginBottom:'12px'}}>🎉</div>
+            <div style={{color:'#fff',fontSize:'22px',fontWeight:700,fontFamily:FONT,marginBottom:'6px'}}>{lang==='tr'?`${celebrationDay}. Gün Tamamlandı!`:`Day ${celebrationDay} Complete!`}</div>
+            <div style={{color:'rgba(255,255,255,0.7)',fontSize:'14px',fontFamily:FONT}}>{streak>1?(lang==='tr'?`${streak} günlük seri! 🔥`:`${streak} day streak! 🔥`):(lang==='tr'?'Harika iş! Devam et 💪':'Great work! Keep going 💪')}</div>
+          </div>
+        </div>
+      )}
+
       <div style={{marginBottom:'28px'}}>
         <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{lang==='tr'?'🎯 30 Günlük Finansal Meydan Okuma':'🎯 30-Day Financial Challenge'}</h1>
         <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'bir gün seçin, AI görevlerinizi görün':'tap a day to see your AI tasks'}</p>
       </div>
+
+      {/* STREAK KARTI */}
+      <div style={{background:`linear-gradient(135deg,rgba(244,63,94,0.1),rgba(124,58,237,0.1))`,border:'1px solid rgba(244,63,94,0.25)',borderRadius:'16px',padding:'20px 24px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'16px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
+          <div style={{fontSize:'40px'}}>{streak>=21?'👑':streak>=14?'💎':streak>=7?'⚡':streak>=3?'🔥':streak>=1?'✨':'🎯'}</div>
+          <div>
+            <div style={{color:'#fda4af',fontSize:'11px',fontFamily:MONO,letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px'}}>{lang==='tr'?'Güncel Seri':'Current Streak'}</div>
+            <div style={{color:'#f1f0ff',fontSize:'28px',fontWeight:800,fontFamily:FONT,letterSpacing:'-1px'}}>{streak} {lang==='tr'?'gün':'days'}</div>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
+          {nextBadge && (
+            <div style={{textAlign:'center'}}>
+              <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO,marginBottom:'4px'}}>{lang==='tr'?'Sıradaki Rozet':'Next Badge'}</div>
+              <div style={{fontSize:'24px'}}>{nextBadge.icon}</div>
+              <div style={{color:nextBadge.color,fontSize:'11px',fontFamily:FONT,marginTop:'2px'}}>{nextBadge.days - completedDays.length} {lang==='tr'?'gün':'days'}</div>
+            </div>
+          )}
+          {savedEstimate > 0 && (
+            <div style={{background:'rgba(16,185,129,0.1)',border:'1px solid rgba(16,185,129,0.25)',borderRadius:'12px',padding:'10px 16px',textAlign:'center'}}>
+              <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO,marginBottom:'4px'}}>{lang==='tr'?'Tahmini Tasarruf':'Est. Savings'}</div>
+              <div style={{color:'#6ee7b7',fontSize:'18px',fontWeight:700,fontFamily:MONO}}>+₺{savedEstimate}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ROZETLER */}
+      {earnedBadges.length > 0 && (
+        <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'14px',padding:'16px 20px',marginBottom:'16px'}}>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'10px',fontFamily:MONO,letterSpacing:'1px',textTransform:'uppercase',marginBottom:'12px'}}>{lang==='tr'?'Kazanılan Rozetler':'Earned Badges'}</div>
+          <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
+            {earnedBadges.map((b,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 14px',borderRadius:'100px',background:`rgba(${b.color==='#10b981'?'16,185,129':b.color==='#f59e0b'?'245,158,11':b.color==='#06b6d4'?'6,182,212':b.color==='#8b5cf6'?'139,92,246':'245,158,11'},0.12)`,border:`1px solid ${b.color}44`}}>
+                <span style={{fontSize:'20px'}}>{b.icon}</span>
+                <div>
+                  <div style={{color:b.color,fontSize:'12px',fontWeight:600,fontFamily:FONT}}>{b.label}</div>
+                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO}}>{b.days} {lang==='tr'?'gün':'days'}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
         <StatCard accent={theme.accent} label={lang==='tr'?'Tamamlanan Gün':'Days Completed'} value={completedCount} sub={lang==='tr'?`${today} günden beri`:`of ${today} days so far`} color={theme.text} icon="✅" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Tamamlama Oranı':'Completion Rate'} value={`${streakPct}%`} sub={streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
