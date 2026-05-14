@@ -770,7 +770,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
     if (!form.name||!form.cost) return
     const days = parseInt(form.days_since_used)||0
     const status = days===0?'keep':days<30?'keep':days<60?'warn':'dead'
-    const monthlyCost=form.billing_period==='yearly'?parseFloat(form.cost)/12:parseFloat(form.cost); await supabaseInsert('subscriptions',{...form,cost:parseFloat(monthlyCost.toFixed(2)),days_since_used:days,status,user_id:userId})
+    const monthlyCost=form.billing_period==='yearly'?parseFloat(form.cost)/12:parseFloat(form.cost); const {billing_period,last_used_date,...formData}=form; await supabaseInsert('subscriptions',{...formData,cost:parseFloat(monthlyCost.toFixed(2)),days_since_used:days,status,user_id:userId})
     setForm({name:'',cost:'',category:'saas',days_since_used:0,last_used_date:new Date().toISOString().split('T')[0],billing_period:'monthly',notes:''}); setSubCatSearch(''); setAdding(false); onRefresh()
   }
   async function del(id) { await supabaseDelete('subscriptions',id); onRefresh() }
