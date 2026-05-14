@@ -1639,7 +1639,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
     setInput('')
     setMessages(prev=>{const updated=[...prev,{role:'user',text:userMsg}];try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(updated.slice(-50)))}catch{};return updated})
     setLoading(true)
-    const context = `Subscriptions: ${subs.map(s=>`${s.name} $${s.cost}/mo status:${s.status}`).join(', ')||'none'}. Expenses: ${expenses.map(e=>`${e.description} $${e.amount}`).join(', ')||'none'}. Income: ${income.map(i=>`${i.source} $${i.amount}`).join(', ')||'none'}. Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:$${inv.buyPrice}`).join(', ')||'none'}.`
+    const context = `Subscriptions: ${subs.map(s=>`${s.name} ₺${s.cost}/mo status:${s.status}`).join(', ')||'none'}. Expenses: ${expenses.map(e=>`${e.description} ₺${e.amount}`).join(', ')||'none'}. Income: ${income.map(i=>`${i.source} ₺${i.amount}`).join(', ')||'none'}. Investments: ${investments.map(inv=>`${inv.symbol} ${inv.shares}x buy:₺${inv.buyPrice}`).join(', ')||'none'}. Currency: TRY (Turkish Lira).`
     try {
       const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userMsg,context,lang})})
       const data = await res.json()
