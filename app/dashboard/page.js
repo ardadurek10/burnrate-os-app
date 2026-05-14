@@ -1553,13 +1553,17 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 
 // ── AI ADVISOR ────────────────────────────────────────────────────
 function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
-  const [messages, setMessages] = useState(() => {
+  const getDefaultMsg = (l) => [{ role:'ai', text: l==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }]
+  const [messages, setMessages] = useState(getDefaultMsg(lang))
+  useEffect(() => {
     try {
       const saved = localStorage.getItem('burnrate_ai_chat')
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed)
+      }
     } catch {}
-    return [{ role:'ai', text: lang==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }]
-  })
+  }, [])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
