@@ -1366,6 +1366,15 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [aiTasks, setAiTasks] = useState({})
   const [completedTasks, setCompletedTasks] = useState(() => { try { return JSON.parse(localStorage.getItem('burnrate_completed_tasks')||'{}') } catch { return {} } })
+  const [showCelebration, setShowCelebration] = useState(false)
+  const [celebrationDay, setCelebrationDay] = useState(null)
+
+  const streak = (() => { let s=0; for(let i=today;i>=1;i--){if(completedDays.includes(i))s++;else break}; return s })()
+  const badges = [{days:3,icon:'🌱',label:lang==='tr'?'Başlangıç':'Beginner',color:'#10b981'},{days:7,icon:'🔥',label:lang==='tr'?'Kararlı':'Committed',color:'#f59e0b'},{days:14,icon:'⚡',label:lang==='tr'?'Güçlü':'Strong',color:'#06b6d4'},{days:21,icon:'💎',label:lang==='tr'?'Disiplinli':'Disciplined',color:'#8b5cf6'},{days:30,icon:'👑',label:lang==='tr'?'Şampiyon':'Champion',color:'#f59e0b'}]
+  const earnedBadges = badges.filter(b=>completedDays.length>=b.days)
+  const nextBadge = badges.find(b=>completedDays.length<b.days)
+  const avgDailyExp = totalExp>0?totalExp/30:0
+  const savedEstimate = Math.round(completedDays.length*avgDailyExp*0.15)
 
   async function loadTasksForDay(day) {
     setSelectedDay(day)
