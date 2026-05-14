@@ -924,7 +924,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
 
   async function addExpense() {
     if (!form.description||!form.amount) return
-    await supabaseInsert('expenses',{...form,amount:parseFloat(form.amount),user_id:userId})
+    const {recurring,...expData}=form; await supabaseInsert('expenses',{...expData,amount:parseFloat(form.amount),user_id:userId})
     setForm({description:'',amount:'',category:'other',expense_date:'',recurring:false}); setAdding(false); onRefresh()
   }
   async function del(id) { await supabaseDelete('expenses',id); onRefresh() }
