@@ -1468,61 +1468,90 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 
               {/* CANDLESTICK CHART */}
               {loadingChart ? (
-                <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:FONT}}>
+                <div style={{height:'260px',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:FONT,marginBottom:'20px'}}>
                   <div style={{width:'14px',height:'14px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
                   {lang==='tr'?'Grafik yükleniyor...':'Loading chart...'}
                 </div>
-              ) : chartData.length > 0 ? (
-                <div style={{height:'220px',marginBottom:'20px',position:'relative'}}>
-                  {(() => {
-                    const highs = chartData.map(d=>d.high)
-                    const lows  = chartData.map(d=>d.low)
-                    const maxP  = Math.max(...highs)
-                    const minP  = Math.min(...lows)
-                    const range = maxP - minP || 1
-                    const W     = 100 / chartData.length
-                    return (
-                      <svg width="100%" height="220" style={{overflow:'visible'}}>
-                        {/* Grid lines */}
-                        {[0,25,50,75,100].map(pct=>(
-                          <g key={pct}>
-                            <line x1="0%" y1={`${pct}%`} x2="100%" y2={`${pct}%`} stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-                            <text x="0" y={`${pct}%`} dy="-3" fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="DM Mono">
-                              ₺{(maxP - (range*pct/100)).toFixed(0)}
+              ) : chartData.length > 0 ? (() => {
+                const CHART_H = 240
+                const CHART_W_PCT = 100
+                const PAD_LEFT = 52
+                const PAD_RIGHT = 8
+                const PAD_TOP = 12
+                const PAD_BOTTOM = 28
+                const innerH = CHART_H - PAD_TOP - PAD_BOTTOM
+                const highs = chartData.map(d=>d.high)
+                const lows  = chartData.map(d=>d.low)
+                const maxP  = Math.max(...highs) * 1.002
+                const minP  = Math.min(...lows)  * 0.998
+                const range = maxP - minP || 1
+                const n     = chartData.length
+                const toY   = v => PAD_TOP + ((maxP - v) / range) * innerH
+                const toX   = i => PAD_LEFT + (i / n) * (100 - (PAD_LEFT + PAD_RIGHT)/1) 
+
+                // Use pixel-based approach
+                const W_PX = 800 // viewBox width
+                const innerW = W_PX - PAD_LEFT - PAD_RIGHT
+                const toXpx  = i => PAD_LEFT + (i + 0.5) * (innerW / n)
+                const candleW = Math.max((innerW / n) * 0.65, 2)
+
+                const yLabels = 5
+                const priceTicks = Array.from({length:yLabels},(_,i)=> minP + (range * i / (yLabels-1)))
+                const xTicks = [0, Math.floor(n/4), Math.floor(n/2), Math.floor(3*n/4), n-1].filter(i=>i<n)
+
+                return (
+                  <div style={{marginBottom:'20px',background:'rgba(255,255,255,0.02)',borderRadius:'12px',padding:'12px',border:'1px solid rgba(255,255,255,0.05)'}}>
+                    <svg viewBox={`0 0 ${W_PX} ${CHART_H}`} width="100%" height={CHART_H} style={{overflow:'visible'}}>
+                      {/* Grid lines + Y labels */}
+                      {priceTicks.map((price,i)=>{
+                        const y = toY(price)
+                        return (
+                          <g key={i}>
+                            <line x1={PAD_LEFT} y1={y} x2={W_PX-PAD_RIGHT} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4,4"/>
+                            <text x={PAD_LEFT-4} y={y} textAnchor="end" dominantBaseline="middle" fill="rgba(255,255,255,0.25)" fontSize="10" fontFamily="DM Mono">
+                              {price>=1000?`₺${(price/1000).toFixed(1)}K`:`₺${price.toFixed(0)}`}
                             </text>
                           </g>
-                        ))}
-                        {/* Candles */}
-                        {chartData.map((d,i)=>{
-                          const isGreen = d.close >= d.open
-                          const color   = isGreen ? '#10b981' : '#ef4444'
-                          const x       = i * W + W/2
-                          const bodyTop    = ((maxP - Math.max(d.open,d.close)) / range) * 100
-                          const bodyBottom = ((maxP - Math.min(d.open,d.close)) / range) * 100
-                          const wickTop    = ((maxP - d.high) / range) * 100
-                          const wickBottom = ((maxP - d.low)  / range) * 100
-                          const bodyH = Math.max(bodyBottom - bodyTop, 0.5)
-                          const candleW = Math.max(W * 0.6, 1)
-                          return (
-                            <g key={i}>
-                              {/* Wick */}
-                              <line x1={`${x}%`} y1={`${wickTop}%`} x2={`${x}%`} y2={`${wickBottom}%`} stroke={color} strokeWidth="1" opacity="0.7"/>
-                              {/* Body */}
-                              <rect x={`${x - candleW/2}%`} y={`${bodyTop}%`} width={`${candleW}%`} height={`${bodyH}%`} fill={color} opacity="0.9" rx="1"/>
-                            </g>
-                          )
-                        })}
-                        {/* X axis dates */}
-                        {chartData.filter((_,i)=>i===0||i===Math.floor(chartData.length/2)||i===chartData.length-1).map((d,i,arr)=>{
-                          const idx = i===0?0:i===1?Math.floor(chartData.length/2):chartData.length-1
-                          const x = idx * W + W/2
-                          return <text key={i} x={`${x}%`} y="215" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="DM Mono">{new Date(d.time).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'})}</text>
-                        })}
-                      </svg>
-                    )
-                  })()}
-                </div>
-              ) : (
+                        )
+                      })}
+
+                      {/* X axis line */}
+                      <line x1={PAD_LEFT} y1={CHART_H-PAD_BOTTOM} x2={W_PX-PAD_RIGHT} y2={CHART_H-PAD_BOTTOM} stroke="rgba(255,255,255,0.08)" strokeWidth="1"/>
+
+                      {/* Candles */}
+                      {chartData.map((d,i)=>{
+                        const isGreen = d.close >= d.open
+                        const col = isGreen ? '#10b981' : '#ef4444'
+                        const xc  = toXpx(i)
+                        const yHigh  = toY(d.high)
+                        const yLow   = toY(d.low)
+                        const yOpen  = toY(d.open)
+                        const yClose = toY(d.close)
+                        const bodyY  = Math.min(yOpen, yClose)
+                        const bodyH  = Math.max(Math.abs(yClose - yOpen), 1.5)
+                        return (
+                          <g key={i}>
+                            <line x1={xc} y1={yHigh} x2={xc} y2={yLow} stroke={col} strokeWidth="1.2" opacity="0.8"/>
+                            <rect x={xc - candleW/2} y={bodyY} width={candleW} height={bodyH}
+                              fill={isGreen ? '#10b981' : '#ef4444'}
+                              fillOpacity={isGreen ? 0.85 : 0.85}
+                              stroke={col} strokeWidth="0.5"
+                              rx="1.5"
+                            />
+                          </g>
+                        )
+                      })}
+
+                      {/* X axis date labels */}
+                      {xTicks.map(i=>(
+                        <text key={i} x={toXpx(i)} y={CHART_H-PAD_BOTTOM+14} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="10" fontFamily="DM Mono">
+                          {new Date(chartData[i].time).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'})}
+                        </text>
+                      ))}
+                    </svg>
+                  </div>
+                )
+              })() : (
                 <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT,marginBottom:'20px'}}>{lang==='tr'?'Grafik verisi yok':'No chart data'}</div>
               )}
 
