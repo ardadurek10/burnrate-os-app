@@ -1115,9 +1115,9 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     {symbol:'USDTRY=X', label:'Dolar',   icon:'🇺🇸', code:'USD', color:'#10b981'},
     {symbol:'EURTRY=X', label:'Euro',    icon:'🇪🇺', code:'EUR', color:'#3b82f6'},
     {symbol:'GBPTRY=X', label:'Sterlin', icon:'🇬🇧', code:'GBP', color:'#8b5cf6'},
-    {symbol:'XAU=X',    label:'Altın',   icon:'🥇', code:'XAU', color:'#f59e0b'},
-    {symbol:'XAG=X',    label:'Gümüş',   icon:'🥈', code:'XAG', color:'#94a3b8'},
-    {symbol:'XPT=X',    label:'Platin',  icon:'💿', code:'XPT', color:'#67e8f9'},
+    {symbol:'GC=F',     label:'Altın',   icon:'🥇', code:'XAU', color:'#f59e0b'},
+    {symbol:'SI=F',     label:'Gümüş',   icon:'🥈', code:'XAG', color:'#94a3b8'},
+    {symbol:'PL=F',     label:'Platin',  icon:'💿', code:'XPT', color:'#67e8f9'},
   ]
 
   const stockInvestments = investments.filter(i => i.type !== 'fx')
