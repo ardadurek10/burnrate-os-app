@@ -485,10 +485,10 @@ export default function Dashboard() {
 
         <div style={{height:'1px',background:'rgba(255,255,255,0.06)',margin:'8px 0'}}></div>
 
-        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',overflow:'hidden',marginBottom:'10px'}}>
+        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',overflow:'hidden',marginBottom:'10px',minHeight:'32px'}}>
           {['en','tr'].map(l => (
             <button key={l} onClick={()=>changeLang(l)}
-              style={{flex:1,padding:'6px 0',fontSize:'11px',fontFamily:MONO,fontWeight:500,color:lang===l?'#fff':'rgba(255,255,255,0.3)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',letterSpacing:'0.05em',transition:'all 0.2s'}}>
+              style={{flex:1,padding:'8px 0',fontSize:'12px',fontFamily:MONO,fontWeight:600,color:lang===l?'#fff':'rgba(255,255,255,0.4)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',letterSpacing:'0.08em',transition:'all 0.2s',minHeight:'32px'}}>
               {l.toUpperCase()}
             </button>
           ))}
