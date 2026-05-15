@@ -1579,8 +1579,6 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                 <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT,marginBottom:'20px'}}>{lang==='tr'?'Grafik verisi yok':'No chart data'}</div>
               )}
 
-              {/* NEWS */}
-              <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontWeight:600,fontFamily:FONT,marginBottom:'10px',textTransform:'uppercase',letterSpacing:'0.8px'}}>{lang==='tr'?'Son Haberler':'Latest News'}</div>
             </Card>
           )}
         </>
