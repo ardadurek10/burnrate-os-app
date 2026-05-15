@@ -1104,13 +1104,99 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   const [searching, setSearching] = useState(false)
   const [fetchingPrice, setFetchingPrice] = useState(false)
   const [selectedStock, setSelectedStock] = useState(null)
-  const [stockNews, setStockNews] = useState([])
-  const [loadingNews, setLoadingNews] = useState(false)
   const [chartData, setChartData] = useState([])
   const [chartPeriod, setChartPeriod] = useState('1m')
   const [loadingChart, setLoadingChart] = useState(false)
   const [stockDetail, setStockDetail] = useState(null)
   const [chartTooltip, setChartTooltip] = useState(null)
+
+  async function fetchChart(symbol, period) {
+    setLoadingChart(true)
+    setChartData([])
+    try {
+      const res = await fetch(`/api/stocks?history=${symbol}&period=${period}`)
+      const data = await res.json()
+      setChartData(data.candles || [])
+    } catch {}
+    setLoadingChart(false)
+  }
+
+  async function fetchStockDetail(symbol) {
+    try {
+      const res = await fetch(`/api/stocks?symbol=${symbol}`)
+      const data = await res.json()
+      setStockDetail(data)
+    } catch {}
+  }
+  const [fxRates, setFxRates] = useState({})
+  const [loadingFx, setLoadingFx] = useState(false)
+  const [fxAdding, setFxAdding] = useState(false)
+  const [fxForm, setFxForm] = useState({type:'USDTRY=X',amount:'',buyRate:''})
+
+  const FX_ITEMS = [
+    {symbol:'USDTRY=X',   label:'Dolar',             icon:'🇺🇸', code:'USD', color:'#10b981', unit:''},
+    {symbol:'EURTRY=X',   label:'Euro',               icon:'🇪🇺', code:'EUR', color:'#3b82f6', unit:''},
+    {symbol:'GBPTRY=X',   label:'Sterlin',            icon:'🇬🇧', code:'GBP', color:'#8b5cf6', unit:''},
+    {symbol:'GOLD_GRAM',  label:'Gram Altın',         icon:'🥇', code:'XAU', color:'#f59e0b', unit:'gram'},
+    {symbol:'GOLD_CEYREK',label:'Çeyrek Altın',       icon:'🟡', code:'XAU', color:'#f59e0b', unit:'adet'},
+    {symbol:'GOLD_YARIM', label:'Yarım Altın',        icon:'🟡', code:'XAU', color:'#fbbf24', unit:'adet'},
+    {symbol:'GOLD_TAM',   label:'Tam Altın',          icon:'🟡', code:'XAU', color:'#d97706', unit:'adet'},
+    {symbol:'GOLD_CUMHUR',label:'Cumhuriyet Altını',  icon:'🪙', code:'XAU', color:'#b45309', unit:'adet'},
+    {symbol:'SI=F',       label:'Gümüş',              icon:'🥈', code:'XAG', color:'#94a3b8', unit:'gram'},
+  ]
+
+  const GOLD_GRAMS = {
+    'GOLD_GRAM':   1,
+    'GOLD_CEYREK': 1.75,
+    'GOLD_YARIM':  3.5,
+    'GOLD_TAM':    7.0,
+    'GOLD_CUMHUR': 7.216,
+  }
+
+  const stockInvestments = investments.filter(i => i.type !== 'fx')
+  const fxInvestments = investments.filter(i => i.type === 'fx')
+
+  async function fetchPrices() {
+    if (stockInvestments.length === 0) return
+    setLoadingPrices(true)
+    try {
+      const results = await Promise.all(
+        stockInvestments.map(inv =>
+          fetch(`/api/stocks?symbol=${inv.symbol}`)
+            .then(r => r.json())
+            .then(data => ({ symbol: inv.symbol, data }))
+            .catch(() => ({ symbol: inv.symbol, data: {} }))
+        )
+      )
+      const up = {}, uc = {}
+      results.forEach(({ symbol, data }) => {
+        if (data.price) { up[symbol]=parseFloat(data.price); uc[symbol]=parseFloat(data.change||0) }
+      })
+      setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString())
+    } catch {}
+    setLoadingPrices(false)
+  }
+
+  async function fetchFxRates() {
+    setLoadingFx(true)
+    try {
+      const results = await Promise.all(
+        FX_ITEMS.map(fx => 
+          fetch(`/api/stocks?symbol=${fx.symbol}`)
+            .then(r => r.json())
+            .then(data => ({ symbol: fx.symbol, data }))
+            .catch(() => ({ symbol: fx.symbol, data: {} }))
+        )
+      )
+      const rates = {}
+      results.forEach(({ symbol, data }) => {
+        if (data.price) rates[symbol] = { price: parseFloat(data.price), change: parseFloat(data.change||0) }
+      })
+      setFxRates(rates)
+    } catch {}
+    setLoadingFx(false)
+  }
+
 
   async function fetchChart(symbol, period) {
     setLoadingChart(true)
@@ -1271,11 +1357,10 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 
   function handleStockClick(inv) {
     if (selectedStock?.symbol === inv.symbol) {
-      setSelectedStock(null); setStockNews([]); setChartData([]); setStockDetail(null)
+      setSelectedStock(null); setChartData([]); setStockDetail(null)
     } else {
       setSelectedStock(inv)
       setChartPeriod('1m')
-      fetchNewsForStock(inv.symbol, inv.name)
       fetchChart(inv.symbol, '1m')
       fetchStockDetail(inv.symbol)
     }
