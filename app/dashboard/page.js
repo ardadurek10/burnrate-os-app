@@ -467,16 +467,16 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',overflow:'hidden',marginBottom:'16px'}}>
+        <div style={{display:'flex',gap:'6px',marginBottom:'12px'}}>
           {['en','tr'].map(l => (
             <button key={l} onClick={()=>changeLang(l)}
-              style={{flex:1,padding:'6px 0',fontSize:'11px',fontFamily:MONO,fontWeight:500,color:lang===l?'#fff':'rgba(255,255,255,0.3)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',letterSpacing:'0.05em',transition:'all 0.2s'}}>
+              style={{flex:1,padding:'4px 0',fontSize:'10px',fontFamily:MONO,fontWeight:600,color:lang===l?'#fff':'rgba(255,255,255,0.25)',background:lang===l?'#7c3aed':'transparent',border:`1px solid ${lang===l?'#7c3aed':'rgba(255,255,255,0.08)'}`,borderRadius:'6px',cursor:'pointer',letterSpacing:'0.08em',transition:'all 0.2s'}}>
               {l.toUpperCase()}
             </button>
           ))}
         </div>
 
-        <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1,overflow:'hidden'}}>
+        <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
