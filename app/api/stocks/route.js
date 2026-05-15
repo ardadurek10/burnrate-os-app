@@ -1,4 +1,3 @@
-// USD/TRY kurunu Yahoo Finance'ten çek
 async function getUSDTRY() {
   try {
     const res = await fetch(
@@ -8,9 +7,7 @@ async function getUSDTRY() {
     const data = await res.json()
     const rate = data?.chart?.result?.[0]?.meta?.regularMarketPrice
     return rate ? parseFloat(rate) : 38.5
-  } catch {
-    return 38.5
-  }
+  } catch { return 38.5 }
 }
 
 function toTRY(price, currency, usdtry) {
@@ -38,14 +35,15 @@ export async function GET(request) {
   const search  = searchParams.get('search')
   const history = searchParams.get('history')
   const news    = searchParams.get('news')
-  const period  = searchParams.get('period') || '1mo'
+  const period  = searchParams.get('period') || '1m'
 
   // ── NEWS ─────────────────────────────────────────────────────────
   if (news) {
     try {
+      // Use v2 news endpoint for better results
       const res = await fetch(
-        `https://query1.finance.yahoo.com/v1/finance/search?q=${news}&quotesCount=0&newsCount=6`,
-        { headers: { 'User-Agent': 'Mozilla/5.0' } }
+        `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(news)}&quotesCount=0&newsCount=8&enableFuzzyQuery=false&enableCb=false`,
+        { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' } }
       )
       const data = await res.json()
       const items = (data?.news || []).slice(0, 6).map(n => ({
@@ -65,7 +63,7 @@ export async function GET(request) {
   if (search) {
     try {
       const res = await fetch(
-        `https://query1.finance.yahoo.com/v1/finance/search?q=${search}&quotesCount=8&newsCount=0`,
+        `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(search)}&quotesCount=8&newsCount=0`,
         { headers: { 'User-Agent': 'Mozilla/5.0' } }
       )
       const data = await res.json()
@@ -78,9 +76,7 @@ export async function GET(request) {
         type:     q.quoteType === 'CRYPTOCURRENCY' ? 'crypto' : 'stock',
         exchange: q.exchange,
       })))
-    } catch {
-      return Response.json([])
-    }
+    } catch { return Response.json([]) }
   }
 
   // ── HISTORY (Candlestick) ─────────────────────────────────────
@@ -104,7 +100,8 @@ export async function GET(request) {
       const result = data?.chart?.result?.[0]
       if (!result) return Response.json({ candles: [] })
 
-      const timestamps = result.timestamps || []
+      // Yahoo Finance uses 'timestamp' (not 'timestamps')
+      const timestamps = result.timestamp || []
       const quote = result.indicators?.quote?.[0] || {}
       const currency = result.meta?.currency || 'USD'
 
@@ -127,13 +124,12 @@ export async function GET(request) {
 
       return Response.json({ candles, currency: 'TRY' })
     } catch (e) {
-      return Response.json({ candles: [] })
+      return Response.json({ candles: [], error: e.message })
     }
   }
 
   // ── PRICE ────────────────────────────────────────────────────────
   if (symbol) {
-    // Altın türleri
     if (symbol.startsWith('GOLD_')) {
       try {
         const [gcRes, usdtry] = await Promise.all([
@@ -147,14 +143,10 @@ export async function GET(request) {
         const goldType = GOLD_TYPES[symbol]
         if (!onsFiyat || !goldType) return Response.json({ error: 'unavailable' }, { status: 500 })
 
-        const gramUSD  = onsFiyat / 31.1035
-        const gramTRY  = gramUSD * usdtry
+        const gramTRY  = (onsFiyat / 31.1035) * usdtry
         const priceTRY = gramTRY * goldType.grams * goldType.purity
-
-        const gramUSDDun = onsDun / 31.1035
-        const gramTRYDun = gramUSDDun * usdtry
-        const prevTRY    = gramTRYDun * goldType.grams * goldType.purity
-        const change     = prevTRY ? ((priceTRY - prevTRY) / prevTRY * 100).toFixed(2) : 0
+        const prevTRY  = ((onsDun / 31.1035) * usdtry) * goldType.grams * goldType.purity
+        const change   = prevTRY ? ((priceTRY - prevTRY) / prevTRY * 100).toFixed(2) : 0
 
         return Response.json({
           symbol, name: goldType.label,
@@ -167,7 +159,6 @@ export async function GET(request) {
       }
     }
 
-    // Normal hisse/döviz
     try {
       const [priceRes, usdtry] = await Promise.all([
         fetch(
@@ -176,32 +167,26 @@ export async function GET(request) {
         ),
         getUSDTRY()
       ])
-      const data      = await priceRes.json()
-      const meta      = data?.chart?.result?.[0]?.meta
-      const price     = meta?.regularMarketPrice
-      const prevClose = meta?.chartPreviousClose
-      const currency  = meta?.currency || 'USD'
-      const name      = meta?.longName || meta?.shortName || symbol
-      const change    = price && prevClose ? ((price - prevClose) / prevClose * 100).toFixed(2) : 0
-
-      const priceTRY   = toTRY(price,              currency, usdtry)
-      const dayHighTRY = toTRY(meta?.regularMarketDayHigh,  currency, usdtry)
-      const dayLowTRY  = toTRY(meta?.regularMarketDayLow,   currency, usdtry)
-      const w52HighTRY = toTRY(meta?.fiftyTwoWeekHigh,      currency, usdtry)
-      const w52LowTRY  = toTRY(meta?.fiftyTwoWeekLow,       currency, usdtry)
+      const data  = await priceRes.json()
+      const meta  = data?.chart?.result?.[0]?.meta
+      const price = meta?.regularMarketPrice
+      const prev  = meta?.chartPreviousClose
+      const cur   = meta?.currency || 'USD'
+      const change = price && prev ? ((price - prev) / prev * 100).toFixed(2) : 0
 
       return Response.json({
-        symbol: symbol.toUpperCase(), name,
-        price:            priceTRY?.toFixed(2),
+        symbol: symbol.toUpperCase(),
+        name:             meta?.longName || meta?.shortName || symbol,
+        price:            toTRY(price, cur, usdtry)?.toFixed(2),
         priceOriginal:    price?.toFixed(2),
         change, currency: 'TRY', currencySymbol: '₺',
-        originalCurrency: currency,
+        originalCurrency: cur,
         usdtry:           usdtry.toFixed(2),
         exchange:         meta?.exchangeName || '',
-        dayHigh:          dayHighTRY?.toFixed(2),
-        dayLow:           dayLowTRY?.toFixed(2),
-        week52High:       w52HighTRY?.toFixed(2),
-        week52Low:        w52LowTRY?.toFixed(2),
+        dayHigh:          toTRY(meta?.regularMarketDayHigh,  cur, usdtry)?.toFixed(2),
+        dayLow:           toTRY(meta?.regularMarketDayLow,   cur, usdtry)?.toFixed(2),
+        week52High:       toTRY(meta?.fiftyTwoWeekHigh,      cur, usdtry)?.toFixed(2),
+        week52Low:        toTRY(meta?.fiftyTwoWeekLow,       cur, usdtry)?.toFixed(2),
         marketCap:        meta?.marketCap,
         volume:           meta?.regularMarketVolume,
       })
