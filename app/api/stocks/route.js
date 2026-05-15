@@ -38,26 +38,37 @@ export async function GET(request) {
   const period  = searchParams.get('period') || '1m'
 
   // ── NEWS ─────────────────────────────────────────────────────────
-  if (news) {
-    try {
-      // Use v2 news endpoint for better results
-      const res = await fetch(
-        `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(news)}&quotesCount=0&newsCount=8&enableFuzzyQuery=false&enableCb=false`,
-        { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' } }
-      )
-      const data = await res.json()
-      const items = (data?.news || []).slice(0, 6).map(n => ({
-        title:     n.title,
-        link:      n.link,
-        publisher: n.publisher,
-        time:      n.providerPublishTime,
-        thumbnail: n.thumbnail?.resolutions?.[0]?.url || null,
-      }))
-      return Response.json(items)
-    } catch {
-      return Response.json([])
-    }
+if (news) {
+  try {
+    // Try both v1 and v2 endpoints
+    const [res1, res2] = await Promise.all([
+      fetch(
+        `https://query1.finance.yahoo.com/v1/finance/search?q=${news}&quotesCount=0&newsCount=8`,
+        { headers: { 'User-Agent': 'Mozilla/5.0' } }
+      ).then(r=>r.json()).catch(()=>({news:[]})),
+      fetch(
+        `https://query2.finance.yahoo.com/v1/finance/search?q=${news}&quotesCount=0&newsCount=8`,
+        { headers: { 'User-Agent': 'Mozilla/5.0' } }
+      ).then(r=>r.json()).catch(()=>({news:[]})),
+    ])
+    const all = [...(res1?.news||[]), ...(res2?.news||[])]
+    const seen = new Set()
+    const unique = all.filter(n => {
+      if (seen.has(n.uuid)) return false
+      seen.add(n.uuid); return true
+    })
+    const items = unique.slice(0,6).map(n => ({
+      title:     n.title,
+      link:      n.link,
+      publisher: n.publisher,
+      time:      n.providerPublishTime,
+      thumbnail: n.thumbnail?.resolutions?.[0]?.url || null,
+    }))
+    return Response.json(items)
+  } catch {
+    return Response.json([])
   }
+}
 
   // ── SEARCH ───────────────────────────────────────────────────────
   if (search) {
