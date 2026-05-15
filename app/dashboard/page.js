@@ -477,7 +477,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
+        <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
@@ -492,6 +492,8 @@ export default function Dashboard() {
             )
           })}
         </nav>
+
+        <div style={{height:'1px',background:'rgba(255,255,255,0.06)',margin:'8px 0'}}></div>
 
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
