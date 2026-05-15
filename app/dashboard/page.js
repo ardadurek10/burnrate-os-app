@@ -476,7 +476,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <nav style={{display:'flex',flexDirection:'column',gap:'4px',overflowY:'auto',maxHeight:'320px'}}>
+        <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1,overflow:'hidden'}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
