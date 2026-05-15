@@ -467,16 +467,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* LANG TOGGLE */}
-        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',overflow:'hidden',marginBottom:'16px'}}>
-          {['en','tr'].map(l => (
-            <button key={l} onClick={()=>changeLang(l)}
-              style={{flex:1,padding:'6px 0',fontSize:'11px',fontFamily:MONO,fontWeight:500,color:lang===l?'#fff':'rgba(255,255,255,0.3)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',letterSpacing:'0.05em',transition:'all 0.2s'}}>
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-
         <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
@@ -494,6 +484,15 @@ export default function Dashboard() {
         </nav>
 
         <div style={{height:'1px',background:'rgba(255,255,255,0.06)',margin:'8px 0'}}></div>
+
+        <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',overflow:'hidden',marginBottom:'10px'}}>
+          {['en','tr'].map(l => (
+            <button key={l} onClick={()=>changeLang(l)}
+              style={{flex:1,padding:'6px 0',fontSize:'11px',fontFamily:MONO,fontWeight:500,color:lang===l?'#fff':'rgba(255,255,255,0.3)',background:lang===l?'#7c3aed':'transparent',border:'none',cursor:'pointer',letterSpacing:'0.05em',transition:'all 0.2s'}}>
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
 
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
@@ -1706,4 +1705,4 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
       </Card>
     </div>
   )
-} 
+}
