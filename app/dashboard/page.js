@@ -287,7 +287,9 @@ function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage] = useState(() => {
+    try { return localStorage.getItem('burnrate_page') || 'dashboard' } catch { return 'dashboard' }
+  })
   const [subs, setSubs] = useState([])
   const [expenses, setExpenses] = useState([])
   const [income, setIncome] = useState([])
@@ -310,10 +312,10 @@ export default function Dashboard() {
       const u = localStorage.getItem('burnrate_user')
       if (!u || u === 'undefined' || u === 'null') { window.location.href = '/login'; return }
       const parsed = JSON.parse(u)
-      if (!parsed || !parsed.id) { localStorage.clear(); window.location.href = '/login'; return }
+      if (!parsed || !parsed.id) { localStorage.removeItem('burnrate_user'); window.location.href = '/login'; return }
       setUser(parsed)
       loadData(parsed.id)
-    } catch(e) { localStorage.clear(); window.location.href = '/login' }
+    } catch(e) { localStorage.removeItem('burnrate_user'); window.location.href = '/login' }
   }, [])
 
   async function loadData(userId) {
@@ -332,6 +334,7 @@ export default function Dashboard() {
   function navigateTo(moduleId) {
     if (!canAccess(user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
     setPage(moduleId)
+    try { localStorage.setItem('burnrate_page', moduleId) } catch {}
   }
 
   const navItems = [
@@ -525,7 +528,7 @@ export default function Dashboard() {
             style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.2)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
             {lang==='tr'?'⚙️ Aboneliği Yönet':'⚙️ Manage Subscription'}
           </button>
-          <button onClick={() => { localStorage.clear(); window.location.href='/login' }}
+          <button onClick={() => { localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }}
             style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.25)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
             {lang==='tr'?'Çıkış Yap →':'Sign out →'}
           </button>
