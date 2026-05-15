@@ -1153,6 +1153,9 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     'GOLD_CUMHUR': 7.216,
   }
 
+  const stockInvestments = investments.filter(i => i.type !== 'fx')
+  const fxInvestments = investments.filter(i => i.type === 'fx')
+
   async function fetchPrices() {
     if (stockInvestments.length === 0) return
     setLoadingPrices(true)
