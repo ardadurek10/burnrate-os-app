@@ -317,15 +317,16 @@ export default function Dashboard() {
   }, [])
 
   async function loadData(userId) {
-    const [s, e, i] = await Promise.all([
+    const [s, e, i, inv] = await Promise.all([
       supabaseQuery('subscriptions', { user_id: userId }),
       supabaseQuery('expenses', { user_id: userId }),
       supabaseQuery('income', { user_id: userId }),
+      supabaseQuery('investments', { user_id: userId }),
     ])
     setSubs(Array.isArray(s) ? s : [])
     setExpenses(Array.isArray(e) ? e : [])
     setIncome(Array.isArray(i) ? i : [])
-    setInvestments([])
+    setInvestments(Array.isArray(inv) ? inv.map(i=>({...i,shares:Number(i.shares),buyPrice:Number(i.buy_price),currentPrice:Number(i.current_price)||0,symbol:i.symbol,name:i.name,type:i.type})) : [])
   }
 
   function navigateTo(moduleId) {
@@ -536,7 +537,7 @@ export default function Dashboard() {
         {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
-        {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
+        {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
         {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
@@ -1074,7 +1075,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
 }
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
-function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
+function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh, lang='en' }) {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
   const [prices, setPrices] = useState({})
@@ -1128,12 +1129,17 @@ function InvestmentsPage({ theme, investments, setInvestments, lang='en' }) {
     setFetchingPrice(false)
   }
 
-  function addInv() {
+  async function addInv() {
     if (!form.symbol||!form.shares||!form.buyPrice) return
-    setInvestments([...investments,{...form,shares:parseFloat(form.shares),buyPrice:parseFloat(form.buyPrice),currentPrice:parseFloat(form.currentPrice)||0,id:Date.now()}])
-    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'}); setSearchQuery(''); setAdding(false)
+    await supabaseInsert('investments',{
+      symbol:form.symbol, name:form.name, shares:parseFloat(form.shares),
+      buy_price:parseFloat(form.buyPrice), current_price:parseFloat(form.currentPrice)||0,
+      type:form.type, user_id:userId
+    })
+    setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
+    setSearchQuery(''); setAdding(false); onRefresh()
   }
-  function del(id) { setInvestments(investments.filter(i=>i.id!==id)) }
+  async function del(id) { await supabaseDelete('investments', id); onRefresh() }
 
   const totalValue = investments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
   const totalCost = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
