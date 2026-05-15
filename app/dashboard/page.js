@@ -1106,19 +1106,53 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   const [selectedStock, setSelectedStock] = useState(null)
   const [stockNews, setStockNews] = useState([])
   const [loadingNews, setLoadingNews] = useState(false)
+  const [chartData, setChartData] = useState([])
+  const [chartPeriod, setChartPeriod] = useState('1m')
+  const [loadingChart, setLoadingChart] = useState(false)
+  const [stockDetail, setStockDetail] = useState(null)
+
+  async function fetchChart(symbol, period) {
+    setLoadingChart(true)
+    setChartData([])
+    try {
+      const res = await fetch(`/api/stocks?history=${symbol}&period=${period}`)
+      const data = await res.json()
+      setChartData(data.candles || [])
+    } catch {}
+    setLoadingChart(false)
+  }
+
+  async function fetchStockDetail(symbol) {
+    try {
+      const res = await fetch(`/api/stocks?symbol=${symbol}`)
+      const data = await res.json()
+      setStockDetail(data)
+    } catch {}
+  }
   const [fxRates, setFxRates] = useState({})
   const [loadingFx, setLoadingFx] = useState(false)
   const [fxAdding, setFxAdding] = useState(false)
   const [fxForm, setFxForm] = useState({type:'USDTRY=X',amount:'',buyRate:''})
 
   const FX_ITEMS = [
-    {symbol:'USDTRY=X', label:'Dolar',   icon:'🇺🇸', code:'USD', color:'#10b981'},
-    {symbol:'EURTRY=X', label:'Euro',    icon:'🇪🇺', code:'EUR', color:'#3b82f6'},
-    {symbol:'GBPTRY=X', label:'Sterlin', icon:'🇬🇧', code:'GBP', color:'#8b5cf6'},
-    {symbol:'GC=F',     label:'Altın',   icon:'🥇', code:'XAU', color:'#f59e0b'},
-    {symbol:'SI=F',     label:'Gümüş',   icon:'🥈', code:'XAG', color:'#94a3b8'},
-    {symbol:'PL=F',     label:'Platin',  icon:'💿', code:'XPT', color:'#67e8f9'},
+    {symbol:'USDTRY=X',   label:'Dolar',             icon:'🇺🇸', code:'USD', color:'#10b981', unit:''},
+    {symbol:'EURTRY=X',   label:'Euro',               icon:'🇪🇺', code:'EUR', color:'#3b82f6', unit:''},
+    {symbol:'GBPTRY=X',   label:'Sterlin',            icon:'🇬🇧', code:'GBP', color:'#8b5cf6', unit:''},
+    {symbol:'GOLD_GRAM',  label:'Gram Altın',         icon:'🥇', code:'XAU', color:'#f59e0b', unit:'gram'},
+    {symbol:'GOLD_CEYREK',label:'Çeyrek Altın',       icon:'🟡', code:'XAU', color:'#f59e0b', unit:'adet'},
+    {symbol:'GOLD_YARIM', label:'Yarım Altın',        icon:'🟡', code:'XAU', color:'#fbbf24', unit:'adet'},
+    {symbol:'GOLD_TAM',   label:'Tam Altın',          icon:'🟡', code:'XAU', color:'#d97706', unit:'adet'},
+    {symbol:'GOLD_CUMHUR',label:'Cumhuriyet Altını',  icon:'🪙', code:'XAU', color:'#b45309', unit:'adet'},
+    {symbol:'SI=F',       label:'Gümüş',              icon:'🥈', code:'XAG', color:'#94a3b8', unit:'gram'},
   ]
+
+  const GOLD_GRAMS = {
+    'GOLD_GRAM':   1,
+    'GOLD_CEYREK': 1.75,
+    'GOLD_YARIM':  3.5,
+    'GOLD_TAM':    7.0,
+    'GOLD_CUMHUR': 7.216,
+  }
 
   const stockInvestments = investments.filter(i => i.type !== 'fx')
   const fxInvestments = investments.filter(i => i.type === 'fx')
@@ -1232,8 +1266,15 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   async function del(id) { await supabaseDelete('investments', id); onRefresh() }
 
   function handleStockClick(inv) {
-    if (selectedStock?.symbol === inv.symbol) { setSelectedStock(null); setStockNews([]) }
-    else { setSelectedStock(inv); fetchNewsForStock(inv.symbol) }
+    if (selectedStock?.symbol === inv.symbol) {
+      setSelectedStock(null); setStockNews([]); setChartData([]); setStockDetail(null)
+    } else {
+      setSelectedStock(inv)
+      setChartPeriod('1m')
+      fetchNewsForStock(inv.symbol)
+      fetchChart(inv.symbol, '1m')
+      fetchStockDetail(inv.symbol)
+    }
   }
 
   const totalValue = stockInvestments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
@@ -1379,39 +1420,137 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
             </div>
           </Card>
 
-          {/* STOCK DETAIL + NEWS */}
+          {/* STOCK DETAIL + CHART + NEWS */}
           {selectedStock && (
             <Card accent={theme.accent} style={{padding:'22px',animation:'fadeIn 0.25s ease'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              {/* HEADER */}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
                 <div>
-                  <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>{selectedStock.symbol} <span style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',fontWeight:400}}>{selectedStock.name}</span></div>
-                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>{lang==='tr'?'Son haberler':'Latest news'}</div>
+                  <div style={{color:theme.text,fontSize:'20px',fontWeight:700,fontFamily:FONT}}>{selectedStock.symbol} <span style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',fontWeight:400}}>{selectedStock.name}</span></div>
+                  {stockDetail && <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'3px'}}>{stockDetail.exchange}</div>}
                 </div>
-                <button onClick={()=>{setSelectedStock(null);setStockNews([])}} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+                <button onClick={()=>{setSelectedStock(null);setStockNews([]);setChartData([]);setStockDetail(null)}} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
               </div>
+
+              {/* DETAIL STATS */}
+              {stockDetail && (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'20px',padding:'16px',background:'rgba(255,255,255,0.02)',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.06)'}}>
+                  {[
+                    {label:lang==='tr'?'Güncel Fiyat':'Current', value:`₺${Number(stockDetail.price).toLocaleString('tr-TR')}`, color:theme.text},
+                    {label:lang==='tr'?'Gün Yüksek':'Day High',  value:stockDetail.dayHigh?`₺${Number(stockDetail.dayHigh).toLocaleString('tr-TR')}`:'—', color:'#6ee7b7'},
+                    {label:lang==='tr'?'Gün Düşük':'Day Low',    value:stockDetail.dayLow?`₺${Number(stockDetail.dayLow).toLocaleString('tr-TR')}`:'—', color:'#fca5a5'},
+                    {label:lang==='tr'?'52H Yüksek':'52W High',  value:stockDetail.week52High?`₺${Number(stockDetail.week52High).toLocaleString('tr-TR')}`:'—', color:'#6ee7b7'},
+                    {label:lang==='tr'?'52H Düşük':'52W Low',    value:stockDetail.week52Low?`₺${Number(stockDetail.week52Low).toLocaleString('tr-TR')}`:'—', color:'#fca5a5'},
+                    {label:lang==='tr'?'Piyasa Değeri':'Mkt Cap', value:stockDetail.marketCap?`$${(stockDetail.marketCap/1e9).toFixed(1)}B`:'—', color:'rgba(255,255,255,0.6)'},
+                    {label:lang==='tr'?'Hacim':'Volume',          value:stockDetail.volume?Number(stockDetail.volume).toLocaleString('tr-TR'):'—', color:'rgba(255,255,255,0.6)'},
+                    {label:'USD/TRY',                             value:`₺${stockDetail.usdtry||'—'}`, color:'#fde68a'},
+                  ].map((item,i)=>(
+                    <div key={i}>
+                      <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'0.8px',marginBottom:'4px'}}>{item.label}</div>
+                      <div style={{color:item.color,fontSize:'13px',fontWeight:600,fontFamily:MONO}}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* CHART PERIOD SELECTOR */}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                <div style={{color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Fiyat Grafiği':'Price Chart'}</div>
+                <div style={{display:'flex',gap:'4px'}}>
+                  {[['1w',lang==='tr'?'1H':'1W'],['1m',lang==='tr'?'1A':'1M'],['3m','3M'],['6m','6M'],['1y','1Y']].map(([p,label])=>(
+                    <button key={p} onClick={()=>{setChartPeriod(p);fetchChart(selectedStock.symbol,p)}}
+                      style={{padding:'5px 12px',borderRadius:'8px',fontSize:'11px',fontWeight:chartPeriod===p?600:400,background:chartPeriod===p?theme.bg:'transparent',color:chartPeriod===p?theme.text:'rgba(255,255,255,0.3)',border:chartPeriod===p?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:MONO,transition:'all 0.15s'}}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* CANDLESTICK CHART */}
+              {loadingChart ? (
+                <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:FONT}}>
+                  <div style={{width:'14px',height:'14px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
+                  {lang==='tr'?'Grafik yükleniyor...':'Loading chart...'}
+                </div>
+              ) : chartData.length > 0 ? (
+                <div style={{height:'220px',marginBottom:'20px',position:'relative'}}>
+                  {(() => {
+                    const highs = chartData.map(d=>d.high)
+                    const lows  = chartData.map(d=>d.low)
+                    const maxP  = Math.max(...highs)
+                    const minP  = Math.min(...lows)
+                    const range = maxP - minP || 1
+                    const W     = 100 / chartData.length
+                    return (
+                      <svg width="100%" height="220" style={{overflow:'visible'}}>
+                        {/* Grid lines */}
+                        {[0,25,50,75,100].map(pct=>(
+                          <g key={pct}>
+                            <line x1="0%" y1={`${pct}%`} x2="100%" y2={`${pct}%`} stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+                            <text x="0" y={`${pct}%`} dy="-3" fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="DM Mono">
+                              ₺{(maxP - (range*pct/100)).toFixed(0)}
+                            </text>
+                          </g>
+                        ))}
+                        {/* Candles */}
+                        {chartData.map((d,i)=>{
+                          const isGreen = d.close >= d.open
+                          const color   = isGreen ? '#10b981' : '#ef4444'
+                          const x       = i * W + W/2
+                          const bodyTop    = ((maxP - Math.max(d.open,d.close)) / range) * 100
+                          const bodyBottom = ((maxP - Math.min(d.open,d.close)) / range) * 100
+                          const wickTop    = ((maxP - d.high) / range) * 100
+                          const wickBottom = ((maxP - d.low)  / range) * 100
+                          const bodyH = Math.max(bodyBottom - bodyTop, 0.5)
+                          const candleW = Math.max(W * 0.6, 1)
+                          return (
+                            <g key={i}>
+                              {/* Wick */}
+                              <line x1={`${x}%`} y1={`${wickTop}%`} x2={`${x}%`} y2={`${wickBottom}%`} stroke={color} strokeWidth="1" opacity="0.7"/>
+                              {/* Body */}
+                              <rect x={`${x - candleW/2}%`} y={`${bodyTop}%`} width={`${candleW}%`} height={`${bodyH}%`} fill={color} opacity="0.9" rx="1"/>
+                            </g>
+                          )
+                        })}
+                        {/* X axis dates */}
+                        {chartData.filter((_,i)=>i===0||i===Math.floor(chartData.length/2)||i===chartData.length-1).map((d,i,arr)=>{
+                          const idx = i===0?0:i===1?Math.floor(chartData.length/2):chartData.length-1
+                          const x = idx * W + W/2
+                          return <text key={i} x={`${x}%`} y="215" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="DM Mono">{new Date(d.time).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'})}</text>
+                        })}
+                      </svg>
+                    )
+                  })()}
+                </div>
+              ) : (
+                <div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT,marginBottom:'20px'}}>{lang==='tr'?'Grafik verisi yok':'No chart data'}</div>
+              )}
+
+              {/* NEWS */}
+              <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontWeight:600,fontFamily:FONT,marginBottom:'10px',textTransform:'uppercase',letterSpacing:'0.8px'}}>{lang==='tr'?'Son Haberler':'Latest News'}</div>
               {loadingNews ? (
-                <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'16px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
+                <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'12px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
                   <div style={{width:'14px',height:'14px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
                   {lang==='tr'?'Haberler yükleniyor...':'Loading news...'}
                 </div>
               ) : stockNews.length > 0 ? (
-                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                   {stockNews.map((news,i)=>(
-                    <a key={i} href={news.link} target="_blank" rel="noreferrer" style={{display:'flex',gap:'12px',padding:'12px',borderRadius:'10px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.05)',textDecoration:'none',transition:'background 0.15s'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
-                      onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.03)'}>
+                    <a key={i} href={news.link} target="_blank" rel="noreferrer" style={{display:'flex',gap:'12px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',textDecoration:'none',transition:'background 0.15s'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'}>
                       {news.thumbnail?.resolutions?.[0]?.url && (
-                        <img src={news.thumbnail.resolutions[0].url} alt="" style={{width:'64px',height:'48px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                        <img src={news.thumbnail.resolutions[0].url} alt="" style={{width:'56px',height:'42px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
                       )}
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT,lineHeight:'1.4',marginBottom:'4px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{news.title}</div>
-                        <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT}}>{news.publisher} · {new Date(news.providerPublishTime*1000).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</div>
+                        <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT,lineHeight:'1.4',marginBottom:'3px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{news.title}</div>
+                        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'11px',fontFamily:FONT}}>{news.publisher} · {new Date(news.providerPublishTime*1000).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</div>
                       </div>
                     </a>
                   ))}
                 </div>
               ) : (
-                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT,padding:'16px'}}>{lang==='tr'?'Haber bulunamadı.':'No news found.'}</div>
+                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT,padding:'8px'}}>{lang==='tr'?'Haber bulunamadı.':'No news found.'}</div>
               )}
             </Card>
           )}
@@ -1446,7 +1585,10 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                   {loadingFx ? (
                     <div style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',fontFamily:MONO}}>...</div>
                   ) : rate ? (
-                    <div style={{color:fx.color,fontSize:'22px',fontWeight:700,...VAL}}>₺{rate.price.toFixed(2)}</div>
+                    <div>
+                      <div style={{color:fx.color,fontSize:'20px',fontWeight:700,...VAL}}>₺{Number(rate.price).toLocaleString('tr-TR',{maximumFractionDigits:2})}</div>
+                      {fx.unit && <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:FONT,marginTop:'2px'}}>/ {fx.unit}</div>}
+                    </div>
                   ) : (
                     <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT}}>—</div>
                   )}
@@ -1489,6 +1631,11 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                   </div>
                 </div>
               </div>
+              {fxForm.amount && fxForm.buyRate && GOLD_GRAMS[fxForm.type] && (
+                <div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.2)',marginBottom:'12px',fontSize:'12px',color:'#fde68a',fontFamily:FONT}}>
+                  💡 {fxForm.amount} adet × {GOLD_GRAMS[fxForm.type]}g = <strong>{(parseFloat(fxForm.amount)*GOLD_GRAMS[fxForm.type]).toFixed(3)}g</strong> altın · Toplam maliyet: <strong>₺{(parseFloat(fxForm.amount)*parseFloat(fxForm.buyRate)).toFixed(2)}</strong>
+                </div>
+              )}
               <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
                 <button onClick={()=>setFxAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
                 <button onClick={addFx} disabled={!fxForm.amount||!fxForm.buyRate} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!fxForm.amount||!fxForm.buyRate?0.4:1,fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>

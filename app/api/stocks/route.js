@@ -29,10 +29,22 @@ function toTRY(price, currency, usdtry) {
   return price * (rates[currency] || usdtry)
 }
 
+// Altın gram hesaplama (ons bazlı)
+// GC=F ons fiyatı verir → gram = ons / 31.1035
+const GOLD_TYPES = {
+  'GOLD_GRAM':    { label: 'Gram Altın',        grams: 1,     purity: 0.995 },
+  'GOLD_CEYREK':  { label: 'Çeyrek Altın',      grams: 1.75,  purity: 0.917 },
+  'GOLD_YARIM':   { label: 'Yarım Altın',       grams: 3.5,   purity: 0.917 },
+  'GOLD_TAM':     { label: 'Tam Altın',         grams: 7.0,   purity: 0.917 },
+  'GOLD_CUMHUR':  { label: 'Cumhuriyet Altını', grams: 7.216, purity: 0.917 },
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const symbol = searchParams.get('symbol')
   const search = searchParams.get('search')
+  const history = searchParams.get('history')
+  const period = searchParams.get('period') || '1mo'
 
   // ── SEARCH ──────────────────────────────────────────────────────
   if (search) {
@@ -56,8 +68,97 @@ export async function GET(request) {
     }
   }
 
+  // ── HISTORY (Candlestick) ─────────────────────────────────────
+  if (history) {
+    try {
+      const periodMap = {
+        '1w': { range: '5d',  interval: '1h'  },
+        '1m': { range: '1mo', interval: '1d'  },
+        '3m': { range: '3mo', interval: '1d'  },
+        '6m': { range: '6mo', interval: '1wk' },
+        '1y': { range: '1y',  interval: '1wk' },
+      }
+      const { range, interval } = periodMap[period] || periodMap['1m']
+      const usdtry = await getUSDTRY()
+
+      const res = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${history}?interval=${interval}&range=${range}`,
+        { headers: { 'User-Agent': 'Mozilla/5.0' } }
+      )
+      const data = await res.json()
+      const result = data?.chart?.result?.[0]
+      if (!result) return Response.json({ candles: [] })
+
+      const timestamps = result.timestamps || []
+      const quote = result.indicators?.quote?.[0] || {}
+      const currency = result.meta?.currency || 'USD'
+
+      const candles = timestamps.map((ts, i) => {
+        const open  = quote.open?.[i]
+        const high  = quote.high?.[i]
+        const low   = quote.low?.[i]
+        const close = quote.close?.[i]
+        const vol   = quote.volume?.[i]
+        if (!open || !close) return null
+        return {
+          time:   ts * 1000,
+          open:   parseFloat(toTRY(open,  currency, usdtry)?.toFixed(2) || 0),
+          high:   parseFloat(toTRY(high,  currency, usdtry)?.toFixed(2) || 0),
+          low:    parseFloat(toTRY(low,   currency, usdtry)?.toFixed(2) || 0),
+          close:  parseFloat(toTRY(close, currency, usdtry)?.toFixed(2) || 0),
+          volume: vol || 0,
+        }
+      }).filter(Boolean)
+
+      return Response.json({ candles, currency: 'TRY' })
+    } catch (e) {
+      return Response.json({ candles: [], error: e.message })
+    }
+  }
+
   // ── PRICE ────────────────────────────────────────────────────────
   if (symbol) {
+    // Altın türleri
+    if (symbol.startsWith('GOLD_')) {
+      try {
+        const [gcRes, usdtry] = await Promise.all([
+          fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d', { headers: { 'User-Agent': 'Mozilla/5.0' } }),
+          getUSDTRY()
+        ])
+        const gcData = await gcRes.json()
+        const meta = gcData?.chart?.result?.[0]?.meta
+        const onsFiyat = meta?.regularMarketPrice   // USD/ons
+        const onsDun   = meta?.chartPreviousClose
+        const goldType = GOLD_TYPES[symbol]
+
+        if (!onsFiyat || !goldType) return Response.json({ error: 'Gold price unavailable' }, { status: 500 })
+
+        // Ons → gram → TRY
+        const gramUSD   = onsFiyat / 31.1035
+        const gramTRY   = gramUSD * usdtry
+        const priceTRY  = gramTRY * goldType.grams * goldType.purity
+
+        const gramUSDDun = onsDun / 31.1035
+        const gramTRYDun = gramUSDDun * usdtry
+        const prevTRY    = gramTRYDun * goldType.grams * goldType.purity
+        const change     = prevTRY ? ((priceTRY - prevTRY) / prevTRY * 100).toFixed(2) : 0
+
+        return Response.json({
+          symbol,
+          name:           goldType.label,
+          price:          priceTRY.toFixed(2),
+          change,
+          currency:       'TRY',
+          currencySymbol: '₺',
+          gramWeight:     goldType.grams,
+          usdtry:         usdtry.toFixed(2),
+        })
+      } catch (e) {
+        return Response.json({ error: e.message }, { status: 500 })
+      }
+    }
+
+    // Normal hisse/döviz
     try {
       const [priceRes, usdtry] = await Promise.all([
         fetch(
@@ -77,19 +178,37 @@ export async function GET(request) {
         ? ((price - prevClose) / prevClose * 100).toFixed(2)
         : 0
 
-      const priceTRY = toTRY(price, currency, usdtry)
+      // Detaylı veriler
+      const dayHigh   = meta?.regularMarketDayHigh
+      const dayLow    = meta?.regularMarketDayLow
+      const week52High = meta?.fiftyTwoWeekHigh
+      const week52Low  = meta?.fiftyTwoWeekLow
+      const marketCap  = meta?.marketCap
+      const volume     = meta?.regularMarketVolume
+
+      const priceTRY    = toTRY(price,     currency, usdtry)
+      const dayHighTRY  = toTRY(dayHigh,   currency, usdtry)
+      const dayLowTRY   = toTRY(dayLow,    currency, usdtry)
+      const w52HighTRY  = toTRY(week52High, currency, usdtry)
+      const w52LowTRY   = toTRY(week52Low,  currency, usdtry)
 
       return Response.json({
         symbol:           symbol.toUpperCase(),
         name,
-        price:            priceTRY ? priceTRY.toFixed(2) : null,  // TRY fiyat
-        priceOriginal:    price?.toFixed(2),                       // orijinal fiyat
+        price:            priceTRY ? priceTRY.toFixed(2) : null,
+        priceOriginal:    price?.toFixed(2),
         change,
         currency:         'TRY',
         currencySymbol:   '₺',
         originalCurrency: currency,
         usdtry:           usdtry.toFixed(2),
         exchange:         meta?.exchangeName || '',
+        dayHigh:          dayHighTRY?.toFixed(2),
+        dayLow:           dayLowTRY?.toFixed(2),
+        week52High:       w52HighTRY?.toFixed(2),
+        week52Low:        w52LowTRY?.toFixed(2),
+        marketCap,
+        volume,
       })
     } catch (error) {
       return Response.json({ error: error.message }, { status: 500 })
