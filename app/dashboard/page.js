@@ -1110,6 +1110,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   const [chartPeriod, setChartPeriod] = useState('1m')
   const [loadingChart, setLoadingChart] = useState(false)
   const [stockDetail, setStockDetail] = useState(null)
+  const [chartTooltip, setChartTooltip] = useState(null)
 
   async function fetchChart(symbol, period) {
     setLoadingChart(true)
@@ -1529,18 +1530,54 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                         const yClose = toY(d.close)
                         const bodyY  = Math.min(yOpen, yClose)
                         const bodyH  = Math.max(Math.abs(yClose - yOpen), 1.5)
+                        const isHovered = chartTooltip?.i === i
                         return (
-                          <g key={i}>
-                            <line x1={xc} y1={yHigh} x2={xc} y2={yLow} stroke={col} strokeWidth="1.2" opacity="0.8"/>
+                          <g key={i}
+                            onMouseEnter={()=>setChartTooltip({i, d, xc, yClose})}
+                            onMouseLeave={()=>setChartTooltip(null)}
+                            style={{cursor:'crosshair'}}>
+                            {/* Hover hit area */}
+                            <rect x={xc - candleW/2 - 2} y={PAD_TOP} width={candleW+4} height={innerH} fill="transparent"/>
+                            {/* Hover line */}
+                            {isHovered && <line x1={xc} y1={PAD_TOP} x2={xc} y2={CHART_H-PAD_BOTTOM} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,3"/>}
+                            <line x1={xc} y1={yHigh} x2={xc} y2={yLow} stroke={isHovered?col:'rgba(255,255,255,0.6)'} strokeWidth={isHovered?1.5:1.2} opacity="0.8"/>
                             <rect x={xc - candleW/2} y={bodyY} width={candleW} height={bodyH}
                               fill={isGreen ? '#10b981' : '#ef4444'}
-                              fillOpacity={isGreen ? 0.85 : 0.85}
-                              stroke={col} strokeWidth="0.5"
+                              fillOpacity={isHovered ? 1 : 0.85}
+                              stroke={col} strokeWidth={isHovered?1.5:0.5}
                               rx="1.5"
                             />
                           </g>
                         )
                       })}
+
+                      {/* TOOLTIP */}
+                      {chartTooltip && (() => {
+                        const {i, d, xc} = chartTooltip
+                        const isGreen = d.close >= d.open
+                        const boxW = 160, boxH = 90
+                        const boxX = xc + candleW > W_PX - boxW - 10 ? xc - boxW - 8 : xc + 8
+                        const boxY = PAD_TOP + 4
+                        return (
+                          <g>
+                            <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#0f0f1a" stroke="rgba(255,255,255,0.12)" strokeWidth="1"/>
+                            <text x={boxX+10} y={boxY+16} fill="rgba(255,255,255,0.4)" fontSize="9" fontFamily="DM Mono">{new Date(d.time).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</text>
+                            {[
+                              ['A',  d.open,  isGreen?'#6ee7b7':'#fca5a5'],
+                              ['K',  d.close, isGreen?'#10b981':'#ef4444'],
+                              ['Y',  d.high,  '#6ee7b7'],
+                              ['D',  d.low,   '#fca5a5'],
+                            ].map(([label, val, col], idx) => (
+                              <g key={label}>
+                                <text x={boxX+10} y={boxY+32+idx*14} fill="rgba(255,255,255,0.3)" fontSize="10" fontFamily="DM Mono">{label}</text>
+                                <text x={boxX+28} y={boxY+32+idx*14} fill={col} fontSize="10" fontFamily="DM Mono" fontWeight="600">
+                                  {val>=1000?`₺${val.toLocaleString('tr-TR',{maximumFractionDigits:0})}`:`₺${val.toFixed(2)}`}
+                                </text>
+                              </g>
+                            ))}
+                          </g>
+                        )
+                      })()}
 
                       {/* X axis date labels */}
                       {xTicks.map(i=>(
