@@ -1092,6 +1092,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
 function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh, lang='en' }) {
+  const [activeTab, setActiveTab] = useState('stocks') // 'stocks' | 'fx'
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
   const [prices, setPrices] = useState({})
@@ -1102,12 +1103,31 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [fetchingPrice, setFetchingPrice] = useState(false)
+  const [selectedStock, setSelectedStock] = useState(null)
+  const [stockNews, setStockNews] = useState([])
+  const [loadingNews, setLoadingNews] = useState(false)
+  const [fxRates, setFxRates] = useState({})
+  const [loadingFx, setLoadingFx] = useState(false)
+  const [fxAdding, setFxAdding] = useState(false)
+  const [fxForm, setFxForm] = useState({type:'USDTRY=X',amount:'',buyRate:''})
+
+  const FX_ITEMS = [
+    {symbol:'USDTRY=X', label:'Dolar',   icon:'🇺🇸', code:'USD', color:'#10b981'},
+    {symbol:'EURTRY=X', label:'Euro',    icon:'🇪🇺', code:'EUR', color:'#3b82f6'},
+    {symbol:'GBPTRY=X', label:'Sterlin', icon:'🇬🇧', code:'GBP', color:'#8b5cf6'},
+    {symbol:'XAU=X',    label:'Altın',   icon:'🥇', code:'XAU', color:'#f59e0b'},
+    {symbol:'XAG=X',    label:'Gümüş',   icon:'🥈', code:'XAG', color:'#94a3b8'},
+    {symbol:'XPT=X',    label:'Platin',  icon:'💿', code:'XPT', color:'#67e8f9'},
+  ]
+
+  const stockInvestments = investments.filter(i => i.type !== 'fx')
+  const fxInvestments = investments.filter(i => i.type === 'fx')
 
   async function fetchPrices() {
-    if (investments.length === 0) return
+    if (stockInvestments.length === 0) return
     setLoadingPrices(true)
     const up = {}, uc = {}
-    for (const inv of investments) {
+    for (const inv of stockInvestments) {
       try {
         const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
         const data = await res.json()
@@ -1117,11 +1137,40 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString()); setLoadingPrices(false)
   }
 
+  async function fetchFxRates() {
+    setLoadingFx(true)
+    const rates = {}
+    for (const fx of FX_ITEMS) {
+      try {
+        const res = await fetch(`/api/stocks?symbol=${fx.symbol}`)
+        const data = await res.json()
+        if (data.price) rates[fx.symbol] = { price: parseFloat(data.price), change: parseFloat(data.change||0) }
+      } catch {}
+    }
+    setFxRates(rates)
+    setLoadingFx(false)
+  }
+
+  async function fetchNewsForStock(symbol) {
+    setLoadingNews(true)
+    setStockNews([])
+    try {
+      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${symbol}&quotesCount=0&newsCount=5`, {headers:{'User-Agent':'Mozilla/5.0'}})
+      const data = await res.json()
+      setStockNews(data?.news?.slice(0,5) || [])
+    } catch {}
+    setLoadingNews(false)
+  }
+
   useEffect(() => {
     fetchPrices()
     const interval = setInterval(fetchPrices, 30000)
     return () => clearInterval(interval)
-  }, [investments.length])
+  }, [stockInvestments.length])
+
+  useEffect(() => {
+    if (activeTab === 'fx') fetchFxRates()
+  }, [activeTab])
 
   async function searchStocks(query) {
     setSearchQuery(query)
@@ -1155,134 +1204,347 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
     setSearchQuery(''); setAdding(false); onRefresh()
   }
+
+  async function addFx() {
+    if (!fxForm.amount||!fxForm.buyRate) return
+    const fx = FX_ITEMS.find(f=>f.symbol===fxForm.type)
+    await supabaseInsert('investments',{
+      symbol:fxForm.type, name:fx?.label||fxForm.type, shares:parseFloat(fxForm.amount),
+      buy_price:parseFloat(fxForm.buyRate), current_price:fxRates[fxForm.type]?.price||0,
+      type:'fx', user_id:userId
+    })
+    setFxForm({type:'USDTRY=X',amount:'',buyRate:''}); setFxAdding(false); onRefresh()
+  }
+
   async function del(id) { await supabaseDelete('investments', id); onRefresh() }
 
-  const totalValue = investments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
-  const totalCost = investments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
+  function handleStockClick(inv) {
+    if (selectedStock?.symbol === inv.symbol) { setSelectedStock(null); setStockNews([]) }
+    else { setSelectedStock(inv); fetchNewsForStock(inv.symbol) }
+  }
+
+  const totalValue = stockInvestments.reduce((a,inv)=>a+(inv.shares*(prices[inv.symbol]||inv.currentPrice)),0)
+  const totalCost = stockInvestments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
   const totalGain = totalValue - totalCost
   const gainPct = totalCost>0?((totalGain/totalCost)*100).toFixed(2):0
-  const pieData = investments.map(inv=>({name:inv.symbol,value:inv.shares*(prices[inv.symbol]||inv.currentPrice)}))
-  const barData = investments.map(inv=>({name:inv.symbol,cost:parseFloat((inv.shares*inv.buyPrice).toFixed(2)),value:parseFloat((inv.shares*(prices[inv.symbol]||inv.currentPrice)).toFixed(2))}))
+
+  const totalFxValue = fxInvestments.reduce((a,inv)=>a+(inv.shares*(fxRates[inv.symbol]?.price||inv.currentPrice)),0)
+  const totalFxCost = fxInvestments.reduce((a,inv)=>a+(inv.shares*inv.buyPrice),0)
+  const totalFxGain = totalFxValue - totalFxCost
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
-      <PageHeader theme={theme} title={lang==='tr'?'📈 Yatırımlar':'📈 Investments'} subtitle={lang==='tr'?'Canlı fiyatlar · Tüm değerler ₺ cinsinden':'Live prices · All values in ₺'}
-        action={
-          <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-            {lastUpdated && <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div><span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{(lang==='tr')?'Canlı':'Live'} · {lastUpdated}</span></div>}
+      {/* HEADER */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px',flexWrap:'wrap',gap:'12px'}}>
+        <div>
+          <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'3px',fontFamily:FONT}}>{lang==='tr'?'📈 Yatırım Takibi':'📈 Investment Tracker'}</h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Hisse, kripto, döviz ve kıymetli madenler':'Stocks, crypto, forex & precious metals'}</p>
+        </div>
+        {lastUpdated && activeTab==='stocks' && (
+          <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+            <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#10b981',animation:'pulse 2s infinite'}}></div>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{lang==='tr'?'Canlı':'Live'} · {lastUpdated}</span>
+          </div>
+        )}
+      </div>
+
+      {/* TABS */}
+      <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',padding:'4px',marginBottom:'20px',width:'fit-content'}}>
+        {[
+          {id:'stocks', icon:'📈', label:lang==='tr'?'Hisse & Kripto':'Stocks & Crypto'},
+          {id:'fx',     icon:'💱', label:lang==='tr'?'Döviz & Altın':'Forex & Gold'},
+        ].map(tab=>(
+          <button key={tab.id} onClick={()=>setActiveTab(tab.id)}
+            style={{padding:'9px 20px',borderRadius:'9px',fontSize:'13px',fontWeight:activeTab===tab.id?600:400,background:activeTab===tab.id?theme.bg:'transparent',color:activeTab===tab.id?theme.text:'rgba(255,255,255,0.35)',border:activeTab===tab.id?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s',display:'flex',alignItems:'center',gap:'7px'}}>
+            {tab.icon} {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── STOCKS TAB ── */}
+      {activeTab==='stocks' && (
+        <>
+          <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
+            <StatCard accent={theme.accent} label={lang==='tr'?'Portföy Değeri':'Portfolio Value'} value={`₺${totalValue.toFixed(0)}`} color={theme.text} icon="💼" />
+            <StatCard accent={theme.accent} label={lang==='tr'?'Toplam Maliyet':'Total Cost'} value={`₺${totalCost.toFixed(0)}`} color="rgba(255,255,255,0.6)" icon="💸" />
+            <StatCard accent={theme.accent} label={lang==='tr'?'Kar/Zarar':'Gain/Loss'} value={`${totalGain>=0?'+':''}₺${totalGain.toFixed(0)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
+            <StatCard accent={theme.accent} label={lang==='tr'?'Pozisyon':'Positions'} value={stockInvestments.length} color={theme.text} icon="🎯" />
+          </div>
+
+          {/* ADD BUTTON */}
+          <div style={{marginBottom:'16px'}}>
             <AddBtn theme={theme} label={lang==='tr'?'+ Pozisyon Ekle':'+ Add Position'} onClick={()=>setAdding(!adding)} />
           </div>
-        }
-      />
-      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label="Portföy Değeri (₺)" value={`₺${totalValue.toFixed(2)}`} color={theme.text} icon="💼" />
-        <StatCard accent={theme.accent} label="Toplam Maliyet (₺)" value={`₺${totalCost.toFixed(2)}`} color="rgba(255,255,255,0.6)" icon="💸" />
-        <StatCard accent={theme.accent} label="Kar/Zarar (₺)" value={`${totalGain>=0?'+':''}₺${totalGain.toFixed(2)}`} sub={`${gainPct}%`} color={totalGain>=0?'#6ee7b7':'#fca5a5'} icon={totalGain>=0?'📈':'📉'} />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Pozisyon':'Positions'} value={investments.length} color={theme.text} icon="🎯" />
-      </div>
-      {adding && (
-        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
-          <div style={{marginBottom:'14px'}}>
-            <div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Hisse / Kripto Ara':'Search Stock or Crypto'}</div>
-            <div style={{position:'relative'}}>
-              <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'Apple, Bitcoin, ASELS.IS ara...':'Search Apple, Bitcoin, Tesla...'}
-                style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
-              {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?lang==='tr'?'Aranıyor...':'Searching...':lang==='tr'?'Fiyat alınıyor...':'Fetching price...'}</div>}
-              {searchResults.length > 0 && (
-                <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
-                  {searchResults.map((s,i) => (
-                    <div key={i} onClick={()=>selectStock(s)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
-                      onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                      <div>
-                        <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{s.symbol}</div>
-                        <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{s.name}</div>
-                      </div>
-                      <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:s.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.type==='crypto'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.type}</span>
+
+          {/* ADD FORM */}
+          {adding && (
+            <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
+              <div style={{marginBottom:'14px'}}>
+                <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Hisse / Kripto Ara':'Search Stock or Crypto'}</div>
+                <div style={{position:'relative'}}>
+                  <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'Apple, Bitcoin, THYAO.IS...':'Apple, Bitcoin, Tesla...'}
+                    style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
+                  {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Aranıyor...':'Fiyat alınıyor...'}</div>}
+                  {searchResults.length > 0 && (
+                    <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
+                      {searchResults.map((s,i) => (
+                        <div key={i} onClick={()=>selectStock(s)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
+                          onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
+                          onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                          <div>
+                            <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{s.symbol}</div>
+                            <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{s.name}</div>
+                          </div>
+                          <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:s.type==='crypto'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.type==='crypto'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.type}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                </div>
+              </div>
+              {form.symbol && (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>Sembol</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Canlı Fiyat (₺)':'Live Price (₺)'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Yükleniyor...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tür':'Type'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Adet / Lot':'Shares'}</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="10" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Alış Fiyatı (₺)':'Buy Price (₺)'}</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
                 </div>
               )}
-            </div>
-          </div>
-          {form.symbol && (
-            <div className="grid2" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Sembol':'Symbol'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Canlı Fiyat':'Live Price'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?lang==='tr'?'Yükleniyor...':'Loading...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Tür':'Type'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Adet / Lot':'Shares / Amount'}</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="2" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
-              <div><div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Alış Fiyatı (₺)':'Buy Price (₺)'}</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
-            </div>
+              <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+                <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
+                <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>{lang==='tr'?'Ekle':'Add'}</button>
+              </div>
+            </Card>
           )}
-          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
-            <button onClick={()=>{setAdding(false);setSearchQuery('');setSearchResults([]);setForm({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})}} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
-            <button onClick={addInv} disabled={!form.symbol||!form.shares||!form.buyPrice} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.symbol||!form.shares||!form.buyPrice?0.4:1,fontFamily:FONT}}>{lang==='tr'?'Pozisyon Ekle':'Add Position'}</button>
-          </div>
-        </Card>
+
+          {/* STOCK LIST */}
+          <Card accent={theme.accent} style={{padding:'22px',marginBottom:'16px'}}>
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
+                <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                  {[lang==='tr'?'Hisse':'Stock',lang==='tr'?'Adet':'Shares',lang==='tr'?'Alış':'Buy',lang==='tr'?'Güncel':'Current','24s',lang==='tr'?'Değer':'Value',lang==='tr'?'Kar/Zarar':'G/L',''].map(h=>(
+                    <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {stockInvestments.length===0 ? (
+                    <tr><td colSpan={8} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz pozisyon yok. Hisse veya kripto ekleyin.':'No positions yet.'}</td></tr>
+                  ) : stockInvestments.map((inv,i)=>{
+                    const livePrice=prices[inv.symbol]||inv.currentPrice
+                    const change=changes[inv.symbol]||0
+                    const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
+                    const gp=cost>0?((gain/cost)*100).toFixed(1):0
+                    const isLive=!!prices[inv.symbol], changePos=change>=0
+                    const isSelected=selectedStock?.symbol===inv.symbol
+                    return (
+                      <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:isSelected?'rgba(255,255,255,0.03)':'transparent'}} onClick={()=>handleStockClick(inv)}>
+                        <td style={{padding:'12px 8px 12px 0'}}>
+                          <div style={{...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</div>
+                          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,maxWidth:'100px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inv.name}</div>
+                        </td>
+                        <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
+                        <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>₺{Number(inv.buyPrice).toFixed(2)}</td>
+                        <td style={{padding:'12px 8px'}}>
+                          <div style={{...VAL,color:'#f5f5f7',fontSize:'13px',fontWeight:700}}>₺{livePrice.toFixed(2)}</div>
+                          {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>CANLI</span></div>}
+                        </td>
+                        <td style={{padding:'12px 8px'}}>
+                          {isLive?<div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}><span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span></div>:<span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
+                        </td>
+                        <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>₺{val.toFixed(0)}</td>
+                        <td style={{padding:'12px 8px'}}>
+                          <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}₺{gain.toFixed(0)}</div>
+                          <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
+                        </td>
+                        <td style={{padding:'12px 0'}}><button onClick={e=>{e.stopPropagation();del(inv.id||i)}} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* STOCK DETAIL + NEWS */}
+          {selectedStock && (
+            <Card accent={theme.accent} style={{padding:'22px',animation:'fadeIn 0.25s ease'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+                <div>
+                  <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>{selectedStock.symbol} <span style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',fontWeight:400}}>{selectedStock.name}</span></div>
+                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>{lang==='tr'?'Son haberler':'Latest news'}</div>
+                </div>
+                <button onClick={()=>{setSelectedStock(null);setStockNews([])}} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+              </div>
+              {loadingNews ? (
+                <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'16px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
+                  <div style={{width:'14px',height:'14px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
+                  {lang==='tr'?'Haberler yükleniyor...':'Loading news...'}
+                </div>
+              ) : stockNews.length > 0 ? (
+                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                  {stockNews.map((news,i)=>(
+                    <a key={i} href={news.link} target="_blank" rel="noreferrer" style={{display:'flex',gap:'12px',padding:'12px',borderRadius:'10px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.05)',textDecoration:'none',transition:'background 0.15s'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.03)'}>
+                      {news.thumbnail?.resolutions?.[0]?.url && (
+                        <img src={news.thumbnail.resolutions[0].url} alt="" style={{width:'64px',height:'48px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                      )}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT,lineHeight:'1.4',marginBottom:'4px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{news.title}</div>
+                        <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT}}>{news.publisher} · {new Date(news.providerPublishTime*1000).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT,padding:'16px'}}>{lang==='tr'?'Haber bulunamadı.':'No news found.'}</div>
+              )}
+            </Card>
+          )}
+        </>
       )}
-      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'14px',marginBottom:'14px'}}>
-        <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Portföy Dağılımı</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0} />)}</Pie><Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/></PieChart>
-          </ResponsiveContainer>
-        </Card>
-        <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Maliyet vs Güncel Değer (₺)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={barData} barSize={28}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
-              <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
-              <Bar dataKey="cost" fill={`${theme.accent}55`} radius={[6,6,0,0]} name={lang==='tr'?'Maliyet':'Cost'}/>
-              <Bar dataKey="value" fill={theme.chart[1]} radius={[6,6,0,0]} name={lang==='tr'?'Değer':'Value'}/>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-      <Card accent={theme.accent} style={{padding:'22px'}}>
-        <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>Tüm Pozisyonlar</div>
-        <div style={{overflowX:'auto'}}>
-          <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
-            <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{['Sembol','İsim','Adet','Alış Fiyatı','Canlı Fiyat','24s','Değer (₺)','Kar/Zarar',''].map(h=><th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>)}</tr></thead>
-            <tbody>
-              {investments.length===0 ? <tr><td colSpan={9} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>Henüz pozisyon yok. Hisse veya kripto arayın.</td></tr>
-              : investments.map((inv,i)=>{
-                const livePrice=prices[inv.symbol]||inv.currentPrice, change=changes[inv.symbol]||0
-                const val=inv.shares*livePrice, cost=inv.shares*inv.buyPrice, gain=val-cost
-                const gp=cost>0?((gain/cost)*100).toFixed(1):0, isLive=!!prices[inv.symbol], changePos=change>=0
-                return (
-                  <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                    <td style={{padding:'12px 8px 12px 0',...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</td>
-                    <td style={{padding:'12px 8px',color:'rgba(255,255,255,0.6)',fontSize:'12px',maxWidth:'120px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:FONT}}>{inv.name}</td>
-                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>{inv.shares}</td>
-                    <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.4)',fontSize:'12px'}}>₺{inv.buyPrice.toFixed(2)}</td>
-                    <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:'#f5f5f7',fontSize:'14px',fontWeight:700}}>{loadingPrices&&!isLive?'...':`₺${livePrice.toFixed(2)}`}</div>
-                      {isLive&&<div style={{display:'flex',alignItems:'center',gap:'3px',marginTop:'2px'}}><div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#10b981'}}></div><span style={{fontSize:'9px',color:'#10b981',fontFamily:MONO}}>{lang==='tr'?'CANLI':'LIVE'}</span></div>}
-                    </td>
-                    <td style={{padding:'12px 8px'}}>
-                      {isLive?<div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}><span style={{fontSize:'12px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change)}%</span></div>:<span style={{color:'rgba(255,255,255,0.15)',fontSize:'12px'}}>—</span>}
-                    </td>
-                    <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>₺{val.toFixed(2)}</td>
-                    <td style={{padding:'12px 8px'}}>
-                      <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}₺{gain.toFixed(2)}</div>
-                      <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
-                    </td>
-                    <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+
+      {/* ── FOREX & GOLD TAB ── */}
+      {activeTab==='fx' && (
+        <>
+          {/* LIVE RATES */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
+            {FX_ITEMS.map(fx=>{
+              const rate = fxRates[fx.symbol]
+              const change = rate?.change||0
+              const changePos = change>=0
+              return (
+                <Card key={fx.symbol} accent={theme.accent} style={{padding:'18px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                      <span style={{fontSize:'22px'}}>{fx.icon}</span>
+                      <div>
+                        <div style={{color:'#f5f5f7',fontSize:'14px',fontWeight:700,fontFamily:FONT}}>{fx.label}</div>
+                        <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO}}>{fx.code}/TRY</div>
+                      </div>
+                    </div>
+                    {rate && (
+                      <div style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'8px',background:changePos?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'}}>
+                        <span style={{fontSize:'11px',color:changePos?'#6ee7b7':'#fca5a5',fontWeight:700,...VAL}}>{changePos?'▲':'▼'} {Math.abs(change).toFixed(2)}%</span>
+                      </div>
+                    )}
+                  </div>
+                  {loadingFx ? (
+                    <div style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',fontFamily:MONO}}>...</div>
+                  ) : rate ? (
+                    <div style={{color:fx.color,fontSize:'22px',fontWeight:700,...VAL}}>₺{rate.price.toFixed(2)}</div>
+                  ) : (
+                    <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT}}>—</div>
+                  )}
+                </Card>
+              )
+            })}
+          </div>
+
+          {/* MY FX POSITIONS */}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+            <div style={{color:'rgba(255,255,255,0.6)',fontSize:'14px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Portföyüm':'My Portfolio'}</div>
+            <AddBtn theme={theme} label={lang==='tr'?'+ Ekle':'+ Add'} onClick={()=>setFxAdding(!fxAdding)} />
+          </div>
+
+          {fxAdding && (
+            <Card accent={theme.accent} style={{padding:'22px',marginBottom:'16px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'14px'}}>
+                <div>
+                  <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tür':'Type'}</div>
+                  <select value={fxForm.type} onChange={e=>setFxForm({...fxForm,type:e.target.value})}
+                    style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(30,30,50,0.9)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,cursor:'pointer'}}>
+                    {FX_ITEMS.map(fx=>(
+                      <option key={fx.symbol} value={fx.symbol}>{fx.icon} {fx.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Miktar':'Amount'}</div>
+                  <div style={{position:'relative'}}>
+                    <input type="number" value={fxForm.amount} onChange={e=>setFxForm({...fxForm,amount:e.target.value})} placeholder={lang==='tr'?'1000 (gram/adet)':'1000 (units)'}
+                      style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Alış Kuru (₺)':'Buy Rate (₺)'}</div>
+                  <div style={{position:'relative'}}>
+                    <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span>
+                    <input type="number" value={fxForm.buyRate} onChange={e=>setFxForm({...fxForm,buyRate:e.target.value})} placeholder="32.50"
+                      style={{width:'100%',padding:'10px 14px 10px 26px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
+                  </div>
+                </div>
+              </div>
+              <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+                <button onClick={()=>setFxAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
+                <button onClick={addFx} disabled={!fxForm.amount||!fxForm.buyRate} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!fxForm.amount||!fxForm.buyRate?0.4:1,fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
+              </div>
+            </Card>
+          )}
+
+          {fxInvestments.length > 0 && (
+            <>
+              <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
+                <StatCard accent={theme.accent} label={lang==='tr'?'Toplam Değer':'Total Value'} value={`₺${totalFxValue.toFixed(0)}`} color={theme.text} icon="💰" />
+                <StatCard accent={theme.accent} label={lang==='tr'?'Toplam Maliyet':'Total Cost'} value={`₺${totalFxCost.toFixed(0)}`} color="rgba(255,255,255,0.6)" icon="💸" />
+                <StatCard accent={theme.accent} label={lang==='tr'?'Kar/Zarar':'Gain/Loss'} value={`${totalFxGain>=0?'+':''}₺${totalFxGain.toFixed(0)}`} color={totalFxGain>=0?'#6ee7b7':'#fca5a5'} icon={totalFxGain>=0?'📈':'📉'} />
+              </div>
+              <Card accent={theme.accent} style={{padding:'22px'}}>
+                <table style={{width:'100%',borderCollapse:'collapse'}}>
+                  <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                    {[lang==='tr'?'Varlık':'Asset',lang==='tr'?'Miktar':'Amount',lang==='tr'?'Alış Kuru':'Buy Rate',lang==='tr'?'Güncel Kur':'Current',lang==='tr'?'Değer':'Value',lang==='tr'?'Kar/Zarar':'G/L',''].map(h=>(
+                      <th key={h} style={{...TIP,textAlign:'left',paddingBottom:'10px',fontWeight:500}}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {fxInvestments.map((inv,i)=>{
+                      const fx = FX_ITEMS.find(f=>f.symbol===inv.symbol)
+                      const currentRate = fxRates[inv.symbol]?.price || inv.currentPrice
+                      const val = inv.shares * currentRate
+                      const cost = inv.shares * inv.buyPrice
+                      const gain = val - cost
+                      const gp = cost>0?((gain/cost)*100).toFixed(1):0
+                      return (
+                        <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                          <td style={{padding:'12px 8px 12px 0'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                              <span style={{fontSize:'18px'}}>{fx?.icon||'💱'}</span>
+                              <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{inv.name}</div>
+                            </div>
+                          </td>
+                          <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>{inv.shares}</td>
+                          <td style={{padding:'12px 8px',...VAL,color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>₺{Number(inv.buyPrice).toFixed(2)}</td>
+                          <td style={{padding:'12px 8px',...VAL,color:fx?.color||theme.text,fontSize:'13px',fontWeight:700}}>₺{currentRate.toFixed(2)}</td>
+                          <td style={{padding:'12px 8px',...VAL,color:theme.text,fontSize:'13px',fontWeight:700}}>₺{val.toFixed(0)}</td>
+                          <td style={{padding:'12px 8px'}}>
+                            <div style={{...VAL,color:gain>=0?'#6ee7b7':'#fca5a5',fontSize:'13px',fontWeight:700}}>{gain>=0?'+':''}₺{gain.toFixed(0)}</div>
+                            <div style={{...VAL,color:gain>=0?'rgba(110,231,183,0.5)':'rgba(252,165,165,0.5)',fontSize:'11px'}}>{gp}%</div>
+                          </td>
+                          <td style={{padding:'12px 0'}}><button onClick={()=>del(inv.id||i)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </Card>
+            </>
+          )}
+
+          {fxInvestments.length === 0 && !fxAdding && (
+            <Card accent={theme.accent} style={{padding:'40px',textAlign:'center'}}>
+              <div style={{fontSize:'36px',marginBottom:'12px'}}>💱</div>
+              <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',fontFamily:FONT,marginBottom:'16px'}}>{lang==='tr'?'Henüz döviz veya altın eklenmedi.':'No forex or gold positions yet.'}</div>
+              <AddBtn theme={theme} label={lang==='tr'?'+ İlk Pozisyonu Ekle':'+ Add First Position'} onClick={()=>setFxAdding(true)} />
+            </Card>
+          )}
+        </>
+      )}
     </div>
   )
 }
 
-// ── BALANCE ───────────────────────────────────────────────────────
+
 function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, lang='en' }) {
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
