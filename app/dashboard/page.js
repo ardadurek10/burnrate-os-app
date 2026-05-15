@@ -1153,9 +1153,6 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     'GOLD_CUMHUR': 7.216,
   }
 
-  const stockInvestments = investments.filter(i => i.type !== 'fx')
-  const fxInvestments = investments.filter(i => i.type === 'fx')
-
   async function fetchPrices() {
     if (stockInvestments.length === 0) return
     setLoadingPrices(true)
@@ -1197,107 +1194,6 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     setLoadingFx(false)
   }
 
-
-  async function fetchChart(symbol, period) {
-    setLoadingChart(true)
-    setChartData([])
-    try {
-      const res = await fetch(`/api/stocks?history=${symbol}&period=${period}`)
-      const data = await res.json()
-      setChartData(data.candles || [])
-    } catch {}
-    setLoadingChart(false)
-  }
-
-  async function fetchStockDetail(symbol) {
-    try {
-      const res = await fetch(`/api/stocks?symbol=${symbol}`)
-      const data = await res.json()
-      setStockDetail(data)
-    } catch {}
-  }
-  const [fxRates, setFxRates] = useState({})
-  const [loadingFx, setLoadingFx] = useState(false)
-  const [fxAdding, setFxAdding] = useState(false)
-  const [fxForm, setFxForm] = useState({type:'USDTRY=X',amount:'',buyRate:''})
-
-  const FX_ITEMS = [
-    {symbol:'USDTRY=X',   label:'Dolar',             icon:'🇺🇸', code:'USD', color:'#10b981', unit:''},
-    {symbol:'EURTRY=X',   label:'Euro',               icon:'🇪🇺', code:'EUR', color:'#3b82f6', unit:''},
-    {symbol:'GBPTRY=X',   label:'Sterlin',            icon:'🇬🇧', code:'GBP', color:'#8b5cf6', unit:''},
-    {symbol:'GOLD_GRAM',  label:'Gram Altın',         icon:'🥇', code:'XAU', color:'#f59e0b', unit:'gram'},
-    {symbol:'GOLD_CEYREK',label:'Çeyrek Altın',       icon:'🟡', code:'XAU', color:'#f59e0b', unit:'adet'},
-    {symbol:'GOLD_YARIM', label:'Yarım Altın',        icon:'🟡', code:'XAU', color:'#fbbf24', unit:'adet'},
-    {symbol:'GOLD_TAM',   label:'Tam Altın',          icon:'🟡', code:'XAU', color:'#d97706', unit:'adet'},
-    {symbol:'GOLD_CUMHUR',label:'Cumhuriyet Altını',  icon:'🪙', code:'XAU', color:'#b45309', unit:'adet'},
-    {symbol:'SI=F',       label:'Gümüş',              icon:'🥈', code:'XAG', color:'#94a3b8', unit:'gram'},
-  ]
-
-  const GOLD_GRAMS = {
-    'GOLD_GRAM':   1,
-    'GOLD_CEYREK': 1.75,
-    'GOLD_YARIM':  3.5,
-    'GOLD_TAM':    7.0,
-    'GOLD_CUMHUR': 7.216,
-  }
-
-  const stockInvestments = investments.filter(i => i.type !== 'fx')
-  const fxInvestments = investments.filter(i => i.type === 'fx')
-
-  async function fetchPrices() {
-    if (stockInvestments.length === 0) return
-    setLoadingPrices(true)
-    try {
-      const results = await Promise.all(
-        stockInvestments.map(inv =>
-          fetch(`/api/stocks?symbol=${inv.symbol}`)
-            .then(r => r.json())
-            .then(data => ({ symbol: inv.symbol, data }))
-            .catch(() => ({ symbol: inv.symbol, data: {} }))
-        )
-      )
-      const up = {}, uc = {}
-      results.forEach(({ symbol, data }) => {
-        if (data.price) { up[symbol]=parseFloat(data.price); uc[symbol]=parseFloat(data.change||0) }
-      })
-      setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString())
-    } catch {}
-    setLoadingPrices(false)
-  }
-
-  async function fetchFxRates() {
-    setLoadingFx(true)
-    try {
-      const results = await Promise.all(
-        FX_ITEMS.map(fx => 
-          fetch(`/api/stocks?symbol=${fx.symbol}`)
-            .then(r => r.json())
-            .then(data => ({ symbol: fx.symbol, data }))
-            .catch(() => ({ symbol: fx.symbol, data: {} }))
-        )
-      )
-      const rates = {}
-      results.forEach(({ symbol, data }) => {
-        if (data.price) rates[symbol] = { price: parseFloat(data.price), change: parseFloat(data.change||0) }
-      })
-      setFxRates(rates)
-    } catch {}
-    setLoadingFx(false)
-  }
-
-  async function fetchNewsForStock(symbol, name) {
-    setLoadingNews(true)
-    setStockNews([])
-    try {
-      const url = name
-        ? `/api/stocks?news=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`
-        : `/api/stocks?news=${encodeURIComponent(symbol)}`
-      const res = await fetch(url)
-      const data = await res.json()
-      setStockNews(Array.isArray(data) ? data : [])
-    } catch {}
-    setLoadingNews(false)
-  }
 
   useEffect(() => {
     fetchPrices()
@@ -1518,7 +1414,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                   <div style={{color:theme.text,fontSize:'20px',fontWeight:700,fontFamily:FONT}}>{selectedStock.symbol} <span style={{color:'rgba(255,255,255,0.4)',fontSize:'14px',fontWeight:400}}>{selectedStock.name}</span></div>
                   {stockDetail && <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'3px'}}>{stockDetail.exchange}</div>}
                 </div>
-                <button onClick={()=>{setSelectedStock(null);setStockNews([]);setChartData([]);setStockDetail(null)}} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+                <button onClick={()=>{setSelectedStock(null);setChartData([]);setStockDetail(null);setChartTooltip(null)}} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
               </div>
 
               {/* DETAIL STATS */}
@@ -1682,30 +1578,6 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 
               {/* NEWS */}
               <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontWeight:600,fontFamily:FONT,marginBottom:'10px',textTransform:'uppercase',letterSpacing:'0.8px'}}>{lang==='tr'?'Son Haberler':'Latest News'}</div>
-              {loadingNews ? (
-                <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'12px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
-                  <div style={{width:'14px',height:'14px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}></div>
-                  {lang==='tr'?'Haberler yükleniyor...':'Loading news...'}
-                </div>
-              ) : stockNews.length > 0 ? (
-                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                  {stockNews.map((news,i)=>(
-                    <a key={i} href={news.link} target="_blank" rel="noreferrer" style={{display:'flex',gap:'12px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',textDecoration:'none',transition:'background 0.15s'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}
-                      onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'}>
-                      {news.thumbnail && (
-                        <img src={news.thumbnail} alt="" style={{width:'56px',height:'42px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
-                      )}
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT,lineHeight:'1.4',marginBottom:'3px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{news.title}</div>
-                        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'11px',fontFamily:FONT}}>{news.publisher} · {new Date(news.time*1000).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</div>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT,padding:'8px'}}>{lang==='tr'?'Haber bulunamadı.':'No news found.'}</div>
-              )}
             </Card>
           )}
         </>
