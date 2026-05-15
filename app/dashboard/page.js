@@ -542,7 +542,7 @@ export default function Dashboard() {
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
-        {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
+        {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
         {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
         {page==='ai'            && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
       </div>
@@ -1367,15 +1367,17 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 }
 
 // ── 30-DAY CHALLENGE ──────────────────────────────────────────────
-function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en' }) {
+function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='', lang='en' }) {
   const now = new Date()
   const today = now.getDate()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
-  const [completedDays, setCompletedDays] = useState(() => { try { return JSON.parse(localStorage.getItem('burnrate_completed_days')||'[]') } catch { return [] } })
+  const DAYS_KEY = `burnrate_completed_days_${userId}`
+  const TASKS_KEY = `burnrate_completed_tasks_${userId}`
+  const [completedDays, setCompletedDays] = useState(() => { try { return JSON.parse(localStorage.getItem(`burnrate_completed_days_${userId}`)||'[]') } catch { return [] } })
   const [selectedDay, setSelectedDay] = useState(null)
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [aiTasks, setAiTasks] = useState({})
-  const [completedTasks, setCompletedTasks] = useState(() => { try { return JSON.parse(localStorage.getItem('burnrate_completed_tasks')||'{}') } catch { return {} } })
+  const [completedTasks, setCompletedTasks] = useState(() => { try { return JSON.parse(localStorage.getItem(`burnrate_completed_tasks_${userId}`)||'{}') } catch { return {} } })
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationDay, setCelebrationDay] = useState(null)
 
@@ -1416,14 +1418,14 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, lang='en
   function toggleTask(day, idx) {
     const key = `${day}-${idx}`
     const updated = {...completedTasks,[key]:!completedTasks[key]}
-    setCompletedTasks(updated); localStorage.setItem('burnrate_completed_tasks',JSON.stringify(updated))
+    setCompletedTasks(updated); localStorage.setItem(`burnrate_completed_tasks_${userId}`,JSON.stringify(updated))
   }
 
   function completeDay(day) {
     if (!completedDays.includes(day)) {
       const u=[...completedDays,day]
       setCompletedDays(u)
-      localStorage.setItem('burnrate_completed_days',JSON.stringify(u))
+      localStorage.setItem(`burnrate_completed_days_${userId}`,JSON.stringify(u))
       setCelebrationDay(day)
       setShowCelebration(true)
       setTimeout(() => setShowCelebration(false), 3500)
