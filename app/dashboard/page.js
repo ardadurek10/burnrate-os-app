@@ -1126,28 +1126,41 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   async function fetchPrices() {
     if (stockInvestments.length === 0) return
     setLoadingPrices(true)
-    const up = {}, uc = {}
-    for (const inv of stockInvestments) {
-      try {
-        const res = await fetch(`/api/stocks?symbol=${inv.symbol}`)
-        const data = await res.json()
-        if (data.price) { up[inv.symbol]=parseFloat(data.price); uc[inv.symbol]=parseFloat(data.change) }
-      } catch {}
-    }
-    setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString()); setLoadingPrices(false)
+    try {
+      const results = await Promise.all(
+        stockInvestments.map(inv =>
+          fetch(`/api/stocks?symbol=${inv.symbol}`)
+            .then(r => r.json())
+            .then(data => ({ symbol: inv.symbol, data }))
+            .catch(() => ({ symbol: inv.symbol, data: {} }))
+        )
+      )
+      const up = {}, uc = {}
+      results.forEach(({ symbol, data }) => {
+        if (data.price) { up[symbol]=parseFloat(data.price); uc[symbol]=parseFloat(data.change||0) }
+      })
+      setPrices(up); setChanges(uc); setLastUpdated(new Date().toLocaleTimeString())
+    } catch {}
+    setLoadingPrices(false)
   }
 
   async function fetchFxRates() {
     setLoadingFx(true)
-    const rates = {}
-    for (const fx of FX_ITEMS) {
-      try {
-        const res = await fetch(`/api/stocks?symbol=${fx.symbol}`)
-        const data = await res.json()
-        if (data.price) rates[fx.symbol] = { price: parseFloat(data.price), change: parseFloat(data.change||0) }
-      } catch {}
-    }
-    setFxRates(rates)
+    try {
+      const results = await Promise.all(
+        FX_ITEMS.map(fx => 
+          fetch(`/api/stocks?symbol=${fx.symbol}`)
+            .then(r => r.json())
+            .then(data => ({ symbol: fx.symbol, data }))
+            .catch(() => ({ symbol: fx.symbol, data: {} }))
+        )
+      )
+      const rates = {}
+      results.forEach(({ symbol, data }) => {
+        if (data.price) rates[symbol] = { price: parseFloat(data.price), change: parseFloat(data.change||0) }
+      })
+      setFxRates(rates)
+    } catch {}
     setLoadingFx(false)
   }
 
