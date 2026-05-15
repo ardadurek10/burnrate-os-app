@@ -1199,11 +1199,14 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     setLoadingFx(false)
   }
 
-  async function fetchNewsForStock(symbol) {
+  async function fetchNewsForStock(symbol, name) {
     setLoadingNews(true)
     setStockNews([])
     try {
-      const res = await fetch(`/api/stocks?news=${symbol}`)
+      const url = name
+        ? `/api/stocks?news=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`
+        : `/api/stocks?news=${encodeURIComponent(symbol)}`
+      const res = await fetch(url)
       const data = await res.json()
       setStockNews(Array.isArray(data) ? data : [])
     } catch {}
@@ -1272,7 +1275,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     } else {
       setSelectedStock(inv)
       setChartPeriod('1m')
-      fetchNewsForStock(inv.symbol)
+      fetchNewsForStock(inv.symbol, inv.name)
       fetchChart(inv.symbol, '1m')
       fetchStockDetail(inv.symbol)
     }

@@ -29,46 +29,39 @@ const GOLD_TYPES = {
   'GOLD_CUMHUR':  { label: 'Cumhuriyet Altını', grams: 7.216, purity: 0.917 },
 }
 
+const NEWS_API_KEY = 'ab1cca05adfb453e9a168f032d04055d'
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const symbol  = searchParams.get('symbol')
   const search  = searchParams.get('search')
   const history = searchParams.get('history')
   const news    = searchParams.get('news')
+  const name    = searchParams.get('name')
   const period  = searchParams.get('period') || '1m'
 
   // ── NEWS ─────────────────────────────────────────────────────────
-if (news) {
-  try {
-    const res = await fetch(
-      `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${news}&region=US&lang=en-US`,
-      { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml' } }
-    )
-    const xml = await res.text()
-    
-    // Parse RSS XML
-    const items = []
-    const itemMatches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g)
-    for (const match of itemMatches) {
-      const item = match[1]
-      const title     = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || item.match(/<title>(.*?)<\/title>/)?.[1] || ''
-      const link      = item.match(/<link>(.*?)<\/link>/)?.[1] || ''
-      const pubDate   = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
-      const publisher = item.match(/<source[^>]*>(.*?)<\/source>/)?.[1] || 'Yahoo Finance'
-      
-      if (title) items.push({
-        title,
-        link,
-        publisher,
-        time: pubDate ? Math.floor(new Date(pubDate).getTime() / 1000) : 0,
-        thumbnail: null,
-      })
+  if (news) {
+    try {
+      // Use company name if available, else symbol
+      const query = encodeURIComponent(name || news)
+      const res = await fetch(
+        `https://newsapi.org/v2/everything?q=${query}&sortBy=publishedAt&pageSize=6&language=en`,
+        { headers: { 'X-Api-Key': NEWS_API_KEY } }
+      )
+      const data = await res.json()
+      const items = (data?.articles || []).slice(0, 6).map(a => ({
+        title:     a.title,
+        link:      a.url,
+        publisher: a.source?.name || '',
+        time:      Math.floor(new Date(a.publishedAt).getTime() / 1000),
+        thumbnail: a.urlToImage || null,
+      }))
+      return Response.json(items)
+    } catch {
+      return Response.json([])
     }
-    return Response.json(items.slice(0, 6))
-  } catch {
-    return Response.json([])
   }
-}
 
   // ── SEARCH ───────────────────────────────────────────────────────
   if (search) {
@@ -111,7 +104,6 @@ if (news) {
       const result = data?.chart?.result?.[0]
       if (!result) return Response.json({ candles: [] })
 
-      // Yahoo Finance uses 'timestamp' (not 'timestamps')
       const timestamps = result.timestamp || []
       const quote = result.indicators?.quote?.[0] || {}
       const currency = result.meta?.currency || 'USD'
