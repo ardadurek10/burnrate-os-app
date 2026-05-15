@@ -40,31 +40,31 @@ export async function GET(request) {
   // ── NEWS ─────────────────────────────────────────────────────────
 if (news) {
   try {
-    // Try both v1 and v2 endpoints
-    const [res1, res2] = await Promise.all([
-      fetch(
-        `https://query1.finance.yahoo.com/v1/finance/search?q=${news}&quotesCount=0&newsCount=8`,
-        { headers: { 'User-Agent': 'Mozilla/5.0' } }
-      ).then(r=>r.json()).catch(()=>({news:[]})),
-      fetch(
-        `https://query2.finance.yahoo.com/v1/finance/search?q=${news}&quotesCount=0&newsCount=8`,
-        { headers: { 'User-Agent': 'Mozilla/5.0' } }
-      ).then(r=>r.json()).catch(()=>({news:[]})),
-    ])
-    const all = [...(res1?.news||[]), ...(res2?.news||[])]
-    const seen = new Set()
-    const unique = all.filter(n => {
-      if (seen.has(n.uuid)) return false
-      seen.add(n.uuid); return true
-    })
-    const items = unique.slice(0,6).map(n => ({
-      title:     n.title,
-      link:      n.link,
-      publisher: n.publisher,
-      time:      n.providerPublishTime,
-      thumbnail: n.thumbnail?.resolutions?.[0]?.url || null,
-    }))
-    return Response.json(items)
+    const res = await fetch(
+      `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${news}&region=US&lang=en-US`,
+      { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml' } }
+    )
+    const xml = await res.text()
+    
+    // Parse RSS XML
+    const items = []
+    const itemMatches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g)
+    for (const match of itemMatches) {
+      const item = match[1]
+      const title     = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || item.match(/<title>(.*?)<\/title>/)?.[1] || ''
+      const link      = item.match(/<link>(.*?)<\/link>/)?.[1] || ''
+      const pubDate   = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+      const publisher = item.match(/<source[^>]*>(.*?)<\/source>/)?.[1] || 'Yahoo Finance'
+      
+      if (title) items.push({
+        title,
+        link,
+        publisher,
+        time: pubDate ? Math.floor(new Date(pubDate).getTime() / 1000) : 0,
+        thumbnail: null,
+      })
+    }
+    return Response.json(items.slice(0, 6))
   } catch {
     return Response.json([])
   }
