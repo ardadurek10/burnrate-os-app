@@ -1202,9 +1202,9 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
     setLoadingNews(true)
     setStockNews([])
     try {
-      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${symbol}&quotesCount=0&newsCount=5`, {headers:{'User-Agent':'Mozilla/5.0'}})
+      const res = await fetch(`/api/stocks?news=${symbol}`)
       const data = await res.json()
-      setStockNews(data?.news?.slice(0,5) || [])
+      setStockNews(Array.isArray(data) ? data : [])
     } catch {}
     setLoadingNews(false)
   }
@@ -1539,12 +1539,12 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                     <a key={i} href={news.link} target="_blank" rel="noreferrer" style={{display:'flex',gap:'12px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',textDecoration:'none',transition:'background 0.15s'}}
                       onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}
                       onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'}>
-                      {news.thumbnail?.resolutions?.[0]?.url && (
-                        <img src={news.thumbnail.resolutions[0].url} alt="" style={{width:'56px',height:'42px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                      {news.thumbnail && (
+                        <img src={news.thumbnail} alt="" style={{width:'56px',height:'42px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
                       )}
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT,lineHeight:'1.4',marginBottom:'3px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{news.title}</div>
-                        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'11px',fontFamily:FONT}}>{news.publisher} · {new Date(news.providerPublishTime*1000).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</div>
+                        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'11px',fontFamily:FONT}}>{news.publisher} · {new Date(news.time*1000).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</div>
                       </div>
                     </a>
                   ))}
