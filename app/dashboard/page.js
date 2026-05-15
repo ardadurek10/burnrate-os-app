@@ -1706,4 +1706,4 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
       </Card>
     </div>
   )
-}
+} 
