@@ -103,9 +103,9 @@ const LOGO_SVG = (size = 32) => (
 
 // ── PLAN CONFIG ───────────────────────────────────────────────────
 const PLAN_ACCESS = {
-  starter: ['dashboard', 'spending', 'balance'],
-  pro:     ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai'],
-  elite:   ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'investments', 'summary'],
+  starter: ['dashboard', 'spending', 'balance', 'settings'],
+  pro:     ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'settings'],
+  elite:   ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'investments', 'summary', 'settings'],
 }
 
 const PLAN_META = {
@@ -115,8 +115,8 @@ const PLAN_META = {
 }
 
 const WHOP_UPGRADE_LINKS = {
-  starter: 'https://whop.com/checkout/plan_69Su8P5fb8BKc',
-  pro:     'https://whop.com/checkout/plan_SFjoNXODXAH6j',
+  starter: '/checkout?plan=pro',
+  pro:     '/checkout?plan=elite',
   elite:   null,
 }
 
@@ -520,7 +520,7 @@ export default function Dashboard() {
         </div>
 
         <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'14px'}}>
-          <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
+          <div sttton onClickyle={{paddingLeft:'8px',marginBottom:'10px'}}>
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>{user.email}</div>
           </div>
@@ -528,10 +528,10 @@ export default function Dashboard() {
             style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.2)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
             {lang==='tr'?'⚙️ Aboneliği Yönet':'⚙️ Manage Subscription'}
           </button>
-          <button onClick={() => { localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }}
-            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.25)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
-            {lang==='tr'?'Çıkış Yap →':'Sign out →'}
-          </button>
+          <button onClick={()=>navigateTo('settings')}
+  style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:page==='settings'?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',background:page==='settings'?'rgba(255,255,255,0.05)':'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
+  ⚙️ {lang==='tr'?'Ayarlar':'Settings'}
+</button>
         </div>
       </div>
 
@@ -544,7 +544,8 @@ export default function Dashboard() {
         {page==='balance'       && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
         {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
-        {page==='ai'            && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
+        {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
+{page==='settings' && <SettingsPage theme={THEMES.dashboard} user={user} lang={lang} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -2176,6 +2177,347 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
             style={{width:'42px',height:'42px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0}}>↑</button>
         </div>
       </Card>
+    </div>
+  )
+}
+// ── SETTINGS PAGE ─────────────────────────────────────────────────
+function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
+  const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+
+  const [dbUser, setDbUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [activeSection, setActiveSection] = useState('profile')
+  const [canceling, setCanceling] = useState(false)
+
+  const [profileForm, setProfileForm] = useState({ name: '', profession: '', monthly_income: '' })
+  const [prefForm, setPrefForm] = useState({ currency: 'TRY' })
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+
+  useEffect(() => { fetchDbUser() }, [])
+
+  async function fetchDbUser() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    })
+    const data = await res.json()
+    if (data[0]) {
+      setDbUser(data[0])
+      setProfileForm({ name: data[0].name || '', profession: data[0].profession || '', monthly_income: data[0].monthly_income || '' })
+      setPrefForm({ currency: data[0].currency || 'TRY' })
+    }
+    setLoading(false)
+  }
+
+  async function saveProfile() {
+    setSaving(true)
+    setMessage('')
+    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ name: profileForm.name, profession: profileForm.profession, monthly_income: parseFloat(profileForm.monthly_income) || null })
+    })
+    const updated = JSON.parse(localStorage.getItem('burnrate_user') || '{}')
+    updated.name = profileForm.name
+    localStorage.setItem('burnrate_user', JSON.stringify(updated))
+    setMessage(lang === 'tr' ? '✓ Profil kaydedildi' : '✓ Profile saved')
+    setSaving(false)
+    setTimeout(() => setMessage(''), 3000)
+  }
+
+  async function savePrefs() {
+    setSaving(true)
+    setMessage('')
+    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ currency: prefForm.currency })
+    })
+    setMessage(lang === 'tr' ? '✓ Tercihler kaydedildi' : '✓ Preferences saved')
+    setSaving(false)
+    setTimeout(() => setMessage(''), 3000)
+  }
+
+  async function handleCancel() {
+    if (!dbUser?.stripe_sub_id) return
+    if (!confirm(lang === 'tr' ? 'Aboneliğinizi iptal etmek istediğinizden emin misiniz?' : 'Are you sure you want to cancel?')) return
+    setCanceling(true)
+    const res = await fetch('/api/stripe/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setMessage(lang === 'tr' ? '✓ Abonelik iptal edildi. Dönem sonuna kadar erişiminiz devam eder.' : '✓ Subscription canceled. Access continues until period end.')
+      fetchDbUser()
+    } else {
+      setMessage('Error: ' + (data.error || 'Something went wrong'))
+    }
+    setCanceling(false)
+    setTimeout(() => setMessage(''), 5000)
+  }
+
+  async function handleDeleteData() {
+    if (deleteConfirm !== 'SİL' && deleteConfirm !== 'DELETE') return
+    if (!confirm(lang === 'tr' ? 'Tüm verileriniz silinecek. Emin misiniz?' : 'All your data will be deleted. Are you sure?')) return
+    await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${user.id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }),
+      fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${user.id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }),
+      fetch(`${SUPABASE_URL}/rest/v1/income?user_id=eq.${user.id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }),
+      fetch(`${SUPABASE_URL}/rest/v1/investments?user_id=eq.${user.id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }),
+    ])
+    setMessage(lang === 'tr' ? '✓ Tüm veriler silindi' : '✓ All data deleted')
+    setDeleteConfirm('')
+    setTimeout(() => setMessage(''), 3000)
+  }
+
+  const PLAN_META_LOCAL = {
+    starter: { name: 'Starter', color: '#06b6d4', price: '$9/mo' },
+    pro:     { name: 'Pro',     color: '#7c3aed', price: '$19/mo' },
+    elite:   { name: 'Elite',   color: '#f59e0b', price: '$39/mo' },
+  }
+
+  const currentPlan = dbUser?.plan || user?.plan || 'starter'
+  const planMeta = PLAN_META_LOCAL[currentPlan]
+  const expiresAt = dbUser?.plan_expires_at ? new Date(dbUser.plan_expires_at).toLocaleDateString('tr-TR') : null
+
+  const sections = [
+    { id: 'profile',  icon: '👤', label: lang === 'tr' ? 'Profil' : 'Profile' },
+    { id: 'plan',     icon: '💳', label: lang === 'tr' ? 'Plan & Abonelik' : 'Plan & Billing' },
+    { id: 'prefs',    icon: '🌍', label: lang === 'tr' ? 'Tercihler' : 'Preferences' },
+    { id: 'security', icon: '🔒', label: lang === 'tr' ? 'Güvenlik' : 'Security' },
+    { id: 'danger',   icon: '⚠️', label: lang === 'tr' ? 'Tehlike Bölgesi' : 'Danger Zone' },
+  ]
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 40, height: 40, border: '3px solid rgba(124,58,237,0.2)', borderTop: '3px solid #7c3aed', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+    </div>
+  )
+
+  return (
+    <div className="page-pad" style={{ padding: '36px' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ color: theme.text, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.4px', margin: 0, marginBottom: '4px', fontFamily: FONT }}>
+          ⚙️ {lang === 'tr' ? 'Ayarlar' : 'Settings'}
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '13px', margin: 0, fontFamily: FONT }}>
+          {lang === 'tr' ? 'Hesabınızı ve tercihlerinizi yönetin' : 'Manage your account and preferences'}
+        </p>
+      </div>
+
+      {message && (
+        <div style={{ background: message.startsWith('Error') || message.startsWith('Hata') ? 'rgba(239,68,68,0.1)' : 'rgba(124,58,237,0.1)', border: `1px solid ${message.startsWith('Error') || message.startsWith('Hata') ? 'rgba(239,68,68,0.3)' : 'rgba(124,58,237,0.3)'}`, borderRadius: 10, padding: '12px 18px', color: message.startsWith('Error') || message.startsWith('Hata') ? '#ef4444' : '#c4b5fd', marginBottom: 20, fontSize: 13, fontFamily: FONT }}>
+          {message}
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 20 }}>
+        {/* Sol menü */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {sections.map(s => (
+            <button key={s.id} onClick={() => setActiveSection(s.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400, background: activeSection === s.id ? 'rgba(124,58,237,0.1)' : 'transparent', color: activeSection === s.id ? '#c4b5fd' : 'rgba(255,255,255,0.4)', border: activeSection === s.id ? '1px solid rgba(124,58,237,0.3)' : '1px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: FONT, transition: 'all 0.15s' }}>
+              <span>{s.icon}</span> {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* İçerik */}
+        <div>
+
+          {/* PROFİL */}
+          {activeSection === 'profile' && (
+            <Card accent={theme.accent} style={{ padding: 24 }}>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
+                {lang === 'tr' ? 'Profil Bilgileri' : 'Profile Information'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
+                <div>
+                  <div style={{ ...TIP, marginBottom: 6 }}>{lang === 'tr' ? 'Ad Soyad' : 'Full Name'}</div>
+                  <input value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                    placeholder={lang === 'tr' ? 'Adınız...' : 'Your name...'}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: FONT }} />
+                </div>
+                <div>
+                  <div style={{ ...TIP, marginBottom: 6 }}>{lang === 'tr' ? 'Meslek' : 'Profession'}</div>
+                  <select value={profileForm.profession} onChange={e => setProfileForm({ ...profileForm, profession: e.target.value })}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(30,30,50,0.9)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer' }}>
+                    <option value="">{lang === 'tr' ? 'Seçin...' : 'Select...'}</option>
+                    {['Freelancer', lang === 'tr' ? 'Öğrenci' : 'Student', lang === 'tr' ? 'Girişimci' : 'Entrepreneur', lang === 'tr' ? 'Çalışan' : 'Employee', lang === 'tr' ? 'Serbest Meslek' : 'Self-employed', lang === 'tr' ? 'Diğer' : 'Other'].map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <div style={{ ...TIP, marginBottom: 6 }}>{lang === 'tr' ? 'Aylık Gelir Hedefi (₺)' : 'Monthly Income Target (₺)'}</div>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontFamily: MONO }}>₺</span>
+                    <input type="number" value={profileForm.monthly_income} onChange={e => setProfileForm({ ...profileForm, monthly_income: e.target.value })}
+                      placeholder="0"
+                      style={{ width: '100%', padding: '10px 14px 10px 28px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: MONO }} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{ ...TIP, marginBottom: 6 }}>E-posta</div>
+                  <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontFamily: FONT }}>
+                    {user.email}
+                  </div>
+                </div>
+              </div>
+              <button onClick={saveProfile} disabled={saving}
+                style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg,#7c3aed,#4c1d95)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, fontFamily: FONT }}>
+                {saving ? (lang === 'tr' ? 'Kaydediliyor...' : 'Saving...') : (lang === 'tr' ? 'Kaydet' : 'Save Changes')}
+              </button>
+            </Card>
+          )}
+
+          {/* PLAN & ABONELİK */}
+          {activeSection === 'plan' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <Card accent={theme.accent} style={{ padding: 24 }}>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
+                  {lang === 'tr' ? 'Aktif Plan' : 'Current Plan'}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <span style={{ color: '#fff', fontSize: 24, fontWeight: 800, fontFamily: FONT }}>{planMeta.name}</span>
+                      <span style={{ background: `${planMeta.color}20`, color: planMeta.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>AKTİF</span>
+                    </div>
+                    {expiresAt && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, fontFamily: FONT }}>{lang === 'tr' ? 'Sonraki yenileme:' : 'Next renewal:'} {expiresAt}</div>}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: planMeta.color, fontSize: 28, fontWeight: 800, fontFamily: MONO }}>{planMeta.price}</div>
+                  </div>
+                </div>
+                {dbUser?.stripe_customer_id && (
+                  <a href="/billing" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'rgba(255,255,255,0.06)', color: '#fff', textDecoration: 'none', fontFamily: FONT, marginRight: 10 }}>
+                    {lang === 'tr' ? '🧾 Faturaları Görüntüle' : '🧾 View Invoices'}
+                  </a>
+                )}
+                {dbUser?.stripe_sub_id && (
+                  <button onClick={handleCancel} disabled={canceling}
+                    style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', cursor: canceling ? 'not-allowed' : 'pointer', fontFamily: FONT, opacity: canceling ? 0.6 : 1 }}>
+                    {canceling ? (lang === 'tr' ? 'İptal ediliyor...' : 'Canceling...') : (lang === 'tr' ? 'Aboneliği İptal Et' : 'Cancel Subscription')}
+                  </button>
+                )}
+              </Card>
+
+              <Card accent={theme.accent} style={{ padding: 24 }}>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 16, fontFamily: FONT }}>
+                  {lang === 'tr' ? 'Plan Değiştir' : 'Change Plan'}
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {[['starter', 'Starter', '$9'], ['pro', 'Pro', '$19'], ['elite', 'Elite', '$39']].map(([key, name, price]) => (
+                    <div key={key} onClick={() => key !== currentPlan && (window.location.href = `/checkout?plan=${key}`)}
+                      style={{ flex: 1, padding: '16px 12px', borderRadius: 12, background: key === currentPlan ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.03)', border: key === currentPlan ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.07)', cursor: key === currentPlan ? 'default' : 'pointer', textAlign: 'center', transition: 'all 0.15s' }}>
+                      <div style={{ color: key === currentPlan ? '#c4b5fd' : '#fff', fontWeight: 700, fontSize: 14, fontFamily: FONT }}>{name}</div>
+                      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: MONO }}>{price}/mo</div>
+                      {key === currentPlan && <div style={{ color: '#7c3aed', fontSize: 10, marginTop: 4, fontFamily: FONT }}>✓ {lang === 'tr' ? 'Mevcut' : 'Current'}</div>}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* TERCİHLER */}
+          {activeSection === 'prefs' && (
+            <Card accent={theme.accent} style={{ padding: 24 }}>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
+                {lang === 'tr' ? 'Dil & Para Birimi' : 'Language & Currency'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+                <div>
+                  <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Arayüz Dili' : 'Interface Language'}</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {['tr', 'en'].map(l => (
+                      <button key={l} onClick={() => onLangChange(l)}
+                        style={{ flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: lang === l ? 700 : 400, background: lang === l ? '#7c3aed' : 'rgba(255,255,255,0.04)', color: lang === l ? '#fff' : 'rgba(255,255,255,0.4)', border: `1px solid ${lang === l ? '#7c3aed' : 'rgba(255,255,255,0.09)'}`, cursor: 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}>
+                        {l === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Para Birimi' : 'Currency'}</div>
+                  <select value={prefForm.currency} onChange={e => setPrefForm({ ...prefForm, currency: e.target.value })}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(30,30,50,0.9)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer' }}>
+                    <option value="TRY">🇹🇷 TRY — Türk Lirası</option>
+                    <option value="USD">🇺🇸 USD — US Dollar</option>
+                    <option value="EUR">🇪🇺 EUR — Euro</option>
+                    <option value="GBP">🇬🇧 GBP — British Pound</option>
+                  </select>
+                </div>
+              </div>
+              <button onClick={savePrefs} disabled={saving}
+                style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg,#7c3aed,#4c1d95)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, fontFamily: FONT }}>
+                {saving ? (lang === 'tr' ? 'Kaydediliyor...' : 'Saving...') : (lang === 'tr' ? 'Kaydet' : 'Save')}
+              </button>
+            </Card>
+          )}
+
+          {/* GÜVENLİK */}
+          {activeSection === 'security' && (
+            <Card accent={theme.accent} style={{ padding: 24 }}>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
+                {lang === 'tr' ? 'Hesap Bilgileri' : 'Account Information'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+                {[
+                  { label: 'E-posta', value: user.email },
+                  { label: lang === 'tr' ? 'Kullanıcı ID' : 'User ID', value: user.id, mono: true },
+                  { label: lang === 'tr' ? 'Lisans Anahtarı' : 'License Key', value: dbUser?.license_key || '—', mono: true },
+                  { label: 'Stripe Customer ID', value: dbUser?.stripe_customer_id || lang === 'tr' ? 'Henüz yok' : 'Not yet', mono: true },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: FONT }}>{item.label}</span>
+                    <span style={{ color: '#f5f5f7', fontSize: 12, fontFamily: item.mono ? MONO : FONT, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <button onClick={onSignOut}
+                  style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'transparent', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontFamily: FONT }}>
+                  {lang === 'tr' ? 'Çıkış Yap →' : 'Sign Out →'}
+                </button>
+              </div>
+            </Card>
+          )}
+
+          {/* TEHLİKE BÖLGESİ */}
+          {activeSection === 'danger' && (
+            <Card style={{ padding: 24, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.03)' }}>
+              <div style={{ color: '#fca5a5', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
+                ⚠️ {lang === 'tr' ? 'Tehlike Bölgesi' : 'Danger Zone'}
+              </div>
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ color: '#f5f5f7', fontSize: 14, fontWeight: 600, marginBottom: 6, fontFamily: FONT }}>
+                  {lang === 'tr' ? 'Tüm Verileri Sil' : 'Delete All Data'}
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 14, fontFamily: FONT }}>
+                  {lang === 'tr' ? 'Tüm harcama, gelir, abonelik ve yatırım verileriniz silinir. Bu işlem geri alınamaz.' : 'All your expenses, income, subscriptions and investments will be deleted. This cannot be undone.'}
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)}
+                    placeholder={lang === 'tr' ? '"SİL" yazın' : 'Type "DELETE" to confirm'}
+                    style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(239,68,68,0.2)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT }} />
+                  <button onClick={handleDeleteData}
+                    disabled={deleteConfirm !== 'SİL' && deleteConfirm !== 'DELETE'}
+                    style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.1)', color: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#fff' : 'rgba(239,68,68,0.4)', border: 'none', cursor: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
+                    {lang === 'tr' ? 'Sil' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+        </div>
+      </div>
     </div>
   )
 }
