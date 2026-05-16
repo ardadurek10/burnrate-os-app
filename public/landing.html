@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BurnRate OS — Financial Command Center</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0f;--bg2:#0f0f18;--bg3:#13131f;
+    --violet:#7c3aed;--violet-light:#a78bfa;--violet-dim:rgba(124,58,237,0.15);
+    --red:#ef4444;--amber:#f59e0b;--green:#10b981;--cyan:#06b6d4;
+    --rose:#f43f5e;--indigo:#8b5cf6;
+    --text:#f1f0ff;--text2:#a09ab8;--text3:#5c5680;
+    --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none;}
+  .cursor{position:fixed;width:8px;height:8px;background:var(--violet-light);border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.1s ease;mix-blend-mode:screen;}
+  .cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(167,139,250,0.4);border-radius:50%;pointer-events:none;z-index:9998;transition:all 0.15s ease;}
+  #grid-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0.4;}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:all 0.3s ease;}
+  .nav-logo{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--text);letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;text-decoration:none;}
+  .nav-logo-dot{width:8px;height:8px;background:var(--violet);border-radius:50%;box-shadow:0 0 12px var(--violet);animation:pulse-dot 2s infinite;}
+  @keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 12px var(--violet)}50%{opacity:0.6;box-shadow:0 0 20px var(--violet)}}
+  .nav-links{display:flex;align-items:center;gap:40px;list-style:none;}
+  .nav-links a{color:var(--text2);text-decoration:none;font-size:14px;transition:color 0.2s;}
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{display:flex;align-items:center;gap:12px;}
+  .lang-toggle{display:flex;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:8px;overflow:hidden;}
+  .lang-btn{padding:6px 12px;font-size:12px;font-family:'DM Mono',monospace;font-weight:500;color:var(--text3);background:transparent;border:none;cursor:none;transition:all 0.2s;letter-spacing:0.05em;}
+  .lang-btn.active{background:var(--violet);color:#fff;}
+  .btn-ghost{color:var(--text2);text-decoration:none;font-size:14px;padding:8px 16px;border-radius:8px;transition:all 0.2s;}
+  .btn-ghost:hover{color:var(--text);background:var(--border);}
+  .btn-primary{background:var(--violet);color:#fff;text-decoration:none;font-size:14px;font-weight:500;padding:10px 22px;border-radius:10px;transition:all 0.2s;box-shadow:0 0 30px rgba(124,58,237,0.4);border:none;cursor:none;}
+  .btn-primary:hover{background:#6d28d9;box-shadow:0 0 50px rgba(124,58,237,0.6);transform:translateY(-1px);}
+  section{position:relative;z-index:1;}
+  .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 60px 80px;text-align:center;}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:100px;padding:6px 16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--violet-light);margin-bottom:40px;animation:fadeUp 0.8s ease both;}
+  .hero-badge-dot{width:6px;height:6px;background:var(--violet-light);border-radius:50%;animation:pulse-dot 1.5s infinite;}
+  .hero-title{font-size:clamp(52px,7vw,88px);font-weight:700;line-height:1.0;letter-spacing:-0.04em;margin-bottom:28px;animation:fadeUp 0.8s 0.1s ease both;max-width:900px;}
+  .hero-title-accent{background:linear-gradient(135deg,var(--violet-light) 0%,var(--indigo) 50%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero-sub{font-size:19px;color:var(--text2);max-width:540px;line-height:1.6;font-weight:300;margin-bottom:52px;animation:fadeUp 0.8s 0.2s ease both;}
+  .hero-actions{display:flex;align-items:center;gap:16px;animation:fadeUp 0.8s 0.3s ease both;margin-bottom:80px;}
+  .btn-hero{background:var(--violet);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:16px 36px;border-radius:12px;transition:all 0.25s;box-shadow:0 0 60px rgba(124,58,237,0.5),0 4px 24px rgba(0,0,0,0.4);border:none;cursor:none;display:flex;align-items:center;gap:10px;}
+  .btn-hero:hover{box-shadow:0 0 80px rgba(124,58,237,0.7),0 8px 32px rgba(0,0,0,0.5);transform:translateY(-2px);}
+  .btn-hero-outline{background:transparent;color:var(--text2);text-decoration:none;font-size:16px;font-weight:400;padding:16px 36px;border-radius:12px;border:1px solid var(--border2);transition:all 0.25s;cursor:none;}
+  .btn-hero-outline:hover{color:var(--text);border-color:rgba(255,255,255,0.2);background:var(--border);}
+  .hero-stats{display:flex;align-items:center;animation:fadeUp 0.8s 0.4s ease both;}
+  .hero-stat{padding:0 40px;border-right:1px solid var(--border);}
+  .hero-stat:first-child{padding-left:0;}
+  .hero-stat:last-child{padding-right:0;border-right:none;}
+  .hero-stat-num{font-family:'DM Mono',monospace;font-size:32px;font-weight:500;color:var(--text);display:block;line-height:1;margin-bottom:6px;}
+  .hero-stat-label{font-size:13px;color:var(--text3);letter-spacing:0.05em;text-transform:uppercase;}
+  .dashboard-preview{padding:0 60px 140px;position:relative;z-index:1;}
+  .preview-container{max-width:1200px;margin:0 auto;position:relative;}
+  .preview-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse at 50% 60%,rgba(124,58,237,0.12) 0%,transparent 70%);pointer-events:none;}
+  .preview-frame{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,0.6),0 0 0 1px var(--border);opacity:0;transform:translateY(40px) scale(0.97);transition:all 0.9s cubic-bezier(0.16,1,0.3,1);}
+  .preview-frame.visible{opacity:1;transform:translateY(0) scale(1);}
+  .frame-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:8px;}
+  .frame-dot{width:12px;height:12px;border-radius:50%;}
+  .frame-url{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);margin:0 40px;text-align:center;}
+  .mini-dashboard{display:grid;grid-template-columns:200px 1fr;min-height:480px;}
+  .mini-sidebar{background:rgba(255,255,255,0.02);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:4px;}
+  .mini-nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13px;color:var(--text3);cursor:default;}
+  .mini-nav-item.active{background:rgba(124,58,237,0.15);color:var(--violet-light);}
+  .mini-nav-dot{width:8px;height:8px;border-radius:50%;}
+  .mini-content{padding:28px;display:flex;flex-direction:column;gap:20px;}
+  .mini-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .mini-stat{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .mini-stat-label{font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;}
+  .mini-stat-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;}
+  .mini-chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .mini-chart-box{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px;height:140px;overflow:hidden;}
+  .mini-chart-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;}
+  .bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;}
+  .bar{flex:1;border-radius:3px 3px 0 0;animation:growBar 1s ease both;}
+  @keyframes growBar{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
+  .features{padding:140px 60px;max-width:1200px;margin:0 auto;}
+  .section-label{font-family:'DM Mono',monospace;font-size:12px;color:var(--violet-light);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+  .section-label::before{content:'';width:24px;height:1px;background:var(--violet-light);}
+  .section-title{font-size:clamp(36px,4vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1.1;margin-bottom:16px;}
+  .section-sub{font-size:18px;color:var(--text2);font-weight:300;max-width:480px;line-height:1.6;margin-bottom:72px;}
+  .features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+  .feature-card{background:var(--bg);padding:36px 28px;transition:background 0.3s;position:relative;overflow:hidden;}
+  .feature-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,var(--card-glow,transparent),transparent 60%);opacity:0;transition:opacity 0.4s;}
+  .feature-card:hover::before{opacity:1;}
+  .feature-card:hover{background:var(--bg2);}
+  .feature-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:20px;border:1px solid var(--border2);}
+  .feature-name{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--text);}
+  .feature-desc{font-size:13px;color:var(--text3);line-height:1.6;font-weight:300;}
+  .feature-tag{display:inline-block;margin-top:16px;font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:100px;letter-spacing:0.05em;}
+  .pricing{padding:140px 60px;position:relative;}
+  .pricing-inner{max-width:1100px;margin:0 auto;}
+  .pricing-header{text-align:center;margin-bottom:72px;}
+  .pricing-toggle{display:inline-flex;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;padding:4px;margin-bottom:64px;}
+  .toggle-opt{padding:8px 24px;border-radius:100px;font-size:14px;color:var(--text3);cursor:none;transition:all 0.3s;border:none;background:none;}
+  .toggle-opt.active{color:var(--text);background:var(--violet);}
+  .toggle-save{font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-left:6px;background:rgba(16,185,129,0.1);padding:2px 8px;border-radius:100px;border:1px solid rgba(16,185,129,0.2);}
+  .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;}
+  .pricing-card{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:36px 32px;position:relative;transition:all 0.3s;opacity:0;transform:translateY(30px);}
+  .pricing-card.visible{opacity:1;transform:translateY(0);}
+  .pricing-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-4px);box-shadow:0 30px 80px rgba(0,0,0,0.4);}
+  .pricing-card.featured{border-color:var(--violet);background:linear-gradient(160deg,rgba(124,58,237,0.08) 0%,var(--bg2) 100%);box-shadow:0 0 0 1px var(--violet),0 40px 100px rgba(124,58,237,0.2);transform:translateY(-8px) scale(1.02);}
+  .pricing-card.featured:hover{transform:translateY(-12px) scale(1.02);}
+  .pricing-card.featured.visible{transform:translateY(-8px) scale(1.02);}
+  .pricing-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--violet);color:#fff;font-size:11px;font-weight:600;padding:5px 18px;border-radius:100px;letter-spacing:0.05em;white-space:nowrap;box-shadow:0 0 20px rgba(124,58,237,0.5);}
+  .plan-name{font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;}
+  .plan-price{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
+  .plan-price-currency{font-size:20px;color:var(--text2);font-weight:300;}
+  .plan-price-num{font-family:'DM Mono',monospace;font-size:52px;font-weight:500;color:var(--text);letter-spacing:-0.04em;line-height:1;}
+  .plan-price-period{font-size:14px;color:var(--text3);}
+  .plan-desc{font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.5;}
+  .plan-divider{height:1px;background:var(--border);margin-bottom:28px;}
+  .plan-features-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:36px;}
+  .plan-feature-item{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text2);line-height:1.4;}
+  .check{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:10px;}
+  .check.on{background:rgba(124,58,237,0.2);color:var(--violet-light);}
+  .check.off{background:var(--border);color:var(--text3);}
+  .plan-cta{display:block;text-align:center;padding:14px;border-radius:12px;font-size:15px;font-weight:600;text-decoration:none;transition:all 0.25s;cursor:none;border:none;width:100%;}
+  .plan-cta.ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+  .plan-cta.ghost:hover{border-color:rgba(255,255,255,0.2);color:var(--text);background:var(--border);}
+  .plan-cta.solid{background:var(--violet);color:#fff;box-shadow:0 0 40px rgba(124,58,237,0.4);}
+  .plan-cta.solid:hover{box-shadow:0 0 60px rgba(124,58,237,0.6);transform:translateY(-1px);}
+  .modules{padding:140px 60px;max-width:1200px;margin:0 auto;}
+  .modules-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .module-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;display:flex;align-items:flex-start;gap:20px;transition:all 0.3s;position:relative;overflow:hidden;opacity:0;transform:translateX(-20px);}
+  .module-card:nth-child(even){transform:translateX(20px);}
+  .module-card.visible{opacity:1;transform:translateX(0)!important;}
+  .module-card:hover{border-color:rgba(255,255,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+  .module-card::after{content:'';position:absolute;bottom:0;right:0;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,var(--mc,transparent),transparent 70%);opacity:0.15;}
+  .module-icon-wrap{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--border);}
+  .module-info{flex:1;}
+  .module-title{font-size:16px;font-weight:600;margin-bottom:6px;}
+  .module-desc{font-size:13px;color:var(--text3);line-height:1.6;font-weight:300;}
+  .module-plan{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:100px;margin-top:12px;display:inline-block;letter-spacing:0.05em;}
+  .social-proof{padding:140px 60px;text-align:center;}
+  .testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto;text-align:left;}
+  .testimonial-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all 0.3s;}
+  .testimonial-card:hover{border-color:var(--border2);transform:translateY(-4px);}
+  .testimonial-stars{color:var(--amber);font-size:14px;margin-bottom:16px;letter-spacing:2px;}
+  .testimonial-text{font-size:14px;color:var(--text2);line-height:1.7;font-style:italic;margin-bottom:20px;font-weight:300;}
+  .testimonial-author{display:flex;align-items:center;gap:12px;}
+  .author-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;}
+  .author-name{font-size:14px;font-weight:500;color:var(--text);}
+  .author-role{font-size:12px;color:var(--text3);}
+  .faq{padding:140px 60px;max-width:720px;margin:0 auto;}
+  .faq-header{text-align:center;margin-bottom:64px;}
+  .faq-item{border-bottom:1px solid var(--border);overflow:hidden;}
+  .faq-question{width:100%;background:none;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;text-align:left;padding:24px 0;cursor:none;display:flex;align-items:center;justify-content:space-between;gap:20px;transition:color 0.2s;}
+  .faq-question:hover{color:var(--violet-light);}
+  .faq-icon{font-size:20px;color:var(--text3);transition:transform 0.3s,color 0.2s;flex-shrink:0;}
+  .faq-item.open .faq-icon{transform:rotate(45deg);color:var(--violet-light);}
+  .faq-answer{font-size:14px;color:var(--text2);line-height:1.8;font-weight:300;max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease;}
+  .faq-item.open .faq-answer{max-height:300px;padding-bottom:24px;}
+  .cta-band{padding:140px 60px;text-align:center;position:relative;overflow:hidden;}
+  .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(124,58,237,0.2) 0%,transparent 70%);pointer-events:none;}
+  .cta-title{font-size:clamp(40px,5vw,64px);font-weight:700;letter-spacing:-0.03em;line-height:1.1;margin-bottom:24px;}
+  .cta-sub{font-size:18px;color:var(--text2);font-weight:300;margin-bottom:48px;}
+  .ticker-wrap{overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;background:rgba(255,255,255,0.01);}
+  .ticker{display:flex;animation:ticker 30s linear infinite;white-space:nowrap;}
+  .ticker-item{display:inline-flex;align-items:center;gap:32px;padding:0 40px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);border-right:1px solid var(--border);}
+  .ticker-item span{color:var(--green);font-size:10px;}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .highlight-line{display:inline-flex;align-items:center;gap:12px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);margin-top:20px;}
+  .highlight-line::before,.highlight-line::after{content:'';width:30px;height:1px;background:var(--border2);}
+  footer{border-top:1px solid var(--border);padding:60px 60px 40px;position:relative;z-index:1;}
+  .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:60px;margin-bottom:60px;}
+  .footer-brand p{font-size:14px;color:var(--text3);line-height:1.7;margin-top:16px;font-weight:300;}
+  .footer-col-title{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;}
+  .footer-links{list-style:none;display:flex;flex-direction:column;gap:12px;}
+  .footer-links a{color:var(--text3);text-decoration:none;font-size:14px;transition:color 0.2s;cursor:none;}
+  .footer-links a:hover{color:var(--text2);}
+  .footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:40px;border-top:1px solid var(--border);font-size:13px;color:var(--text3);}
+  .social-links{display:flex;gap:20px;}
+  .social-links a{color:var(--text3);text-decoration:none;font-family:'DM Mono',monospace;font-size:12px;transition:color 0.2s;}
+  .social-links a:hover{color:var(--text2);}
+
+  /* POLICY MODAL */
+  .policy-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+  .policy-overlay.open{opacity:1;pointer-events:all;}
+  .policy-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;max-width:640px;width:100%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 40px 120px rgba(0,0,0,0.6);transform:translateY(20px);transition:transform 0.3s;}
+  .policy-overlay.open .policy-box{transform:translateY(0);}
+  .policy-head{display:flex;align-items:center;justify-content:space-between;padding:24px 32px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .policy-head h2{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+  .policy-close{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.06);border:none;color:var(--text3);font-size:18px;cursor:none;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+  .policy-close:hover{background:rgba(255,255,255,0.1);color:var(--text);}
+  .policy-body{padding:32px;overflow-y:auto;flex:1;}
+  .policy-body h3{font-size:15px;font-weight:600;color:var(--text);margin:24px 0 10px;}
+  .policy-body h3:first-child{margin-top:0;}
+  .policy-body p{font-size:14px;color:var(--text2);line-height:1.8;font-weight:300;margin-bottom:12px;}
+  .policy-body ul{padding-left:20px;margin-bottom:12px;}
+  .policy-body ul li{font-size:14px;color:var(--text2);line-height:1.8;font-weight:300;}
+  .policy-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:24px;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .reveal{opacity:0;transform:translateY(30px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1);}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.4);border-radius:2px;}
+
+  @media(max-width:900px){
+    nav{padding:16px 20px;}.nav-links{display:none;}
+    .hero{padding:100px 20px 60px;}.hero-stats{flex-direction:column;gap:20px;}
+    .hero-stat{border-right:none;border-bottom:1px solid var(--border);padding:0 0 20px;}.hero-stat:last-child{border-bottom:none;}
+    .dashboard-preview{padding:0 20px 80px;}
+    .features{padding:80px 20px;}.features-grid{grid-template-columns:repeat(2,1fr);}
+    .pricing{padding:80px 20px;}.pricing-grid{grid-template-columns:1fr;gap:20px;}.pricing-card.featured{transform:none;}
+    .modules{padding:80px 20px;}.modules-grid{grid-template-columns:1fr;}
+    .social-proof{padding:80px 20px;}.testimonials{grid-template-columns:1fr;}
+    .faq{padding:80px 20px;}.cta-band{padding:80px 20px;}
+    footer{padding:60px 20px 40px;}.footer-grid{grid-template-columns:1fr 1fr;gap:40px;}
+    .hero-actions{flex-direction:column;align-items:center;}
+    .mini-dashboard{grid-template-columns:1fr;}.mini-sidebar{display:none;}
+    .mini-stat-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<canvas id="grid-canvas"></canvas>
+
+<!-- PRIVACY MODAL -->
+<div class="policy-overlay" id="modal-privacy" onclick="if(event.target===this)closeModal('privacy')">
+  <div class="policy-box">
+    <div class="policy-head">
+      <h2 id="title-privacy">Privacy Policy</h2>
+      <button class="policy-close" onclick="closeModal('privacy')">×</button>
+    </div>
+    <div class="policy-body">
+      <p class="policy-date">Last updated: May 2025</p>
+      <h3 id="pp-h1">Information We Collect</h3>
+      <p id="pp-p1">BurnRate OS collects only the information necessary to provide our service: your email address, license key, and the financial data you manually enter into the dashboard (expenses, income, subscriptions).</p>
+      <p id="pp-p2">We do not connect to your bank accounts. All financial data is entered manually by you and stored securely in our database.</p>
+      <h3 id="pp-h2">How We Use Your Information</h3>
+      <ul id="pp-ul1">
+        <li>To provide and maintain the BurnRate OS service</li>
+        <li>To send you your license key and activation email</li>
+        <li>To power the AI Financial Advisor with your data</li>
+        <li>To send important service updates</li>
+      </ul>
+      <h3 id="pp-h3">Data Storage</h3>
+      <p id="pp-p3">Your data is stored securely using Supabase (PostgreSQL). We do not sell, trade, or transfer your personal information to third parties.</p>
+      <h3 id="pp-h4">AI Data Usage</h3>
+      <p id="pp-p4">When you use the AI Advisor, your financial data is sent to Anthropic's Claude API for analysis. This data is not used to train AI models. Anthropic's privacy policy applies to these interactions.</p>
+      <h3 id="pp-h5">Data Deletion</h3>
+      <p id="pp-p5">You can request deletion of your account and all associated data at any time by emailing hello@burnrate-os.com.</p>
+      <h3 id="pp-h6">Contact</h3>
+      <p>hello@burnrate-os.com</p>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS MODAL -->
+<div class="policy-overlay" id="modal-terms" onclick="if(event.target===this)closeModal('terms')">
+  <div class="policy-box">
+    <div class="policy-head">
+      <h2 id="title-terms">Terms of Service</h2>
+      <button class="policy-close" onclick="closeModal('terms')">×</button>
+    </div>
+    <div class="policy-body">
+      <p class="policy-date">Last updated: May 2025</p>
+      <h3 id="tos-h1">Acceptance of Terms</h3>
+      <p id="tos-p1">By purchasing and using BurnRate OS, you agree to these terms. If you do not agree, please do not use the service.</p>
+      <h3 id="tos-h2">License</h3>
+      <p id="tos-p2">Your purchase grants you a personal, non-transferable license to use BurnRate OS. You may not share your license key or allow others to use your account.</p>
+      <h3 id="tos-h3">Subscriptions</h3>
+      <p id="tos-p3">BurnRate OS is offered on a monthly subscription basis (Starter $9/mo, Pro $19/mo, Elite $39/mo). Subscriptions are managed through Whop. You can cancel at any time through your Whop account.</p>
+      <h3 id="tos-h4">Disclaimer</h3>
+      <p id="tos-p4">BurnRate OS is a financial tracking tool, not a licensed financial advisor. The AI advisor provides suggestions based on your data but does not constitute professional financial advice. Always consult a qualified financial professional for major financial decisions.</p>
+      <h3 id="tos-h5">Contact</h3>
+      <p>hello@burnrate-os.com</p>
+    </div>
+  </div>
+</div>
+
+<!-- REFUND MODAL -->
+<div class="policy-overlay" id="modal-refund" onclick="if(event.target===this)closeModal('refund')">
+  <div class="policy-box">
+    <div class="policy-head">
+      <h2 id="title-refund">Refund Policy</h2>
+      <button class="policy-close" onclick="closeModal('refund')">×</button>
+    </div>
+    <div class="policy-body">
+      <p class="policy-date">Last updated: May 2025</p>
+      <h3 id="rp-h1">7-Day Money-Back Guarantee</h3>
+      <p id="rp-p1">If you are not satisfied with BurnRate OS within the first 7 days of your subscription, contact us at hello@burnrate-os.com and we will issue a full refund — no questions asked.</p>
+      <h3 id="rp-h2">After 7 Days</h3>
+      <p id="rp-p2">After the initial 7-day period, refunds are evaluated on a case-by-case basis. We are committed to resolving any issues you encounter.</p>
+      <h3 id="rp-h3">Cancellation</h3>
+      <p id="rp-p3">You can cancel your subscription at any time through your Whop account. Cancellation stops future charges but does not automatically trigger a refund for the current period.</p>
+      <h3 id="rp-h4">How to Request a Refund</h3>
+      <ul id="rp-ul1">
+        <li>Email hello@burnrate-os.com with your purchase email</li>
+        <li>Include your license key</li>
+        <li>Briefly describe the issue (optional)</li>
+      </ul>
+      <p id="rp-p4">We process refund requests within 2-3 business days.</p>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo"><div class="nav-logo-dot"></div>BurnRate OS</a>
+  <ul class="nav-links">
+    <li><a href="#features" class="t" data-key="nav_features">Features</a></li>
+    <li><a href="#modules" class="t" data-key="nav_modules">Modules</a></li>
+    <li><a href="#pricing" class="t" data-key="nav_pricing">Pricing</a></li>
+    <li><a href="#faq" class="t" data-key="nav_faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta">
+    <div class="lang-toggle">
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn active" id="lang-tr" onclick="setLang('tr')">TR</button>
+    </div>
+    <a href="https://burnrate-os-app.vercel.app/login" class="btn-ghost t" data-key="nav_signin">Sign in</a>
+    <a href="#pricing" class="btn-primary t" data-key="nav_start">Get started →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><div class="hero-badge-dot"></div><span class="t" data-key="badge">Financial Command Center · v2.0</span></div>
+  <h1 class="hero-title"><span class="t" data-key="hero_title">Stop guessing<br>where your <span class="hero-title-accent">money goes</span></span></h1>
+  <p class="hero-sub t" data-key="hero_sub">BurnRate OS gives freelancers, students and digital entrepreneurs one command center for every dollar — budgets, investments, AI insights, and goals.</p>
+  <div class="hero-actions">
+    <a href="#pricing" class="btn-hero"><span class="t" data-key="hero_cta">Start free trial</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    <a href="#modules" class="btn-hero-outline t" data-key="hero_modules">See all modules</a>
+  </div>
+  <div style="margin-top:16px;animation:fadeUp 0.8s 0.4s ease both">
+    <a href="https://burnrate-os-app.vercel.app/dashboard" id="win-install-btn"
+      style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif;"
+      onmouseover="this.style.background='rgba(255,255,255,0.08)';this.style.color='rgba(255,255,255,0.8)'"
+      onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.color='rgba(255,255,255,0.5)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+      <span class="t" data-key="win_download">Download for Windows</span>
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="hero-stat-num">8</span><span class="hero-stat-label t" data-key="stat1">Power Modules</span></div>
+    <div class="hero-stat"><span class="hero-stat-num">$0</span><span class="hero-stat-label t" data-key="stat2">Hidden fees</span></div>
+    <div class="hero-stat"><span class="hero-stat-num">AI</span><span class="hero-stat-label t" data-key="stat3">Powered Advisor</span></div>
+    <div class="hero-stat"><span class="hero-stat-num">30s</span><span class="hero-stat-label t" data-key="stat4">Live data refresh</span></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap"><div class="ticker">
+  <div class="ticker-item">Monthly Overview <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Subscription Tracker <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Spending Analytics <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Live Investments <span>✓ LIVE</span></div>
+  <div class="ticker-item">Balance & Income <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">30-Day Challenge <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">AI Financial Advisor <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Monthly Summary Score <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Monthly Overview <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Subscription Tracker <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Spending Analytics <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Live Investments <span>✓ LIVE</span></div>
+  <div class="ticker-item">Balance & Income <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">30-Day Challenge <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">AI Financial Advisor <span>✓ ACTIVE</span></div>
+  <div class="ticker-item">Monthly Summary Score <span>✓ ACTIVE</span></div>
+</div></div>
+
+<!-- DASHBOARD PREVIEW -->
+<section class="dashboard-preview">
+  <div class="preview-container">
+    <div class="preview-glow"></div>
+    <div class="preview-frame" id="preview-frame">
+      <div class="frame-bar">
+        <div class="frame-dot" style="background:#ef4444"></div>
+        <div class="frame-dot" style="background:#f59e0b"></div>
+        <div class="frame-dot" style="background:#10b981"></div>
+        <div class="frame-url">burnrate-os.com/dashboard</div>
+        <div style="width:60px"></div>
+      </div>
+      <div class="mini-dashboard">
+        <div class="mini-sidebar">
+          <div class="mini-nav-item active"><div class="mini-nav-dot" style="background:#7c3aed"></div>Overview</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#ef4444"></div>Subscriptions</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#f59e0b"></div>Spending</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#10b981"></div>Investments</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#06b6d4"></div>Balance</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#f43f5e"></div>Goals</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#8b5cf6"></div>AI Advisor</div>
+          <div class="mini-nav-item"><div class="mini-nav-dot" style="background:#7c3aed"></div>Summary</div>
+        </div>
+        <div class="mini-content">
+          <div class="mini-stat-grid">
+            <div class="mini-stat"><div class="mini-stat-label">Net Worth</div><div class="mini-stat-val" style="color:#10b981">$12,840</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Monthly Burn</div><div class="mini-stat-val" style="color:#ef4444">$2,340</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Savings Rate</div><div class="mini-stat-val" style="color:#06b6d4">34%</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Score</div><div class="mini-stat-val" style="color:#f59e0b">A+</div></div>
+          </div>
+          <div class="mini-chart-row">
+            <div class="mini-chart-box">
+              <div class="mini-chart-title">Monthly Spending</div>
+              <div class="bar-chart">
+                <div class="bar" style="height:45%;background:rgba(124,58,237,0.5);animation-delay:0.1s"></div>
+                <div class="bar" style="height:60%;background:rgba(124,58,237,0.5);animation-delay:0.15s"></div>
+                <div class="bar" style="height:35%;background:rgba(124,58,237,0.5);animation-delay:0.2s"></div>
+                <div class="bar" style="height:75%;background:rgba(124,58,237,0.5);animation-delay:0.25s"></div>
+                <div class="bar" style="height:55%;background:rgba(124,58,237,0.5);animation-delay:0.3s"></div>
+                <div class="bar" style="height:40%;background:#7c3aed;animation-delay:0.35s"></div>
+              </div>
+            </div>
+            <div class="mini-chart-box">
+              <div class="mini-chart-title">Subscriptions</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+                <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></div><div style="flex:1;background:rgba(255,255,255,0.05);border-radius:3px;height:6px"><div style="width:30%;height:100%;background:#10b981;border-radius:3px"></div></div><span style="font-family:'DM Mono',monospace;font-size:10px;color:#5c5680">KEEP</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0"></div><div style="flex:1;background:rgba(255,255,255,0.05);border-radius:3px;height:6px"><div style="width:55%;height:100%;background:#f59e0b;border-radius:3px"></div></div><span style="font-family:'DM Mono',monospace;font-size:10px;color:#5c5680">WARN</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0"></div><div style="flex:1;background:rgba(255,255,255,0.05);border-radius:3px;height:6px"><div style="width:20%;height:100%;background:#ef4444;border-radius:3px"></div></div><span style="font-family:'DM Mono',monospace;font-size:10px;color:#5c5680">DEAD</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-label reveal t" data-key="why_title">Why BurnRate OS</div>
+  <h2 class="section-title reveal t" data-key="why_h">Built different,<br>by design.</h2>
+  <p class="section-sub reveal t" data-key="why_sub">Not a spreadsheet. Not a bank app. A real-time operating system for your personal finances.</p>
+  <div class="features-grid reveal">
+    <div class="feature-card" style="--card-glow:rgba(124,58,237,0.15)">
+      <div class="feature-icon" style="background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.2)">🧠</div>
+      <div class="feature-name t" data-key="f1_name">AI Financial Advisor</div>
+      <div class="feature-desc t" data-key="f1_desc">Claude-powered analysis of your real spending data. Not generic tips — personalized insights.</div>
+      <div class="feature-tag" style="background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.2)">PRO+</div>
+    </div>
+    <div class="feature-card" style="--card-glow:rgba(16,185,129,0.1)">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.2)">📈</div>
+      <div class="feature-name t" data-key="f2_name">Live Investments</div>
+      <div class="feature-desc t" data-key="f2_desc">Yahoo Finance integration. Track your portfolio with 30-second auto-refresh and real price data.</div>
+      <div class="feature-tag" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)">ELITE</div>
+    </div>
+    <div class="feature-card" style="--card-glow:rgba(239,68,68,0.1)">
+      <div class="feature-icon" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2)">⚡</div>
+      <div class="feature-name t" data-key="f3_name">Smart Subscription Audit</div>
+      <div class="feature-desc t" data-key="f3_desc">Auto-label every subscription as KEEP, WARN, or DEAD. Cancel what's costing you invisibly.</div>
+      <div class="feature-tag" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2)">PRO+</div>
+    </div>
+    <div class="feature-card" style="--card-glow:rgba(245,158,11,0.1)">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.2)">🎯</div>
+      <div class="feature-name t" data-key="f4_name">30-Day Challenge</div>
+      <div class="feature-desc t" data-key="f4_desc">AI-generated daily financial tasks. Build habits. Track streaks on a visual calendar grid.</div>
+      <div class="feature-tag" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2)">PRO+</div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section class="modules" id="modules">
+  <div class="section-label reveal t" data-key="mod_label">8 Modules</div>
+  <h2 class="section-title reveal t" data-key="mod_h">Everything you need,<br>nothing you don't.</h2>
+  <p class="section-sub reveal t" data-key="mod_sub">Each module is a precision tool. Together they form your complete financial OS.</p>
+  <div class="modules-grid">
+    <div class="module-card" style="--mc:#7c3aed22"><div class="module-icon-wrap" style="background:rgba(124,58,237,0.1)">📊</div><div class="module-info"><div class="module-title" style="color:#a78bfa">Overview Dashboard</div><div class="module-desc t" data-key="m1_desc">Stat cards, pie charts, bar charts. Your financial health at a glance.</div><div class="module-plan" style="background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.2)">STARTER</div></div></div>
+    <div class="module-card" style="--mc:#ef444422"><div class="module-icon-wrap" style="background:rgba(239,68,68,0.1)">🔄</div><div class="module-info"><div class="module-title" style="color:#ef4444">Subscription Tracker</div><div class="module-desc t" data-key="m2_desc">Add/remove subscriptions. Auto-tag as KEEP / WARN / DEAD. Pie chart of recurring costs.</div><div class="module-plan" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2)">PRO</div></div></div>
+    <div class="module-card" style="--mc:#f59e0b22"><div class="module-icon-wrap" style="background:rgba(245,158,11,0.1)">💸</div><div class="module-info"><div class="module-title" style="color:#f59e0b">Spending Analytics</div><div class="module-desc t" data-key="m3_desc">Log expenses, filter by category, area charts, category breakdown bars.</div><div class="module-plan" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2)">STARTER</div></div></div>
+    <div class="module-card" style="--mc:#10b98122"><div class="module-icon-wrap" style="background:rgba(16,185,129,0.1)">📈</div><div class="module-info"><div class="module-title" style="color:#10b981">Investments</div><div class="module-desc t" data-key="m4_desc">Yahoo Finance live prices. Search any ticker. 30-second auto-refresh. Multi-currency support.</div><div class="module-plan" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)">ELITE</div></div></div>
+    <div class="module-card" style="--mc:#06b6d422"><div class="module-icon-wrap" style="background:rgba(6,182,212,0.1)">💰</div><div class="module-info"><div class="module-title" style="color:#06b6d4">Balance & Income</div><div class="module-desc t" data-key="m5_desc">Income log, savings rate ring chart, bar chart breakdowns. Track exactly what you keep.</div><div class="module-plan" style="background:rgba(6,182,212,0.1);color:#06b6d4;border:1px solid rgba(6,182,212,0.2)">STARTER</div></div></div>
+    <div class="module-card" style="--mc:#f43f5e22"><div class="module-icon-wrap" style="background:rgba(244,63,94,0.1)">🎯</div><div class="module-info"><div class="module-title" style="color:#f43f5e">30-Day Challenge</div><div class="module-desc t" data-key="m6_desc">AI daily task generation. 10×3 calendar grid. Streak tracking. Financial discipline builder.</div><div class="module-plan" style="background:rgba(244,63,94,0.1);color:#f43f5e;border:1px solid rgba(244,63,94,0.2)">PRO</div></div></div>
+    <div class="module-card" style="--mc:#8b5cf622"><div class="module-icon-wrap" style="background:rgba(139,92,246,0.1)">🤖</div><div class="module-info"><div class="module-title" style="color:#8b5cf6">AI Advisor</div><div class="module-desc t" data-key="m7_desc">Claude API with your real data. Suggestion buttons. Personalized financial coaching.</div><div class="module-plan" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)">PRO</div></div></div>
+    <div class="module-card" style="--mc:#7c3aed22"><div class="module-icon-wrap" style="background:rgba(124,58,237,0.1)">🏆</div><div class="module-info"><div class="module-title" style="color:#7c3aed">Monthly Summary</div><div class="module-desc t" data-key="m8_desc">A/B/C/D score. Money flow chart. Subscription audit. Your financial report card.</div><div class="module-plan" style="background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.2)">ELITE</div></div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <div class="pricing-header">
+      <div class="section-label reveal t" style="justify-content:center" data-key="price_label">Pricing</div>
+      <h2 class="section-title reveal t" data-key="price_h">Simple, transparent pricing.</h2>
+      <p class="section-sub reveal t" style="margin:0 auto 40px" data-key="price_sub">Cancel anytime. No hidden fees. Upgrade or downgrade whenever.</p>
+      <div class="pricing-toggle reveal">
+        <button class="toggle-opt active" id="toggle-monthly" onclick="setPricing('monthly')" class="t" data-key="toggle_monthly">Monthly</button>
+        <button class="toggle-opt" id="toggle-yearly" onclick="setPricing('yearly')"><span class="t" data-key="toggle_yearly">Yearly</span> <span class="toggle-save">–20%</span></button>
+      </div>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card" id="card-starter">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price"><span class="plan-price-currency">$</span><span class="plan-price-num" id="price-starter">9</span><span class="plan-price-period t" data-key="per_month">/ month</span></div>
+        <div class="plan-desc t" data-key="s_desc">Perfect for students and those just starting their financial journey.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features-list">
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="s_f1">Overview Dashboard</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="s_f2">Spending Analytics</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="s_f3">Balance & Income Tracker</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="s_f4">Automatic welcome email + license key</span></li>
+          <li class="plan-feature-item"><span class="check off">–</span><span class="t" data-key="s_f5">Subscription Tracker</span></li>
+          <li class="plan-feature-item"><span class="check off">–</span><span class="t" data-key="s_f6">AI Financial Advisor</span></li>
+          <li class="plan-feature-item"><span class="check off">–</span><span class="t" data-key="s_f7">Investments Module</span></li>
+        </ul>
+        <a href="https://burnrate-os-app.vercel.app/checkout?plan=starter" class="plan-cta ghost t" data-key="s_cta">Get Starter →</a>
+      </div>
+      <div class="pricing-card featured" id="card-pro">
+        <div class="pricing-badge t" data-key="popular">⭐ Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><span class="plan-price-currency">$</span><span class="plan-price-num" id="price-pro">19</span><span class="plan-price-period t" data-key="per_month">/ month</span></div>
+        <div class="plan-desc t" data-key="p_desc">For freelancers and solo entrepreneurs who want full financial clarity.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features-list">
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="p_f1">Everything in Starter</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="p_f2">Subscription Tracker + Auto-labels</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="p_f3">30-Day Challenge</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="p_f4">AI Financial Advisor (Claude)</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="p_f5">Plan-specific license key + email</span></li>
+          <li class="plan-feature-item"><span class="check off">–</span><span class="t" data-key="p_f6">Live Investments</span></li>
+          <li class="plan-feature-item"><span class="check off">–</span><span class="t" data-key="p_f7">Monthly Summary Score</span></li>
+        </ul>
+        <a href="https://burnrate-os-app.vercel.app/checkout?plan=pro" class="plan-cta solid t" data-key="p_cta">Get Pro →</a>
+      </div>
+      <div class="pricing-card" id="card-elite">
+        <div class="plan-name">Elite</div>
+        <div class="plan-price"><span class="plan-price-currency">$</span><span class="plan-price-num" id="price-elite">39</span><span class="plan-price-period t" data-key="per_month">/ month</span></div>
+        <div class="plan-desc t" data-key="e_desc">For digital nomads and power users who want the full OS experience.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features-list">
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f1">Everything in Pro</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f2">Live Investment Tracker</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f3">Monthly Summary + Score (A/B/C/D)</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f4">Yahoo Finance real-time data</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f5">Priority email support</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f6">Early access to new modules</span></li>
+          <li class="plan-feature-item"><span class="check on">✓</span><span class="t" data-key="e_f7">Elite license key + branded email</span></li>
+        </ul>
+        <a href="https://burnrate-os-app.vercel.app/checkout?plan=elite" class="plan-cta ghost t" data-key="e_cta">Get Elite →</a>
+      </div>
+    </div>
+    <p class="t" style="text-align:center;margin-top:40px;font-size:13px;color:var(--text3)" data-key="price_note">All plans include automatic license key delivery via email · Powered by Whop · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social-proof">
+  <div class="section-label reveal t" style="justify-content:center" data-key="test_label">Testimonials</div>
+  <h2 class="section-title reveal t" style="margin-bottom:60px" data-key="test_h">What users are saying</h2>
+  <div class="testimonials">
+    <div class="testimonial-card reveal"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text t" data-key="t1">"Finally a finance tool that doesn't feel like accounting homework. The AI advisor actually knows my spending patterns."</div><div class="testimonial-author"><div class="author-avatar" style="background:linear-gradient(135deg,#7c3aed,#06b6d4)">MK</div><div><div class="author-name">Marcus K.</div><div class="author-role t" data-key="t1_role">Freelance Designer</div></div></div></div>
+    <div class="testimonial-card reveal"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text t" data-key="t2">"The subscription audit literally saved me $140/month on stuff I forgot I was paying for. The DEAD label hits different."</div><div class="testimonial-author"><div class="author-avatar" style="background:linear-gradient(135deg,#ef4444,#f59e0b)">SA</div><div><div class="author-name">Sofia A.</div><div class="author-role t" data-key="t2_role">SaaS Founder</div></div></div></div>
+    <div class="testimonial-card reveal"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text t" data-key="t3">"As a student, the Starter plan is exactly what I needed. Clean, fast, and the 30-day challenge keeps me disciplined."</div><div class="testimonial-author"><div class="author-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">JL</div><div><div class="author-name">Jamie L.</div><div class="author-role t" data-key="t3_role">CS Student</div></div></div></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="faq-header">
+    <div class="section-label reveal t" style="justify-content:center" data-key="faq_label">FAQ</div>
+    <h2 class="section-title reveal t" data-key="faq_h">Questions answered.</h2>
+  </div>
+  <div class="faq-item reveal"><button class="faq-question" onclick="toggleFaq(this)"><span class="t" data-key="faq1_q">How does the license key system work?</span><span class="faq-icon">+</span></button><div class="faq-answer t" data-key="faq1_a">After payment on Whop, our webhook automatically creates your account, generates a plan-specific license key (BRNOS-PRO-XXXX format), and sends it to your email within seconds. You use this key + your email to log into the dashboard.</div></div>
+  <div class="faq-item reveal"><button class="faq-question" onclick="toggleFaq(this)"><span class="t" data-key="faq2_q">Can I upgrade or downgrade my plan?</span><span class="faq-icon">+</span></button><div class="faq-answer t" data-key="faq2_a">Yes, anytime. Upgrade from Starter to Pro or Elite directly from the dashboard. Your data is preserved and new features unlock immediately.</div></div>
+  <div class="faq-item reveal"><button class="faq-question" onclick="toggleFaq(this)"><span class="t" data-key="faq3_q">Is my financial data secure?</span><span class="faq-icon">+</span></button><div class="faq-answer t" data-key="faq3_a">Your data is stored in Supabase (PostgreSQL). BurnRate OS never connects to your bank — you manually log expenses and income, so no sensitive banking credentials are ever shared.</div></div>
+  <div class="faq-item reveal"><button class="faq-question" onclick="toggleFaq(this)"><span class="t" data-key="faq4_q">What AI model powers the advisor?</span><span class="faq-icon">+</span></button><div class="faq-answer t" data-key="faq4_a">Claude (Anthropic) is our primary AI, with Gemini as fallback. The AI sees your actual spending data, income, and subscriptions to give genuinely personalized advice — not generic tips.</div></div>
+  <div class="faq-item reveal"><button class="faq-question" onclick="toggleFaq(this)"><span class="t" data-key="faq5_q">Is there a money-back guarantee?</span><span class="faq-icon">+</span></button><div class="faq-answer t" data-key="faq5_a">Yes — 7-day money-back guarantee on all plans. If you're not satisfied within 7 days, email hello@burnrate-os.com for a full refund, no questions asked.</div></div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <div class="cta-glow"></div>
+  <div class="section-label reveal t" style="justify-content:center" data-key="cta_label">Get started</div>
+  <h2 class="cta-title reveal"><span class="t" data-key="cta_h">Your money deserves<br>an <span class="hero-title-accent">operating system</span>.</span></h2>
+  <p class="cta-sub reveal t" data-key="cta_sub">Join hundreds of freelancers, students and entrepreneurs who finally have clarity over their finances.</p>
+  <div class="reveal"><a href="#pricing" class="btn-hero" style="display:inline-flex"><span class="t" data-key="cta_btn">Choose your plan</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div>
+  <div class="highlight-line reveal t" data-key="cta_note">Automatic activation · No setup required · Cancel anytime</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo" style="font-size:18px"><div class="nav-logo-dot"></div>BurnRate OS</a>
+      <p class="t" data-key="footer_desc">Financial command center for freelancers, students, and digital entrepreneurs. Built with precision.</p>
+    </div>
+    <div>
+      <div class="footer-col-title t" data-key="footer_product">Product</div>
+      <ul class="footer-links">
+        <li><a href="#features" class="t" data-key="nav_features">Features</a></li>
+        <li><a href="#modules" class="t" data-key="nav_modules">Modules</a></li>
+        <li><a href="#pricing" class="t" data-key="nav_pricing">Pricing</a></li>
+        <li><a href="https://burnrate-os-app.vercel.app/dashboard" class="t" data-key="footer_dashboard">Dashboard</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title t" data-key="footer_legal">Legal</div>
+      <ul class="footer-links">
+        <li><a href="#" onclick="openModal('privacy');return false;" class="t" data-key="footer_privacy">Privacy Policy</a></li>
+        <li><a href="#" onclick="openModal('terms');return false;" class="t" data-key="footer_terms">Terms of Service</a></li>
+        <li><a href="#" onclick="openModal('refund');return false;" class="t" data-key="footer_refund">Refund Policy</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title t" data-key="footer_support">Support</div>
+      <ul class="footer-links">
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="mailto:hello@burnrate-os.com">hello@burnrate-os.com</a></li>
+        <li><a href="https://whop.com/burnrate-os" class="t" data-key="footer_community">Whop Community</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 BurnRate OS. <span class="t" data-key="footer_rights">All rights reserved.</span></span>
+    <div class="social-links">
+      <a href="https://twitter.com/burnrateos">Twitter</a>
+      <a href="https://instagram.com/burnrateos">Instagram</a>
+      <a href="https://tiktok.com/@burnrateos">TikTok</a>
+      <a href="#">LinkedIn</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── TRANSLATIONS ────────────────────────────────────────────────
+const TRANSLATIONS = {
+  en: {
+    nav_features:'Features',nav_modules:'Modules',nav_pricing:'Pricing',nav_faq:'FAQ',
+    nav_signin:'Sign in',nav_start:'Get started →',
+    badge:'Financial Command Center · v2.0',
+    hero_title:'Stop guessing<br>where your <span class="hero-title-accent">money goes</span>',
+    hero_sub:'BurnRate OS gives freelancers, students and digital entrepreneurs one command center for every dollar — budgets, investments, AI insights, and goals.',
+    hero_cta:'Start free trial',hero_modules:'See all modules',win_download:'Download for Windows',
+    stat1:'Power Modules',stat2:'Hidden fees',stat3:'Powered Advisor',stat4:'Live data refresh',
+    why_title:'Why BurnRate OS',why_h:'Built different,<br>by design.',
+    why_sub:'Not a spreadsheet. Not a bank app. A real-time operating system for your personal finances.',
+    f1_name:'AI Financial Advisor',f1_desc:"Claude-powered analysis of your real spending data. Not generic tips — personalized insights.",
+    f2_name:'Live Investments',f2_desc:'Yahoo Finance integration. Track your portfolio with 30-second auto-refresh and real price data.',
+    f3_name:'Smart Subscription Audit',f3_desc:"Auto-label every subscription as KEEP, WARN, or DEAD. Cancel what's costing you invisibly.",
+    f4_name:'30-Day Challenge',f4_desc:'AI-generated daily financial tasks. Build habits. Track streaks on a visual calendar grid.',
+    mod_label:'8 Modules',mod_h:"Everything you need,<br>nothing you don't.",
+    mod_sub:'Each module is a precision tool. Together they form your complete financial OS.',
+    m1_desc:'Stat cards, pie charts, bar charts. Your financial health at a glance.',
+    m2_desc:'Add/remove subscriptions. Auto-tag as KEEP / WARN / DEAD. Pie chart of recurring costs.',
+    m3_desc:'Log expenses, filter by category, area charts, category breakdown bars.',
+    m4_desc:'Yahoo Finance live prices. Search any ticker. 30-second auto-refresh. Multi-currency support.',
+    m5_desc:'Income log, savings rate ring chart, bar chart breakdowns. Track exactly what you keep.',
+    m6_desc:'AI daily task generation. 10×3 calendar grid. Streak tracking. Financial discipline builder.',
+    m7_desc:'Claude API with your real data. Suggestion buttons. Personalized financial coaching.',
+    m8_desc:'A/B/C/D score. Money flow chart. Subscription audit. Your financial report card.',
+    price_label:'Pricing',price_h:'Simple, transparent pricing.',
+    price_sub:'Cancel anytime. No hidden fees. Upgrade or downgrade whenever.',
+    toggle_monthly:'Monthly',toggle_yearly:'Yearly',per_month:'/ month',
+    s_desc:'Perfect for students and those just starting their financial journey.',
+    s_f1:'Overview Dashboard',s_f2:'Spending Analytics',s_f3:'Balance & Income Tracker',
+    s_f4:'Automatic welcome email + license key',s_f5:'Subscription Tracker',
+    s_f6:'AI Financial Advisor',s_f7:'Investments Module',s_cta:'Get Starter →',
+    popular:'⭐ Most Popular',
+    p_desc:'For freelancers and solo entrepreneurs who want full financial clarity.',
+    p_f1:'Everything in Starter',p_f2:'Subscription Tracker + Auto-labels',p_f3:'30-Day Challenge',
+    p_f4:'AI Financial Advisor (Claude)',p_f5:'Plan-specific license key + email',
+    p_f6:'Live Investments',p_f7:'Monthly Summary Score',p_cta:'Get Pro →',
+    e_desc:'For digital nomads and power users who want the full OS experience.',
+    e_f1:'Everything in Pro',e_f2:'Live Investment Tracker',e_f3:'Monthly Summary + Score (A/B/C/D)',
+    e_f4:'Yahoo Finance real-time data',e_f5:'Priority email support',
+    e_f6:'Early access to new modules',e_f7:'Elite license key + branded email',e_cta:'Get Elite →',
+    price_note:'All plans include automatic license key delivery via email · Powered by Whop · Cancel anytime',
+    test_label:'Testimonials',test_h:'What users are saying',
+    t1:'"Finally a finance tool that doesn\'t feel like accounting homework. The AI advisor actually knows my spending patterns."',
+    t2:'"The subscription audit literally saved me $140/month on stuff I forgot I was paying for. The DEAD label hits different."',
+    t3:'"As a student, the Starter plan is exactly what I needed. Clean, fast, and the 30-day challenge keeps me disciplined."',
+    t1_role:'Freelance Designer',t2_role:'SaaS Founder',t3_role:'CS Student',
+    faq_label:'FAQ',faq_h:'Questions answered.',
+    faq1_q:'How does the license key system work?',faq1_a:'After payment on Whop, our webhook automatically creates your account, generates a plan-specific license key (BRNOS-PRO-XXXX format), and sends it to your email within seconds. You use this key + your email to log into the dashboard.',
+    faq2_q:'Can I upgrade or downgrade my plan?',faq2_a:'Yes, anytime. Upgrade from Starter to Pro or Elite directly from the dashboard. Your data is preserved and new features unlock immediately.',
+    faq3_q:'Is my financial data secure?',faq3_a:'Your data is stored in Supabase (PostgreSQL). BurnRate OS never connects to your bank — you manually log expenses and income, so no sensitive banking credentials are ever shared.',
+    faq4_q:'What AI model powers the advisor?',faq4_a:'Claude (Anthropic) is our primary AI, with Gemini as fallback. The AI sees your actual spending data, income, and subscriptions to give genuinely personalized advice.',
+    faq5_q:'Is there a money-back guarantee?',faq5_a:'Yes — 7-day money-back guarantee on all plans. If you\'re not satisfied within 7 days, email hello@burnrate-os.com for a full refund, no questions asked.',
+    cta_label:'Get started',cta_h:'Your money deserves<br>an <span class="hero-title-accent">operating system</span>.',
+    cta_sub:'Join hundreds of freelancers, students and entrepreneurs who finally have clarity over their finances.',
+    cta_btn:'Choose your plan',cta_note:'Automatic activation · No setup required · Cancel anytime',
+    footer_desc:'Financial command center for freelancers, students, and digital entrepreneurs. Built with precision.',
+    footer_product:'Product',footer_legal:'Legal',footer_support:'Support',
+    footer_dashboard:'Dashboard',footer_privacy:'Privacy Policy',footer_terms:'Terms of Service',
+    footer_refund:'Refund Policy',footer_community:'Whop Community',footer_rights:'All rights reserved.',
+    // modal titles
+    modal_privacy:'Privacy Policy',modal_terms:'Terms of Service',modal_refund:'Refund Policy',
+  },
+  tr: {
+    nav_features:'Özellikler',nav_modules:'Modüller',nav_pricing:'Fiyatlar',nav_faq:'SSS',
+    nav_signin:'Giriş Yap',nav_start:'Başla →',
+    badge:'Finansal Komuta Merkezi · v2.0',
+    hero_title:'Paranızın nereye<br><span class="hero-title-accent">gittiğini bilin</span>',
+    hero_sub:"BurnRate OS; freelancer'lara, öğrencilere ve dijital girişimcilere her kuruş için tek bir komuta merkezi sunar — bütçe, yatırım, yapay zeka analizi ve hedefler.",
+    hero_cta:'Ücretsiz Dene',hero_modules:'Tüm modüller',win_download:'Windows'a İndir',
+    stat1:'Güçlü Modül',stat2:'Gizli Ücret',stat3:'Destekli Danışman',stat4:'Canlı Veri',
+    why_title:'Neden BurnRate OS',why_h:'Farklı tasarlandı,<br>amaca özel.',
+    why_sub:'Bir elektronik tablo değil. Bir banka uygulaması değil. Kişisel finanslarınız için gerçek zamanlı bir işletim sistemi.',
+    f1_name:'Yapay Zeka Danışmanı',f1_desc:'Gerçek harcama verilerinizin Claude destekli analizi. Genel tavsiyeler değil — kişiselleştirilmiş içgörüler.',
+    f2_name:'Canlı Yatırımlar',f2_desc:"Yahoo Finance entegrasyonu. Portföyünüzü 30 saniyelik otomatik yenileme ve gerçek fiyat verileriyle takip edin.",
+    f3_name:'Akıllı Abonelik Denetimi',f3_desc:'Her aboneliği otomatik olarak KEEP, WARN veya DEAD olarak etiketleyin.',
+    f4_name:'30 Günlük Meydan Okuma',f4_desc:'Yapay zeka tarafından üretilen günlük finansal görevler. Alışkanlıklar oluşturun.',
+    mod_label:'8 Modül',mod_h:'İhtiyacınız olan her şey,<br>fazlası değil.',
+    mod_sub:'Her modül bir hassasiyet aracıdır. Birlikte tam finansal işletim sisteminizi oluştururlar.',
+    m1_desc:'İstatistik kartları, pasta grafikler. Finansal sağlığınıza tek bakışta.',
+    m2_desc:'Abonelik ekle/kaldır. KEEP / WARN / DEAD olarak otomatik etiketle.',
+    m3_desc:'Harcamaları kaydet, kategoriye göre filtrele, alan grafikleri.',
+    m4_desc:"Yahoo Finance canlı fiyatları. Herhangi bir hisse senedi ara. 30 saniyelik yenileme. Çoklu para birimi.",
+    m5_desc:'Gelir kaydı, tasarruf oranı halka grafiği. Tam olarak ne kazandığınızı takip edin.',
+    m6_desc:'Yapay zeka günlük görev üretimi. 10×3 takvim ızgarası. Finansal disiplin.',
+    m7_desc:'Gerçek verinizle Claude API. Öneri butonları. Kişiselleştirilmiş finansal koçluk.',
+    m8_desc:'A/B/C/D puanı. Para akışı grafiği. Abonelik denetimi. Finansal karneniz.',
+    price_label:'Fiyatlandırma',price_h:'Sade ve şeffaf fiyatlandırma.',
+    price_sub:'İstediğiniz zaman iptal edin. Gizli ücret yok.',
+    toggle_monthly:'Aylık',toggle_yearly:'Yıllık',per_month:'/ ay',
+    s_desc:'Öğrenciler ve finansal yolculuğuna yeni başlayanlar için ideal.',
+    s_f1:'Genel Bakış Paneli',s_f2:'Harcama Analizi',s_f3:'Bakiye ve Gelir Takibi',
+    s_f4:'Otomatik hoşgeldin e-postası + lisans anahtarı',s_f5:'Abonelik Takibi',
+    s_f6:'Yapay Zeka Danışmanı',s_f7:'Yatırım Modülü',s_cta:"Starter'ı Al →",
+    popular:'⭐ En Popüler',
+    p_desc:"Tam finansal netlik isteyen freelancer'lar ve solo girişimciler için.",
+    p_f1:"Starter'daki her şey",p_f2:'Abonelik Takibi + Otomatik Etiketler',p_f3:'30 Günlük Meydan Okuma',
+    p_f4:'Yapay Zeka Danışmanı (Claude)',p_f5:'Plana özel lisans anahtarı + e-posta',
+    p_f6:'Canlı Yatırımlar',p_f7:'Aylık Özet Puanı',p_cta:"Pro'yu Al →",
+    e_desc:'Tam OS deneyimi isteyen dijital göçebeler ve güçlü kullanıcılar için.',
+    e_f1:"Pro'daki her şey",e_f2:'Canlı Yatırım Takibi',e_f3:'Aylık Özet + Puan (A/B/C/D)',
+    e_f4:'Yahoo Finance gerçek zamanlı veriler',e_f5:'Öncelikli e-posta desteği',
+    e_f6:'Yeni modüllere erken erişim',e_f7:'Elite lisans anahtarı + markalı e-posta',e_cta:"Elite'i Al →",
+    price_note:'Tüm planlar otomatik lisans anahtarı e-posta teslimatı içerir · Whop tarafından desteklenir · İstediğiniz zaman iptal',
+    test_label:'Kullanıcı Yorumları',test_h:'Kullanıcılar ne diyor',
+    t1:'"Sonunda muhasebe ödevi gibi hissettirmeyen bir finans aracı. Yapay zeka danışmanı harcama alışkanlıklarımı gerçekten biliyor."',
+    t2:'"Abonelik denetimi, ödediğimi unuttuğum şeyler için ayda 140 dolar tasarruf etmemi sağladı."',
+    t3:'"Öğrenci olarak Starter plan tam ihtiyacım olandı. Temiz, hızlı ve 30 günlük meydan okuma beni disiplinli tutuyor."',
+    t1_role:'Serbest Tasarımcı',t2_role:'SaaS Girişimcisi',t3_role:'Bilgisayar Bilimleri Öğrencisi',
+    faq_label:'Sık Sorulan Sorular',faq_h:'Sorularınızın cevabı.',
+    faq1_q:'Lisans anahtarı sistemi nasıl çalışır?',faq1_a:"Whop'ta ödeme sonrasında webhook'umuz otomatik olarak hesabınızı oluşturur, plana özel lisans anahtarı üretir ve birkaç saniye içinde e-postanıza gönderir.",
+    faq2_q:'Planımı yükseltebilir veya düşürebilir miyim?',faq2_a:"Evet, istediğiniz zaman. Dashboard'dan anında yükseltin. Verileriniz korunur ve yeni özellikler hemen açılır.",
+    faq3_q:'Finansal verilerim güvende mi?',faq3_a:"Verileriniz Supabase'de saklanır. BurnRate OS banka hesabınıza hiçbir zaman bağlanmaz.",
+    faq4_q:'Danışmanı hangi yapay zeka modeli güçlendiriyor?',faq4_a:'Claude (Anthropic) birincil yapay zekamızdır, Gemini yedek olarak kullanılır. Yapay zeka gerçek verilerinizi görerek kişiselleştirilmiş tavsiyeler verir.',
+    faq5_q:'Para iade garantisi var mı?',faq5_a:'Evet — tüm planlarda 7 günlük para iade garantisi. 7 gün içinde memnun kalmazsanız hello@burnrate-os.com adresine yazın.',
+    cta_label:'Başlayın',cta_h:'Paranız bir<br><span class="hero-title-accent">işletim sistemi</span> hak ediyor.',
+    cta_sub:"Sonunda finansları üzerinde netlik kazanan yüzlerce freelancer, öğrenci ve girişimciye katılın.",
+    cta_btn:'Planınızı seçin',cta_note:'Otomatik aktivasyon · Kurulum gerekmez · İstediğiniz zaman iptal',
+    footer_desc:"Freelancer'lar, öğrenciler ve dijital girişimciler için finansal komuta merkezi.",
+    footer_product:'Ürün',footer_legal:'Yasal',footer_support:'Destek',
+    footer_dashboard:'Panel',footer_privacy:'Gizlilik Politikası',footer_terms:'Kullanım Koşulları',
+    footer_refund:'İade Politikası',footer_community:'Whop Topluluğu',footer_rights:'Tüm hakları saklıdır.',
+    modal_privacy:'Gizlilik Politikası',modal_terms:'Kullanım Koşulları',modal_refund:'İade Politikası',
+  }
+};
+
+let currentLang = localStorage.getItem('burnrate_lang') || 'tr';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('burnrate_lang', lang);
+  document.getElementById('html-root').lang = lang;
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-tr').classList.toggle('active', lang === 'tr');
+  const T = TRANSLATIONS[lang];
+  document.querySelectorAll('.t[data-key]').forEach(el => {
+    const key = el.getAttribute('data-key');
+    if (T[key] !== undefined) el.innerHTML = T[key];
+  });
+  // modal titles
+  document.getElementById('title-privacy').textContent = T.modal_privacy;
+  document.getElementById('title-terms').textContent = T.modal_terms;
+  document.getElementById('title-refund').textContent = T.modal_refund;
+  document.title = lang === 'tr' ? 'BurnRate OS — Finansal Komuta Merkezi' : 'BurnRate OS — Financial Command Center';
+}
+
+// ── POLICY MODALS ───────────────────────────────────────────────
+function openModal(type) {
+  document.getElementById('modal-' + type).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(type) {
+  document.getElementById('modal-' + type).classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') ['privacy','terms','refund'].forEach(closeModal);
+});
+
+// ── PWA INSTALL ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('win-install-btn');
+  if (btn) {
+    btn.style.borderColor = 'rgba(124,58,237,0.4)';
+    btn.style.color = '#a78bfa';
+    btn.addEventListener('click', async (e2) => {
+      if (deferredPrompt) {
+        e2.preventDefault();
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }
+    });
+  }
+});
+
+// ── CURSOR ──────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx - 4 + 'px'; cursor.style.top = my - 4 + 'px';
+});
+function animRing() {
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx - 16 + 'px'; ring.style.top = ry - 16 + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.transform='scale(2)'; ring.style.transform='scale(1.5)'; ring.style.borderColor='rgba(167,139,250,0.7)'; });
+  el.addEventListener('mouseleave', () => { cursor.style.transform='scale(1)'; ring.style.transform='scale(1)'; ring.style.borderColor='rgba(167,139,250,0.4)'; });
+});
+
+// ── CANVAS ──────────────────────────────────────────────────────
+const canvas = document.getElementById('grid-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, points = [], time = 0;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+function drawGrid() {
+  ctx.clearRect(0, 0, W, H);
+  const spacing = 60, cols = Math.ceil(W/spacing)+2, rows = Math.ceil(H/spacing)+2;
+  for (let i=0;i<cols;i++){const x=(i*spacing)%W,a=0.03+0.02*Math.sin(time*0.3+i*0.5);ctx.beginPath();ctx.strokeStyle=`rgba(124,58,237,${a})`;ctx.lineWidth=0.5;ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for (let i=0;i<rows;i++){const y=(i*spacing)%H,a=0.03+0.02*Math.sin(time*0.3+i*0.5);ctx.beginPath();ctx.strokeStyle=`rgba(124,58,237,${a})`;ctx.lineWidth=0.5;ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  for (let i=0;i<cols;i++)for(let j=0;j<rows;j++){const x=i*spacing,y=j*spacing,d=Math.sqrt((x-mx)**2+(y-my)**2),p=Math.max(0,1-d/200),a=0.06+p*0.4+0.04*Math.sin(time*0.5+i+j);ctx.beginPath();ctx.fillStyle=`rgba(167,139,250,${a})`;ctx.arc(x,y,1+p*2,0,Math.PI*2);ctx.fill();}
+  points.forEach((p,idx)=>{p.x+=p.vx;p.y+=p.vy;p.life-=0.005;if(p.life<=0||p.x<0||p.x>W||p.y<0||p.y>H){points[idx]=createPoint();return;}ctx.beginPath();ctx.fillStyle=`rgba(${p.r},${p.g},${p.b},${p.life*0.5})`;ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.strokeStyle=`rgba(${p.r},${p.g},${p.b},${p.life*0.2})`;ctx.lineWidth=0.5;ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*8,p.y-p.vy*8);ctx.stroke();});
+  const cx=W/2,cy=H/2;ctx.beginPath();ctx.strokeStyle='rgba(124,58,237,0.08)';ctx.lineWidth=1;ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();ctx.beginPath();ctx.strokeStyle='rgba(167,139,250,0.15)';ctx.lineWidth=1;ctx.arc(cx,cy,4,0,Math.PI*2);ctx.stroke();
+  time+=0.016; requestAnimationFrame(drawGrid);
+}
+function createPoint(){const colors=[[124,58,237],[167,139,250],[6,182,212],[16,185,129],[245,158,11],[239,68,68]];const c=colors[Math.floor(Math.random()*colors.length)];const edge=Math.floor(Math.random()*4);let x,y,vx,vy;const s=0.3+Math.random()*0.5;if(edge===0){x=Math.random()*W;y=0;vx=(Math.random()-0.5)*s;vy=s;}else if(edge===1){x=W;y=Math.random()*H;vx=-s;vy=(Math.random()-0.5)*s;}else if(edge===2){x=Math.random()*W;y=H;vx=(Math.random()-0.5)*s;vy=-s;}else{x=0;y=Math.random()*H;vx=s;vy=(Math.random()-0.5)*s;}return{x,y,vx,vy,r:c[0],g:c[1],b:c[2],size:1+Math.random()*2,life:0.6+Math.random()*0.4};}
+for(let i=0;i<40;i++)points.push(createPoint());
+drawGrid();
+
+// ── SCROLL REVEALS ──────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*80);});
+},{threshold:0.1});
+document.querySelectorAll('.reveal,.preview-frame,.pricing-card,.module-card').forEach(el=>observer.observe(el));
+
+// ── PRICING TOGGLE ──────────────────────────────────────────────
+const prices={monthly:{starter:9,pro:19,elite:39},yearly:{starter:7,pro:15,elite:31}};
+function setPricing(mode){
+  document.getElementById('toggle-monthly').classList.toggle('active',mode==='monthly');
+  document.getElementById('toggle-yearly').classList.toggle('active',mode==='yearly');
+  const p=prices[mode];
+  ['starter','pro','elite'].forEach(plan=>{
+    const el=document.getElementById('price-'+plan);
+    el.style.transform='translateY(-10px)';el.style.opacity='0';
+    setTimeout(()=>{el.textContent=p[plan];el.style.transition='all 0.3s';el.style.transform='translateY(0)';el.style.opacity='1';},150);
+  });
+}
+
+// ── FAQ ─────────────────────────────────────────────────────────
+function toggleFaq(btn){
+  const item=btn.parentElement,isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!isOpen)item.classList.add('open');
+}
+
+// ── NAV SCROLL ──────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').style.background=window.scrollY>50?'rgba(10,10,15,0.95)':'rgba(10,10,15,0.7)';
+});
+
+// Init lang
+setLang(currentLang);
+</script>
+</body>
+</html>
