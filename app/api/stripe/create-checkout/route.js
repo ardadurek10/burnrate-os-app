@@ -3,16 +3,9 @@ import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const PRICE_IDS = {
-  starter: 'price_1TXetvJ2HRbR9W7W9tNUtDw7',
-  pro: 'price_1TXewBJ2HRbR9W7WSX1xWJJk',
-  elite: 'price_1TXex9J2HRbR9W7WlY2hRRZV',
-};
-
 export async function POST(req) {
   try {
-    const { plan, userId, email } = await req.json();
-    const priceId = PRICE_IDS[plan];
+    const { priceId, userId, email } = await req.json();
     if (!priceId) return NextResponse.json({ error: 'Geçersiz plan' }, { status: 400 });
 
     const session = await stripe.checkout.sessions.create({
