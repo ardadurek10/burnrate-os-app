@@ -65,7 +65,7 @@ export default function CheckoutPage() {
   }
 
   const plan = PLANS[selectedPlan];
-  const displayPrice = billing === 'yearly' ? (plan.yearlyPrice / 12).toFixed(1) : plan.monthlyPrice;
+  const displayPrice = billing === 'yearly' ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice;
   const totalYearly = plan.yearlyPrice;
 
   return (
@@ -118,7 +118,7 @@ export default function CheckoutPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
           {Object.entries(PLANS).map(([key, p]) => {
             const isSelected = selectedPlan === key;
-            const price = billing === 'yearly' ? (p.yearlyPrice / 12).toFixed(1) : p.monthlyPrice;
+            const price = billing === 'yearly' ? Math.round(p.yearlyPrice / 12) : p.monthlyPrice;
             return (
               <div key={key} onClick={() => setSelectedPlan(key)}
                 style={{ position: 'relative', background: isSelected ? 'rgba(168,85,247,0.08)' : 'rgba(255,255,255,0.02)', border: isSelected ? '2px solid #a855f7' : '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: p.popular ? '32px 24px 24px' : '24px', cursor: 'pointer', transition: 'all 0.2s' }}>
