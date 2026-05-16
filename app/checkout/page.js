@@ -4,27 +4,34 @@ import { useState, useEffect } from 'react';
 const PLANS = {
   starter: {
     name: 'Starter',
-    price: 9,
-    color: '#a855f7',
+    monthlyPrice: 9,
+    yearlyPrice: 86,
+    monthlyPriceId: 'price_1TXetvJ2HRbR9W7W9tNUtDw7',
+    yearlyPriceId: 'price_1TXp6PJ2HRbR9W7WLgZhODrP',
     features: ['Genel Bakış Paneli', 'Harcama Analizi', 'Bakiye ve Gelir Takibi', 'Otomatik hoşgeldin e-postası'],
   },
   pro: {
     name: 'Pro',
-    price: 19,
-    color: '#a855f7',
+    monthlyPrice: 19,
+    yearlyPrice: 182,
+    monthlyPriceId: 'price_1TXewBJ2HRbR9W7WSX1xWJJk',
+    yearlyPriceId: 'price_1TXp7UJ2HRbR9W7WewHmzUXy',
     popular: true,
-    features: ['Starter\'daki her şey', 'Abonelik Takibi', '30 Günlük Meydan Okuma', 'Yapay Zeka Danışmanı', 'Canlı Yatırımlar'],
+    features: ["Starter'daki her şey", 'Abonelik Takibi', '30 Günlük Meydan Okuma', 'Yapay Zeka Danışmanı', 'Canlı Yatırımlar'],
   },
   elite: {
     name: 'Elite',
-    price: 39,
-    color: '#22d3ee',
-    features: ['Pro\'daki her şey', 'Canlı Yatırım Takibi', 'Aylık Özet + Puan', 'Yahoo Finance gerçek zamanlı', 'Öncelikli e-posta desteği'],
+    monthlyPrice: 39,
+    yearlyPrice: 374,
+    monthlyPriceId: 'price_1TXex9J2HRbR9W7WlY2hRRZV',
+    yearlyPriceId: 'price_1TXp8yJ2HRbR9W7WEaMfGm9r',
+    features: ["Pro'daki her şey", 'Canlı Yatırım Takibi', 'Aylık Özet + Puan', 'Yahoo Finance gerçek zamanlı', 'Öncelikli e-posta desteği'],
   },
 };
 
 export default function CheckoutPage() {
   const [selectedPlan, setSelectedPlan] = useState('pro');
+  const [billing, setBilling] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [canceled, setCanceled] = useState(false);
@@ -39,168 +46,145 @@ export default function CheckoutPage() {
   }, []);
 
   async function handleCheckout() {
-    if (!user) {
-      window.location.href = '/login';
-      return;
-    }
+    if (!user) { window.location.href = '/login'; return; }
     setLoading(true);
     setError('');
     try {
+      const plan = PLANS[selectedPlan];
+      const priceId = billing === 'yearly' ? plan.yearlyPriceId : plan.monthlyPriceId;
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: selectedPlan,
-          userId: user.id,
-          email: user.email,
-        }),
+        body: JSON.stringify({ priceId, userId: user.id, email: user.email }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || 'Bir hata oluştu');
-      }
-    } catch (err) {
-      setError('Bağlantı hatası');
-    } finally {
-      setLoading(false);
-    }
+      if (data.url) window.location.href = data.url;
+      else setError(data.error || 'Bir hata oluştu');
+    } catch { setError('Bağlantı hatası'); }
+    setLoading(false);
   }
 
+  const plan = PLANS[selectedPlan];
+  const displayPrice = billing === 'yearly' ? (plan.yearlyPrice / 12).toFixed(1) : plan.monthlyPrice;
+  const totalYearly = plan.yearlyPrice;
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#0d0f14',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 20px',
-      fontFamily: 'DM Sans, sans-serif',
-    }}>
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 48 }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a855f7' }} />
-        <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>BurnRate OS</span>
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', fontFamily: "'DM Sans', sans-serif", padding: '0 20px 60px' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+
+      {/* NAVBAR */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0', maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a855f7' }} />
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>BurnRate OS</span>
+        </div>
+        <a href="/dashboard" style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, textDecoration: 'none' }}>← Dashboard'a dön</a>
       </div>
 
-      <h1 style={{ color: '#fff', fontSize: 36, fontWeight: 800, marginBottom: 8, textAlign: 'center' }}>
-        Planınızı seçin
-      </h1>
-      <p style={{ color: '#6b7280', marginBottom: 48, textAlign: 'center' }}>
-        İstediğiniz zaman iptal edin. Gizli ücret yok.
-      </p>
-
-      {canceled && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)',
-          border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: 8,
-          padding: '12px 20px',
-          color: '#ef4444',
-          marginBottom: 24,
-          fontSize: 14,
-        }}>
-          Ödeme iptal edildi. Tekrar deneyebilirsiniz.
+      <div style={{ maxWidth: 960, margin: '0 auto', animation: 'fadeIn 0.4s ease' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <h1 style={{ color: '#fff', fontSize: 40, fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 12 }}>
+            Planınızı seçin
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>İstediğiniz zaman iptal edin. Gizli ücret yok.</p>
         </div>
-      )}
 
-      {/* Plan kartları */}
-      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 40 }}>
-        {Object.entries(PLANS).map(([key, plan]) => (
-          <div
-            key={key}
-            onClick={() => setSelectedPlan(key)}
-            style={{
-              width: 280,
-              background: selectedPlan === key ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.03)',
-              border: selectedPlan === key ? '2px solid #a855f7' : '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 16,
-              padding: 28,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              position: 'relative',
-            }}
-          >
-            {plan.popular && (
-              <div style={{
-                position: 'absolute',
-                top: -14,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: '#a855f7',
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                padding: '4px 16px',
-                borderRadius: 20,
-                whiteSpace: 'nowrap',
-              }}>
-                ⭐ En Popüler
-              </div>
-            )}
-            <div style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, letterSpacing: 2, marginBottom: 12 }}>
-              {plan.name.toUpperCase()}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, marginBottom: 20 }}>
-              <span style={{ color: '#9ca3af', fontSize: 20 }}>$</span>
-              <span style={{ color: '#fff', fontSize: 48, fontWeight: 800, lineHeight: 1 }}>{plan.price}</span>
-              <span style={{ color: '#6b7280', fontSize: 14, marginBottom: 8 }}>/ay</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {plan.features.map((f, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ color: '#a855f7', fontSize: 16 }}>✓</span>
-                  <span style={{ color: '#d1d5db', fontSize: 14 }}>{f}</span>
+        {/* BILLING TOGGLE */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: 4, gap: 4 }}>
+            <button onClick={() => setBilling('monthly')}
+              style={{ padding: '10px 28px', borderRadius: 100, fontSize: 14, fontWeight: 600, fontFamily: 'DM Sans', background: billing === 'monthly' ? '#7c3aed' : 'transparent', color: billing === 'monthly' ? '#fff' : 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+              Aylık
+            </button>
+            <button onClick={() => setBilling('yearly')}
+              style={{ padding: '10px 28px', borderRadius: 100, fontSize: 14, fontWeight: 600, fontFamily: 'DM Sans', background: billing === 'yearly' ? '#7c3aed' : 'transparent', color: billing === 'yearly' ? '#fff' : 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 8 }}>
+              Yıllık
+              <span style={{ background: billing === 'yearly' ? 'rgba(255,255,255,0.2)' : 'rgba(16,185,129,0.15)', color: billing === 'yearly' ? '#fff' : '#6ee7b7', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 100 }}>%20</span>
+            </button>
+          </div>
+        </div>
+
+        {canceled && (
+          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '12px 20px', color: '#ef4444', marginBottom: 24, fontSize: 14, textAlign: 'center' }}>
+            Ödeme iptal edildi. Tekrar deneyebilirsiniz.
+          </div>
+        )}
+
+        {/* PLAN KARTLARI */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
+          {Object.entries(PLANS).map(([key, p]) => {
+            const isSelected = selectedPlan === key;
+            const price = billing === 'yearly' ? (p.yearlyPrice / 12).toFixed(1) : p.monthlyPrice;
+            return (
+              <div key={key} onClick={() => setSelectedPlan(key)}
+                style={{ position: 'relative', background: isSelected ? 'rgba(168,85,247,0.08)' : 'rgba(255,255,255,0.02)', border: isSelected ? '2px solid #a855f7' : '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: p.popular ? '32px 24px 24px' : '24px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                {p.popular && (
+                  <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: '#7c3aed', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 16px', borderRadius: 100, whiteSpace: 'nowrap' }}>
+                    ⭐ En Popüler
+                  </div>
+                )}
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 16 }}>{p.name.toUpperCase()}</div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, marginBottom: 4 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 18, marginBottom: 6 }}>$</span>
+                  <span style={{ color: '#fff', fontSize: 52, fontWeight: 800, lineHeight: 1, letterSpacing: -2 }}>{price}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, marginBottom: 8 }}>/ay</span>
                 </div>
-              ))}
+                {billing === 'yearly' && (
+                  <div style={{ color: '#6ee7b7', fontSize: 12, marginBottom: 16, fontFamily: "'DM Mono', monospace" }}>
+                    Yıllık ${p.yearlyPrice} · %20 indirim
+                  </div>
+                )}
+                {billing === 'monthly' && <div style={{ marginBottom: 16 }} />}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {p.features.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', background: isSelected ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ color: isSelected ? '#a855f7' : 'rgba(255,255,255,0.3)', fontSize: 11 }}>✓</span>
+                      </div>
+                      <span style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)', fontSize: 13 }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ÖZET + BUTON */}
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '20px 24px', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+          <div>
+            <div style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{plan.name} — {billing === 'yearly' ? 'Yıllık' : 'Aylık'}</div>
+            <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 4 }}>
+              {billing === 'yearly' ? `$${totalYearly}/yıl · aylık $${displayPrice}` : `$${displayPrice}/ay`}
             </div>
           </div>
-        ))}
-      </div>
-
-      {error && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)',
-          border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: 8,
-          padding: '12px 20px',
-          color: '#ef4444',
-          marginBottom: 20,
-          fontSize: 14,
-        }}>
-          {error}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {billing === 'yearly' && (
+              <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '6px 12px', color: '#6ee7b7', fontSize: 12, fontWeight: 600 }}>
+                ${plan.monthlyPrice * 12 - plan.yearlyPrice} tasarruf
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      <button
-        onClick={handleCheckout}
-        disabled={loading}
-        style={{
-          background: loading ? '#6b21a8' : 'linear-gradient(135deg, #a855f7, #7c3aed)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 12,
-          padding: '16px 48px',
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: loading ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s',
-          marginBottom: 16,
-        }}
-      >
-        {loading ? 'Yönlendiriliyor...' : `${PLANS[selectedPlan].name} planı al →`}
-      </button>
+        {error && (
+          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '12px 20px', color: '#ef4444', marginBottom: 16, fontSize: 14, textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
 
-      <p style={{ color: '#4b5563', fontSize: 13 }}>
-        Ödeme Stripe tarafından güvenli şekilde işlenir
-      </p>
+        <button onClick={handleCheckout} disabled={loading}
+          style={{ width: '100%', background: loading ? '#6b21a8' : 'linear-gradient(135deg, #a855f7, #7c3aed)', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans', transition: 'all 0.2s', marginBottom: 12 }}>
+          {loading ? 'Yönlendiriliyor...' : `${plan.name} planı al — ${billing === 'yearly' ? `$${totalYearly}/yıl` : `$${plan.monthlyPrice}/ay`} →`}
+        </button>
 
-      <div style={{ marginTop: 24 }}>
-        <a href="/dashboard" style={{ color: '#6b7280', fontSize: 13, textDecoration: 'none' }}>
-          ← Dashboard'a dön
-        </a>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>🔒 Stripe tarafından güvenli şekilde işlenir</p>
+        </div>
       </div>
     </div>
   );
