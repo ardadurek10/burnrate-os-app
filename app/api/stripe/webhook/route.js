@@ -14,6 +14,12 @@ const PRICE_TO_PLAN = {
   'price_1TXp6PJ2HRbR9W7WLgZhODrP': 'starter',
   'price_1TXp7UJ2HRbR9W7WewHmzUXy': 'pro',
   'price_1TXp8yJ2HRbR9W7WEaMfGm9r': 'elite',
+  'price_1TY0OGJ2HRbR9W7W6F5O9Ezh': 'starter',
+  'price_1TY0eNJ2HRbR9W7WZBgzju7z': 'starter',
+  'price_1TY0MtJ2HRbR9W7WmkJ81NvB': 'pro',
+  'price_1TY0f6J2HRbR9W7WuqhPHun1': 'pro',
+  'price_1TY0OYJ2HRbR9W7WTlhJnqAQ': 'elite',
+  'price_1TY0fXJ2HRbR9W7WP8o1fhql': 'elite',
 };
 
 const PLAN_META = {
