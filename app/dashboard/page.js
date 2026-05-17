@@ -195,7 +195,7 @@ function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
   const currentMeta = PLAN_META[userPlan] || PLAN_META.starter
-  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
+  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || '/checkout?plan=pro'
 
   const moduleNames = {
     subscriptions: (lang==='tr')?'Abonelik Takibi':'Subscription Tracker',
@@ -243,7 +243,7 @@ function UpgradeModal({ moduleId, userPlan, onClose, lang='en' }) {
 function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
   const required = MODULE_PLAN[moduleId] || 'pro'
   const requiredMeta = PLAN_META[required]
-  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || 'https://whop.com/burnrate-os'
+  const upgradeLink = WHOP_UPGRADE_LINKS[userPlan] || '/checkout?plan=pro'
 
   const moduleNames = {
     subscriptions: (lang==='tr')?'Abonelik Takibi':'Subscription Tracker',
@@ -279,7 +279,7 @@ function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
           style={{display:'block',width:'100%',padding:'18px',borderRadius:'16px',background:requiredMeta.color,color:'#fff',fontWeight:700,fontSize:'16px',textDecoration:'none',boxShadow:`0 0 60px ${requiredMeta.color}44`,fontFamily:FONT,marginBottom:'12px'}}>
           {requiredMeta.emoji} Upgrade to {requiredMeta.name} · {requiredMeta.price}
         </a>
-        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>{(lang==='tr')?'İstediğin zaman iptal · Anında aktivasyon':'Cancel anytime · Instant activation via Whop'}</div>
+        <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT}}>{(lang==='tr')?'İstediğin zaman iptal · Anında aktivasyon':'Cancel anytime · Instant activation'}</div>
       </div>
     </div>
   )
@@ -399,7 +399,7 @@ export default function Dashboard() {
             <span style={{color:'#fff',fontSize:'13px',fontFamily:FONT,fontWeight:500}}>
               {(lang==='tr')?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`}
             </span>
-            <a href={WHOP_UPGRADE_LINKS.starter} target="_blank" rel="noreferrer"
+            <a href="/checkout?plan=pro"
               style={{background:'rgba(255,255,255,0.2)',color:'#fff',padding:'5px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:FONT,whiteSpace:'nowrap'}}>
               {(lang==='tr')?'Plan Al →':'Upgrade →'}
             </a>
@@ -418,9 +418,9 @@ export default function Dashboard() {
             </h2>
             <p style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',lineHeight:1.7,margin:'0 0 24px',fontFamily:FONT,textAlign:'center'}}>
               {lang==='tr'?
-                <span>Aboneliğiniz <strong style={{color:'#a78bfa'}}>Whop</strong> üzerinden yönetilmektedir.<br/><br/>İptal etmek için:<br/>1. Aşağıdaki butona tıklayın<br/>2. Aboneliğinize tıklayın<br/>3. <strong>Cancel membership</strong> butonuna basın</span>
+                <span>Aboneliğiniz <strong style={{color:'#a78bfa'}}>Stripe</strong> üzerinden yönetilmektedir.<br/><br/>İptal etmek için:<br/>1. Aşağıdaki butona tıklayın<br/>2. Aboneliğinize tıklayın<br/>3. <strong>Cancel membership</strong> butonuna basın</span>
                 :
-                <span>Your subscription is managed through <strong style={{color:'#a78bfa'}}>Whop</strong>.<br/><br/>To cancel:<br/>1. Click button below<br/>2. Click your subscription<br/>3. Press <strong>Cancel membership</strong></span>
+                <span>Your subscription is managed through <strong style={{color:'#a78bfa'}}>Stripe</strong>.<br/><br/>To manage your subscription, click below.</span>
               }
             </p>
             <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'16px',marginBottom:'20px'}}>
@@ -433,10 +433,10 @@ export default function Dashboard() {
                 <span style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontFamily:MONO}}>{planMeta.price}</span>
               </div>
             </div>
-            <a href="https://whop.com/@me/settings/orders/" target="_blank" rel="noreferrer"
+            <a href="/billing"
               style={{display:'block',textAlign:'center',padding:'14px',borderRadius:'12px',background:'rgba(255,255,255,0.08)',color:'#f5f5f7',fontWeight:600,fontSize:'14px',textDecoration:'none',marginBottom:'10px',fontFamily:FONT}}
               onClick={()=>setManageModal(false)}>
-              {lang==='tr'?`Whop'ta Aboneliğimi Yönet →`:'Manage My Subscription on Whop →'}
+              {lang==='tr'?'Fatura Yönetimine Git →':'Go to Billing →'}
             </a>
             <button onClick={()=>setManageModal(false)}
               style={{width:'100%',padding:'12px',borderRadius:'12px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',fontFamily:FONT}}>
@@ -520,7 +520,7 @@ export default function Dashboard() {
         </div>
 
         <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'14px'}}>
-          <div sttton onClickyle={{paddingLeft:'8px',marginBottom:'10px'}}>
+          <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>{user.email}</div>
           </div>
