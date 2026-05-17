@@ -524,10 +524,7 @@ export default function Dashboard() {
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>{user.email}</div>
           </div>
-          <button onClick={()=>setManageModal(true)}
-            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:'rgba(255,255,255,0.2)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
-            {lang==='tr'?'⚙️ Aboneliği Yönet':'⚙️ Manage Subscription'}
-          </button>
+          
           <button onClick={()=>navigateTo('settings')}
   style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:page==='settings'?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',background:page==='settings'?'rgba(255,255,255,0.05)':'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
   ⚙️ {lang==='tr'?'Ayarlar':'Settings'}
