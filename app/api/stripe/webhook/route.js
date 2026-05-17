@@ -188,7 +188,7 @@ export async function POST(req) {
                 'Authorization': `Bearer ${SUPABASE_KEY}`,
                 'Prefer': 'return=representation'
               },
-              body: JSON.stringify({ email: customerEmail, name: customerName }),
+              body: JSON.stringify({ email: customerEmail, name: customerName, license_key: 'PENDING' }),
             });
             const newUser = await newUserRes.json();
             console.log('[checkout] newUser:', JSON.stringify(newUser));
