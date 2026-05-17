@@ -7,7 +7,7 @@ const PLANS = {
     monthlyPrice: 9,
     yearlyPrice: 86,
     monthlyPriceId: 'price_1TY0OGJ2HRbR9W7W6F5O9Ezh',
-    yearlyPriceId: 'price_1TY0OGJ2HRbR9W7W6F5O9Ezh',
+    yearlyPriceId: 'price_1TY0eNJ2HRbR9W7WZBgzju7z',
     features: ['Genel Bakış Paneli', 'Harcama Analizi', 'Bakiye ve Gelir Takibi', 'Otomatik hoşgeldin e-postası'],
   },
   pro: {
@@ -15,7 +15,7 @@ const PLANS = {
     monthlyPrice: 19,
     yearlyPrice: 182,
     monthlyPriceId: 'price_1TY0MtJ2HRbR9W7WmkJ81NvB',
-    yearlyPriceId: 'price_1TY0MtJ2HRbR9W7WmkJ81NvB',
+    yearlyPriceId: 'price_1TY0f6J2HRbR9W7WuqhPHun1',
     popular: true,
     features: ["Starter'daki her şey", 'Abonelik Takibi', '30 Günlük Meydan Okuma', 'Yapay Zeka Danışmanı', 'Canlı Yatırımlar'],
   },
@@ -24,7 +24,7 @@ const PLANS = {
     monthlyPrice: 39,
     yearlyPrice: 374,
     monthlyPriceId: 'price_1TY0OYJ2HRbR9W7WTlhJnqAQ',
-    yearlyPriceId: 'price_1TY0OYJ2HRbR9W7WTlhJnqAQ',
+    yearlyPriceId: 'price_1TY0fXJ2HRbR9W7WP8o1fhql',
     features: ["Pro'daki her şey", 'Canlı Yatırım Takibi', 'Aylık Özet + Puan', 'Yahoo Finance gerçek zamanlı', 'Öncelikli e-posta desteği'],
   },
 };
