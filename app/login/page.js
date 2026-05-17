@@ -55,9 +55,11 @@ export default function LoginPage() {
   const [trialDone, setTrialDone]   = useState(false)
   const [lang, setLang]             = useState('tr')
   useEffect(() => {
-    const saved = localStorage.getItem('burnrate_lang')
-    if (saved) setLang(saved)
-  }, [])
+  const saved = localStorage.getItem('burnrate_lang')
+  if (saved) setLang(saved)
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('mode') === 'trial') setMode('trial')
+}, [])
   const TR = lang === 'tr'
 
   function changeLang(l) {
