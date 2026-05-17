@@ -25,7 +25,7 @@ const PRICE_TO_PLAN = {
 const PLAN_META = {
   starter: {
     name: 'Starter', prefix: 'STR', color: '#06b6d4', price: '$9/mo',
-    subject: 'BurnRate OS Starter'a Hoş Geldiniz 🚀',
+    subject: 'BurnRate OS Starter Plana Hoş Geldiniz 🚀',
     headline: 'Yolculuğunuz burada başlıyor.',
     subline: 'Temel finansal komuta merkezinize erişiminiz var.',
     features: ['Genel Bakış Paneli', 'Harcama Analizi', 'Bakiye ve Gelir Takibi'],
