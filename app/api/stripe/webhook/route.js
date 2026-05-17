@@ -185,10 +185,11 @@ export async function POST(req) {
       }
 
       case 'invoice.paid': {
-        const invoice = event.data.object;
-        const user = await getUserByCustomerId(invoice.customer);
-        if (!user) break;
-        const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+  const invoice = event.data.object;
+  if (!invoice.subscription) break;
+  const user = await getUserByCustomerId(invoice.customer);
+  if (!user) break;
+  const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
         const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
