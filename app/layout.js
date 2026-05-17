@@ -13,9 +13,9 @@ export const metadata = {
     title: 'BurnRate OS',
   },
   icons: {
-    apple: 'https://burnrate-os.com/logo.svg',
-    icon: 'https://burnrate-os.com/logo.svg',
-  },
+  icon: '/favicon.ico',
+  apple: '/favicon.ico',
+},
 }
 
 export default function RootLayout({ children }) {
