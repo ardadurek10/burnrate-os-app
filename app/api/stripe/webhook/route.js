@@ -158,20 +158,24 @@ export async function POST(req) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
+        console.log('[checkout] customer:', session.customer, 'subscription:', session.subscription, 'email:', session.customer_email);
         let userId = session.metadata?.user_id;
         const customerId = session.customer;
         const subscriptionId = session.subscription;
         if (!subscriptionId) break;
 
         const customerObj = await stripe.customers.retrieve(customerId);
-        const customerEmail = customerObj.email;
+        const customerEmail = customerObj.email || session.customer_email;
         const customerName = customerObj.name || (customerEmail ? customerEmail.split('@')[0] : 'BurnRate User');
+
+        console.log('[checkout] customerEmail:', customerEmail, 'userId:', userId);
 
         if (!userId) {
           const searchRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(customerEmail)}&select=*`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
           });
           const searchData = await searchRes.json();
+          console.log('[checkout] searchData length:', searchData.length);
 
           if (searchData.length > 0) {
             userId = searchData[0].id;
@@ -187,6 +191,7 @@ export async function POST(req) {
               body: JSON.stringify({ email: customerEmail, name: customerName }),
             });
             const newUser = await newUserRes.json();
+            console.log('[checkout] newUser:', JSON.stringify(newUser));
             userId = newUser[0]?.id;
           }
         }
@@ -208,6 +213,7 @@ export async function POST(req) {
         });
 
         await sendWelcomeEmail(customerEmail, customerName, licenseKey, plan);
+        console.log('[checkout] done! email sent to:', customerEmail);
         break;
       }
 
