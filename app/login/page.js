@@ -83,12 +83,13 @@ export default function LoginPage() {
 
       // Check if trial expired
       if (user.is_trial && user.trial_expires_at) {
-        const expires = new Date(user.trial_expires_at)
-        if (expires < new Date()) {
-          setError(TR ? 'Deneme süreniz doldu. Lütfen bir plan satın alın.' : 'Your trial has expired. Please purchase a plan.')
-          setLoading(false); return
-        }
-      }
+  const expires = new Date(user.trial_expires_at)
+  if (expires < new Date()) {
+    localStorage.setItem('burnrate_user', JSON.stringify(user))
+    window.location.href = '/checkout?plan=pro&trial_expired=true'
+    return
+  }
+}
 
       localStorage.setItem('burnrate_user', JSON.stringify(user))
       setUserData(user); setSuccess(true)
