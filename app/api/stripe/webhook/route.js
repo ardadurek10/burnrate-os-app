@@ -157,11 +157,41 @@ export async function POST(req) {
     switch (event.type) {
       case 'checkout.session.completed': {
   const session = event.data.object;
-  const userId = session.metadata?.user_id;
+  let userId = session.metadata?.user_id;
   const customerId = session.customer;
   const subscriptionId = session.subscription;
-  if (!userId) break;
   if (!subscriptionId) break;
+
+  // userId yoksa email ile kullanıcı bul veya oluştur
+  if (!userId) {
+    const customer = await stripe.customers.retrieve(customerId);
+    const email = customer.email;
+    
+    // Supabase'de email ile kullanıcı ara
+    const searchRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    });
+    const searchData = await searchRes.json();
+    
+    if (searchData.length > 0) {
+      userId = searchData[0].id;
+    } else {
+      // Yeni kullanıcı oluştur
+      const newUserRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'apikey': SUPABASE_KEY, 
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ email, name: customer.name || email.split('@')[0] }),
+      });
+      const newUser = await newUserRes.json();
+      userId = newUser[0]?.id;
+    }
+    if (!userId) break;
+  }
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0].price.id;
