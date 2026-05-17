@@ -2609,3 +2609,8 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     </Card>
   </div>
 )}
+</div>
+      </div>
+    </div>
+  )
+}
