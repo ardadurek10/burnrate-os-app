@@ -2287,7 +2287,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     { id: 'plan',     icon: '💳', label: lang === 'tr' ? 'Plan & Abonelik' : 'Plan & Billing' },
     { id: 'prefs',    icon: '🌍', label: lang === 'tr' ? 'Tercihler' : 'Preferences' },
     { id: 'security', icon: '🔒', label: lang === 'tr' ? 'Güvenlik' : 'Security' },
-    { id: 'danger',   icon: '⚠️', label: lang === 'tr' ? 'Tehlike Bölgesi' : 'Danger Zone' },
+    { id: 'danger', icon: '🗑️', label: lang === 'tr' ? 'Veri & Hesap' : 'Data & Account' },
   ]
 
   if (loading) return (
@@ -2553,35 +2553,59 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
             </Card>
           )}
 
-          {/* TEHLİKE BÖLGESİ */}
-          {activeSection === 'danger' && (
-            <Card style={{ padding: 24, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.03)' }}>
-              <div style={{ color: '#fca5a5', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
-                ⚠️ {lang === 'tr' ? 'Tehlike Bölgesi' : 'Danger Zone'}
-              </div>
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ color: '#f5f5f7', fontSize: 14, fontWeight: 600, marginBottom: 6, fontFamily: FONT }}>
-                  {lang === 'tr' ? 'Tüm Verileri Sil' : 'Delete All Data'}
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 14, fontFamily: FONT }}>
-                  {lang === 'tr' ? 'Tüm harcama, gelir, abonelik ve yatırım verileriniz silinir. Bu işlem geri alınamaz.' : 'All your expenses, income, subscriptions and investments will be deleted. This cannot be undone.'}
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)}
-                    placeholder={lang === 'tr' ? '"SİL" yazın' : 'Type "DELETE" to confirm'}
-                    style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(239,68,68,0.2)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT }} />
-                  <button onClick={handleDeleteData}
-                    disabled={deleteConfirm !== 'SİL' && deleteConfirm !== 'DELETE'}
-                    style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.1)', color: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#fff' : 'rgba(239,68,68,0.4)', border: 'none', cursor: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
-                    {lang === 'tr' ? 'Sil' : 'Delete'}
-                  </button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-        </div>
+          {/* HESAP YÖNETİMİ */}
+{activeSection === 'danger' && (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <Card style={{ padding: 24, border: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ color: '#f5f5f7', fontSize: 14, fontWeight: 600, marginBottom: 6, fontFamily: FONT }}>
+        🗑️ {lang === 'tr' ? 'Tüm Verileri Sil' : 'Delete All Data'}
       </div>
-    </div>
-  )
-}
+      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 14, fontFamily: FONT }}>
+        {lang === 'tr' ? 'Tüm harcama, gelir, abonelik ve yatırım verileriniz silinir. Hesabınız silinmez.' : 'All your expenses, income, subscriptions and investments will be deleted. Your account remains.'}
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)}
+          placeholder={lang === 'tr' ? '"SİL" yazın' : 'Type "DELETE" to confirm'}
+          style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT }} />
+        <button onClick={handleDeleteData}
+          disabled={deleteConfirm !== 'SİL' && deleteConfirm !== 'DELETE'}
+          style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.1)', color: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#fff' : 'rgba(239,68,68,0.4)', border: 'none', cursor: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
+          {lang === 'tr' ? 'Sil' : 'Delete'}
+        </button>
+      </div>
+    </Card>
+
+    <Card style={{ padding: 24, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.02)' }}>
+      <div style={{ color: '#ef4444', fontSize: 14, fontWeight: 600, marginBottom: 6, fontFamily: FONT }}>
+        ⛔ {lang === 'tr' ? 'Hesabı Kapat' : 'Close Account'}
+      </div>
+      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 14, fontFamily: FONT }}>
+        {lang === 'tr' ? 'Hesabınız, tüm verileriniz ve Stripe aboneliğiniz kalıcı olarak silinir. Bu işlem geri alınamaz.' : 'Your account, all data and Stripe subscription will be permanently deleted. This cannot be undone.'}
+      </div>
+      <button onClick={async () => {
+        if (!confirm(lang === 'tr' ? 'Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz?' : 'Are you sure you want to permanently delete your account?')) return;
+        try {
+          const res = await fetch('/api/delete-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            localStorage.removeItem('burnrate_user');
+            localStorage.removeItem('burnrate_lang');
+            localStorage.removeItem('burnrate_ai_chat');
+            window.location.href = '/login';
+          } else {
+            setMessage('Hata: ' + data.error);
+          }
+        } catch {
+          setMessage(lang === 'tr' ? 'Bağlantı hatası' : 'Connection error');
+        }
+      }}
+        style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer', fontFamily: FONT }}>
+        {lang === 'tr' ? '⛔ Hesabı Kalıcı Olarak Kapat' : '⛔ Permanently Close Account'}
+      </button>
+    </Card>
+  </div>
+)}
