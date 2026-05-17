@@ -6,16 +6,16 @@ const PLANS = {
     name: 'Starter',
     monthlyPrice: 9,
     yearlyPrice: 86,
-    monthlyPriceId: 'price_1TXetvJ2HRbR9W7W9tNUtDw7',
-    yearlyPriceId: 'price_1TXp6PJ2HRbR9W7WLgZhODrP',
+    monthlyPriceId: 'price_1TY0OGJ2HRbR9W7W6F5O9Ezh',
+    yearlyPriceId: 'price_1TY0OGJ2HRbR9W7W6F5O9Ezh',
     features: ['Genel Bakış Paneli', 'Harcama Analizi', 'Bakiye ve Gelir Takibi', 'Otomatik hoşgeldin e-postası'],
   },
   pro: {
     name: 'Pro',
     monthlyPrice: 19,
     yearlyPrice: 182,
-    monthlyPriceId: 'price_1TXewBJ2HRbR9W7WSX1xWJJk',
-    yearlyPriceId: 'price_1TXp7UJ2HRbR9W7WewHmzUXy',
+    monthlyPriceId: 'price_1TY0MtJ2HRbR9W7WmkJ81NvB',
+    yearlyPriceId: 'price_1TY0MtJ2HRbR9W7WmkJ81NvB',
     popular: true,
     features: ["Starter'daki her şey", 'Abonelik Takibi', '30 Günlük Meydan Okuma', 'Yapay Zeka Danışmanı', 'Canlı Yatırımlar'],
   },
@@ -23,8 +23,8 @@ const PLANS = {
     name: 'Elite',
     monthlyPrice: 39,
     yearlyPrice: 374,
-    monthlyPriceId: 'price_1TXex9J2HRbR9W7WlY2hRRZV',
-    yearlyPriceId: 'price_1TXp8yJ2HRbR9W7WEaMfGm9r',
+    monthlyPriceId: 'price_1TY0OYJ2HRbR9W7WTlhJnqAQ',
+    yearlyPriceId: 'price_1TY0OYJ2HRbR9W7WTlhJnqAQ',
     features: ["Pro'daki her şey", 'Canlı Yatırım Takibi', 'Aylık Özet + Puan', 'Yahoo Finance gerçek zamanlı', 'Öncelikli e-posta desteği'],
   },
 };
@@ -76,7 +76,6 @@ export default function CheckoutPage() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      {/* NAVBAR */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0', maxWidth: 960, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a855f7' }} />
@@ -87,13 +86,10 @@ export default function CheckoutPage() {
 
       <div style={{ maxWidth: 960, margin: '0 auto', animation: 'fadeIn 0.4s ease' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h1 style={{ color: '#fff', fontSize: 40, fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 12 }}>
-            Planınızı seçin
-          </h1>
+          <h1 style={{ color: '#fff', fontSize: 40, fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 12 }}>Planınızı seçin</h1>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>İstediğiniz zaman iptal edin. Gizli ücret yok.</p>
         </div>
 
-        {/* BILLING TOGGLE */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: 4, gap: 4 }}>
             <button onClick={() => setBilling('monthly')}
@@ -114,7 +110,6 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {/* PLAN KARTLARI */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
           {Object.entries(PLANS).map(([key, p]) => {
             const isSelected = selectedPlan === key;
@@ -154,7 +149,6 @@ export default function CheckoutPage() {
           })}
         </div>
 
-        {/* ÖZET + BUTON */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '20px 24px', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <div style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{plan.name} — {billing === 'yearly' ? 'Yıllık' : 'Aylık'}</div>
@@ -162,13 +156,11 @@ export default function CheckoutPage() {
               {billing === 'yearly' ? `$${totalYearly}/yıl · aylık $${displayPrice}` : `$${displayPrice}/ay`}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {billing === 'yearly' && (
-              <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '6px 12px', color: '#6ee7b7', fontSize: 12, fontWeight: 600 }}>
-                ${plan.monthlyPrice * 12 - plan.yearlyPrice} tasarruf
-              </div>
-            )}
-          </div>
+          {billing === 'yearly' && (
+            <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '6px 12px', color: '#6ee7b7', fontSize: 12, fontWeight: 600 }}>
+              ${plan.monthlyPrice * 12 - plan.yearlyPrice} tasarruf
+            </div>
+          )}
         </div>
 
         {error && (
