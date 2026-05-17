@@ -213,17 +213,64 @@ export async function POST(req) {
       }
 
       case 'invoice.paid': {
-        const invoice = event.data.object;
-        if (!invoice.subscription) break;
-        const user = await getUserByCustomerId(invoice.customer);
-        if (!user) break;
-        const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
-        const priceId = subscription.items.data[0].price.id;
-        const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
-        await updateUser(user.id, { plan, plan_expires_at: expiresAt });
-        break;
-      }
+  const invoice = event.data.object;
+  if (!invoice.subscription) break;
+  
+  let user = await getUserByCustomerId(invoice.customer);
+  
+  if (!user) {
+    // Kullanıcı bulunamadı, email ile ara veya oluştur
+    const customerObj = await stripe.customers.retrieve(invoice.customer);
+    const customerEmail = customerObj.email;
+    const customerName = customerObj.name || (customerEmail ? customerEmail.split('@')[0] : 'BurnRate User');
+    
+    const searchRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(customerEmail)}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    });
+    const searchData = await searchRes.json();
+    
+    if (searchData.length > 0) {
+      user = searchData[0];
+    } else {
+      const newUserRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ email: customerEmail, name: customerName }),
+      });
+      const newUser = await newUserRes.json();
+      user = newUser[0];
+    }
+  }
+  
+  if (!user) break;
+  
+  const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+  const priceId = subscription.items.data[0].price.id;
+  const plan = PRICE_TO_PLAN[priceId] || 'starter';
+  const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
+  
+  // Lisans key yoksa oluştur ve mail gönder
+  if (!user.license_key) {
+    const licenseKey = generateLicenseKey(plan);
+    const customerObj2 = await stripe.customers.retrieve(invoice.customer);
+    await updateUser(user.id, { 
+      plan, 
+      plan_expires_at: expiresAt, 
+      stripe_customer_id: invoice.customer,
+      stripe_sub_id: invoice.subscription,
+      license_key: licenseKey 
+    });
+    await sendWelcomeEmail(customerObj2.email, customerObj2.name || user.name, licenseKey, plan);
+  } else {
+    await updateUser(user.id, { plan, plan_expires_at: expiresAt });
+  }
+  break;
+}
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
