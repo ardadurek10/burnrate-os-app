@@ -43,7 +43,10 @@ export default function CheckoutPage() {
     const params = new URLSearchParams(window.location.search);
 if (params.get('plan')) setSelectedPlan(params.get('plan'));
 if (params.get('canceled')) setCanceled(true);
-if (params.get('trial_expired')) setError(lang === 'tr' ? '⏰ Deneme süreniz doldu. Devam etmek için bir plan seçin.' : '⏰ Your trial has expired. Choose a plan to continue.');
+if (params.get('trial_expired')) {
+  const savedLang = localStorage.getItem('burnrate_lang') || 'tr';
+  setError(savedLang === 'tr' ? '⏰ Deneme süreniz doldu. Devam etmek için bir plan seçin.' : '⏰ Your trial has expired. Choose a plan to continue.');
+}
   }, []);
 
   async function handleCheckout() {
