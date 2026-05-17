@@ -214,6 +214,9 @@ export async function POST(req) {
 
       case 'invoice.paid': {
   const invoice = event.data.object;
+  console.log('[invoice.paid] customer:', invoice.customer, 'subscription:', invoice.subscription);
+  if (!invoice.subscription) break;
+  const invoice = event.data.object;
   if (!invoice.subscription) break;
   
   let user = await getUserByCustomerId(invoice.customer);
