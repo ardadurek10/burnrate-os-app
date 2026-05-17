@@ -53,7 +53,7 @@ function generateLicenseKey(plan = 'pro') {
   return `BRNOS-${prefix}-${seg()}-${seg()}`;
 }
 
-function buildEmailHtml(name, licenseKey, plan) {
+function buildEmailHtml(name, email, licenseKey, plan) {
   const meta = PLAN_META[plan];
   const featuresHtml = meta.features.map(f => `
     <tr><td style="padding:8px 0;color:#a09ab8;font-size:14px">
@@ -95,7 +95,7 @@ function buildEmailHtml(name, licenseKey, plan) {
   </div>
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:32px">
     <p style="color:#5c5680;font-size:12px;margin:0 0 8px;text-transform:uppercase">Giriş Bilgileri</p>
-    <p style="color:#a09ab8;font-size:14px;margin:0">E-posta: <span style="color:#f1f0ff">${email}</span></p>
+    <p style="color:#a09ab8;font-size:14px;margin:0">Email: <span style="color:#f1f0ff">${name}</span></p>
     <p style="color:#a09ab8;font-size:14px;margin:4px 0 0">License Key: <span style="color:${meta.color};font-family:monospace">${licenseKey}</span></p>
   </div>
   <div style="text-align:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:28px">
@@ -122,7 +122,7 @@ async function sendWelcomeEmail(email, name, licenseKey, plan) {
       from: 'BurnRate OS <hello@burnrate-os.com>',
       to: email,
       subject: meta.subject,
-      html: buildEmailHtml(name, licenseKey, plan),
+      html: buildEmailHtml(name, email, licenseKey, plan),
     }),
   });
 }
@@ -165,7 +165,7 @@ export async function POST(req) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
+        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
         const licenseKey = generateLicenseKey(plan);
 
         await updateUser(userId, {
@@ -185,14 +185,13 @@ export async function POST(req) {
       }
 
       case 'invoice.paid': {
-  const invoice = event.data.object;
-  if (!invoice.subscription) break;
-  const user = await getUserByCustomerId(invoice.customer);
-  if (!user) break;
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+        const invoice = event.data.object;
+        const user = await getUserByCustomerId(invoice.customer);
+        if (!user) break;
+        const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
+        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
         await updateUser(user.id, { plan, plan_expires_at: expiresAt });
         break;
       }
@@ -211,7 +210,7 @@ export async function POST(req) {
         if (!user) break;
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
+        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
         await updateUser(user.id, { plan, plan_expires_at: expiresAt });
         break;
       }
