@@ -95,7 +95,7 @@ function buildEmailHtml(name, licenseKey, plan) {
   </div>
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:32px">
     <p style="color:#5c5680;font-size:12px;margin:0 0 8px;text-transform:uppercase">Giriş Bilgileri</p>
-    <p style="color:#a09ab8;font-size:14px;margin:0">Email: <span style="color:#f1f0ff">${name}</span></p>
+    <p style="color:#a09ab8;font-size:14px;margin:0">E-posta: <span style="color:#f1f0ff">${email}</span></p>
     <p style="color:#a09ab8;font-size:14px;margin:4px 0 0">License Key: <span style="color:${meta.color};font-family:monospace">${licenseKey}</span></p>
   </div>
   <div style="text-align:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:28px">
