@@ -314,7 +314,16 @@ export default function Dashboard() {
       const parsed = JSON.parse(u)
 if (!parsed || !parsed.id) { localStorage.removeItem('burnrate_user'); window.location.href = '/login'; return }
 if (!parsed.onboarded) { window.location.href = '/onboarding'; return }
-setUser(parsed)
+// Trial kontrolü
+if (parsed.is_trial && parsed.trial_expires_at) {
+  const expires = new Date(parsed.trial_expires_at)
+  const now = new Date()
+  if (expires < now) {
+    window.location.href = '/checkout?plan=pro&trial_expired=true'
+    return
+  }
+}
+      setUser(parsed)
 loadData(parsed.id)
     } catch(e) { localStorage.removeItem('burnrate_user'); window.location.href = '/login' }
   }, [])
@@ -392,22 +401,25 @@ loadData(parsed.id)
       {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
 
       {/* TRIAL BANNER */}
-      {user?.is_trial && user?.trial_expires_at && (() => {
-        const daysLeft = Math.ceil((new Date(user.trial_expires_at) - new Date()) / (1000*60*60*24))
-              if (daysLeft <= 0) return null
-        return (
-          <div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:'linear-gradient(90deg,#7c3aed,#4c1d95)',padding:'10px 20px',display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
-            <span style={{color:'#fff',fontSize:'13px',fontFamily:FONT,fontWeight:500}}>
-              {(lang==='tr')?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`}
-            </span>
-            <a href="/checkout?plan=pro"
-              style={{background:'rgba(255,255,255,0.2)',color:'#fff',padding:'5px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:FONT,whiteSpace:'nowrap'}}>
-              {(lang==='tr')?'Plan Al →':'Upgrade →'}
-            </a>
-          </div>
-        )
-      })()}
-
+     {user?.is_trial && user?.trial_expires_at && (() => {
+  const daysLeft = Math.ceil((new Date(user.trial_expires_at) - new Date()) / (1000*60*60*24))
+  if (daysLeft <= 0) return null
+  const isUrgent = daysLeft <= 3
+  return (
+    <div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:isUrgent?'linear-gradient(90deg,#ef4444,#dc2626)':'linear-gradient(90deg,#7c3aed,#4c1d95)',padding:'10px 20px',display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
+      <span style={{color:'#fff',fontSize:'13px',fontFamily:FONT,fontWeight:500}}>
+        {isUrgent
+          ? (lang==='tr')?`🚨 Denemeniz ${daysLeft} gün içinde sona eriyor! Verilerinizi kaybetmemek için şimdi yükseltin.`:`🚨 Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}! Upgrade now to keep your data.`
+          : (lang==='tr')?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`
+        }
+      </span>
+      <a href="/checkout?plan=pro"
+        style={{background:'rgba(255,255,255,0.2)',color:'#fff',padding:'5px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:FONT,whiteSpace:'nowrap'}}>
+        {(lang==='tr')?'Şimdi Yükselt →':'Upgrade Now →'}
+      </a>
+    </div>
+  )
+})()}
       {/* MANAGE MODAL */}
       {manageModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
