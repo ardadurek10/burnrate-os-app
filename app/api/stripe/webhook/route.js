@@ -154,6 +154,8 @@ export async function POST(req) {
   }
 
   try {
+    console.log('[Webhook] event type:', event.type);
+    switch (event.type) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
