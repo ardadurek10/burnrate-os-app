@@ -2405,6 +2405,48 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                     {canceling ? (lang === 'tr' ? 'İptal ediliyor...' : 'Canceling...') : (lang === 'tr' ? 'Aboneliği İptal Et' : 'Cancel Subscription')}
                   </button>
                 )}
+{dbUser?.stripe_sub_id && (() => {
+  const createdAt = dbUser?.created_at ? new Date(dbUser.created_at) : null;
+  const daysDiff = createdAt ? Math.floor((new Date() - createdAt) / (1000*60*60*24)) : 99;
+  const canRefund = daysDiff <= 7;
+  return (
+    <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <button
+        onClick={async () => {
+          if (!canRefund) return;
+          if (!confirm(lang === 'tr' ? 'İade talebinde bulunmak istediğinizden emin misiniz? Aboneliğiniz iptal edilecek.' : 'Are you sure you want a refund? Your subscription will be canceled.')) return;
+          setSaving(true);
+          setMessage('');
+          try {
+            const res = await fetch('/api/stripe/refund', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.id }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              setMessage(lang === 'tr' ? '✓ İade talebiniz alındı. 5-10 iş günü içinde hesabınıza yansır.' : '✓ Refund processed. Allow 5-10 business days.');
+              fetchDbUser();
+            } else {
+              setMessage((lang === 'tr' ? 'Hata: ' : 'Error: ') + data.error);
+            }
+          } catch {
+            setMessage(lang === 'tr' ? 'Bağlantı hatası' : 'Connection error');
+          }
+          setSaving(false);
+        }}
+        disabled={!canRefund || saving}
+        style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, background: 'transparent', color: canRefund ? '#6ee7b7' : 'rgba(255,255,255,0.2)', border: `1px solid ${canRefund ? 'rgba(110,231,183,0.3)' : 'rgba(255,255,255,0.08)'}`, cursor: canRefund ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
+        {lang === 'tr' ? '💚 Para İadesi Talep Et' : '💚 Request Refund'}
+      </button>
+      <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: FONT }}>
+        {canRefund
+          ? (lang === 'tr' ? `✓ İade hakkınız var · ${7 - daysDiff} gün kaldı` : `✓ Eligible for refund · ${7 - daysDiff} days left`)
+          : (lang === 'tr' ? '✗ 7 günlük iade süresi dolmuştur' : '✗ 7-day refund period has expired')}
+      </div>
+    </div>
+  );
+})()}
               </Card>
 
               <Card accent={theme.accent} style={{ padding: 24 }}>
