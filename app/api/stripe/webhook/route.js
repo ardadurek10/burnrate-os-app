@@ -165,7 +165,7 @@ export async function POST(req) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
         const licenseKey = generateLicenseKey(plan);
 
         await updateUser(userId, {
@@ -191,7 +191,7 @@ export async function POST(req) {
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
         await updateUser(user.id, { plan, plan_expires_at: expiresAt });
         break;
       }
@@ -210,7 +210,7 @@ export async function POST(req) {
         if (!user) break;
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
-        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+        const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
         await updateUser(user.id, { plan, plan_expires_at: expiresAt });
         break;
       }
