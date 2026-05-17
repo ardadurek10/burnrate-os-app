@@ -25,24 +25,24 @@ const PRICE_TO_PLAN = {
 const PLAN_META = {
   starter: {
     name: 'Starter', prefix: 'STR', color: '#06b6d4', price: '$9/mo',
-    subject: 'Welcome to BurnRate OS Starter 🚀',
-    headline: 'Your journey starts here.',
-    subline: 'You now have access to your core financial command center.',
-    features: ['Overview Dashboard', 'Spending Analytics', 'Balance & Income Tracker'],
+    subject: 'BurnRate OS Starter'a Hoş Geldiniz 🚀',
+    headline: 'Yolculuğunuz burada başlıyor.',
+    subline: 'Temel finansal komuta merkezinize erişiminiz var.',
+    features: ['Genel Bakış Paneli', 'Harcama Analizi', 'Bakiye ve Gelir Takibi'],
   },
   pro: {
     name: 'Pro', prefix: 'PRO', color: '#7c3aed', price: '$19/mo',
-    subject: 'BurnRate OS Pro activated 💜',
-    headline: 'Unlock your full potential.',
-    subline: 'AI advisor, subscription audit, and 30-day challenge — all yours.',
-    features: ['Everything in Starter', 'Subscription Tracker + Auto-labels', '30-Day Challenge', 'AI Financial Advisor (Claude)'],
+    subject: 'BurnRate OS Pro aktif edildi 💜',
+    headline: 'Tüm potansiyelinizi ortaya çıkarın.',
+    subline: 'AI danışman, abonelik denetimi ve 30 günlük meydan okuma — hepsi sizin.',
+    features: ["Starter'daki her şey", 'Abonelik Takibi + Otomatik Etiketler', '30 Günlük Meydan Okuma', 'Yapay Zeka Danışmanı (Claude)'],
   },
   elite: {
     name: 'Elite', prefix: 'ELT', color: '#f59e0b', price: '$39/mo',
-    subject: 'BurnRate OS Elite activated ⚡',
-    headline: "You're running the full OS.",
-    subline: 'Live investments, monthly scores, priority support — the complete stack.',
-    features: ['Everything in Pro', 'Live Investment Tracker', 'Monthly Summary Score (A/B/C/D)', 'Priority Support + Early Access'],
+    subject: 'BurnRate OS Elite aktif edildi ⚡',
+    headline: 'Tam OS deneyimini yaşıyorsunuz.',
+    subline: 'Canlı yatırımlar, aylık puanlar, öncelikli destek — tam paket.',
+    features: ["Pro'daki her şey", 'Canlı Yatırım Takibi', 'Aylık Özet Puanı (A/B/C/D)', 'Öncelikli Destek + Erken Erişim'],
   },
 };
 
@@ -53,7 +53,7 @@ function generateLicenseKey(plan = 'pro') {
   return `BRNOS-${prefix}-${seg()}-${seg()}`;
 }
 
-function buildEmailHtml(name, email, licenseKey, plan) {
+function buildEmailHtml(name, licenseKey, plan) {
   const meta = PLAN_META[plan];
   const featuresHtml = meta.features.map(f => `
     <tr><td style="padding:8px 0;color:#a09ab8;font-size:14px">
@@ -76,26 +76,26 @@ function buildEmailHtml(name, email, licenseKey, plan) {
     <p style="color:#a09ab8;font-size:16px;margin:0;line-height:1.6">${meta.subline}</p>
   </div>
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px;margin-bottom:28px;text-align:center">
-    <p style="color:#5c5680;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 12px">Your License Key</p>
+    <p style="color:#5c5680;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 12px">Lisans Anahtarınız</p>
     <p style="color:${meta.color};font-size:22px;font-weight:700;font-family:monospace;letter-spacing:3px;margin:0 0 16px">${licenseKey}</p>
-    <p style="color:#5c5680;font-size:12px;margin:0">Keep this safe · Used to access your dashboard</p>
+    <p style="color:#5c5680;font-size:12px;margin:0">Güvende tutun · Dashboard erişimi için kullanın</p>
   </div>
   <p style="color:#a09ab8;font-size:15px;line-height:1.7;margin:0 0 28px">
-    Hey ${name}, welcome to BurnRate OS <strong style="color:${meta.color}">${meta.name}</strong>. 
-    Your financial command center is ready. Use your email and license key to log in.
+    Merhaba ${name}, BurnRate OS'e hoş geldiniz <strong style="color:${meta.color}">${meta.name}</strong>. 
+    Finansal komuta merkeziniz hazır. Giriş yapmak için e-posta ve lisans anahtarınızı kullanın.
   </p>
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:20px 24px;margin-bottom:32px">
-    <p style="color:#5c5680;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 12px">What's included in ${meta.name}</p>
+    <p style="color:#5c5680;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 12px">Pakete dahil olanlar in ${meta.name}</p>
     <table style="width:100%;border-collapse:collapse">${featuresHtml}</table>
   </div>
   <div style="text-align:center;margin-bottom:40px">
     <a href="https://app.burnrate-os.com/login" style="display:inline-block;background:${meta.color};color:#fff;padding:16px 40px;border-radius:12px;text-decoration:none;font-size:16px;font-weight:600">
-      Open Dashboard →
+      Dashboard'ı Aç →
     </a>
   </div>
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:32px">
-    <p style="color:#5c5680;font-size:12px;margin:0 0 8px;text-transform:uppercase">Login Details</p>
-    <p style="color:#a09ab8;font-size:14px;margin:0">Email: <span style="color:#f1f0ff">${email}</span></p>
+    <p style="color:#5c5680;font-size:12px;margin:0 0 8px;text-transform:uppercase">Giriş Bilgileri</p>
+    <p style="color:#a09ab8;font-size:14px;margin:0">Email: <span style="color:#f1f0ff">${name}</span></p>
     <p style="color:#a09ab8;font-size:14px;margin:4px 0 0">License Key: <span style="color:${meta.color};font-family:monospace">${licenseKey}</span></p>
   </div>
   <div style="text-align:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:28px">
@@ -122,7 +122,7 @@ async function sendWelcomeEmail(email, name, licenseKey, plan) {
       from: 'BurnRate OS <hello@burnrate-os.com>',
       to: email,
       subject: meta.subject,
-      html: buildEmailHtml(name, email, licenseKey, plan),
+      html: buildEmailHtml(name, licenseKey, plan),
     }),
   });
 }
