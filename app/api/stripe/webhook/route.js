@@ -53,7 +53,7 @@ function generateLicenseKey(plan = 'pro') {
   return `BRNOS-${prefix}-${seg()}-${seg()}`;
 }
 
-function buildEmailHtml(name, licenseKey, plan) {
+function buildEmailHtml(name, email, licenseKey, plan) {
   const meta = PLAN_META[plan];
   const featuresHtml = meta.features.map(f => `
     <tr><td style="padding:8px 0;color:#a09ab8;font-size:14px">
@@ -122,7 +122,7 @@ async function sendWelcomeEmail(email, name, licenseKey, plan) {
       from: 'BurnRate OS <hello@burnrate-os.com>',
       to: email,
       subject: meta.subject,
-      html: buildEmailHtml(name, licenseKey, plan),
+      html: buildEmailHtml(name, email, licenseKey, plan),
     }),
   });
 }
