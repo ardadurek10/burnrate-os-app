@@ -299,7 +299,7 @@ export default function LoginPage() {
               {TR?'← Siteye dön':'← Back to site'}
             </a>
             <span style={{color:'rgba(255,255,255,0.08)'}}>·</span>
-            <a href="https://whop.com/burnrate-os" style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',textDecoration:'none',fontFamily:FONT}}
+           <a href="https://burnrate-os.com/#pricing" style={{color:'rgba(255,255,255,0.2)',fontSize:'12px',textDecoration:'none',fontFamily:FONT}}
               onMouseEnter={e=>e.target.style.color='rgba(255,255,255,0.5)'}
               onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.2)'}>
               {TR?'Plan satın al →':'Get a plan →'}
