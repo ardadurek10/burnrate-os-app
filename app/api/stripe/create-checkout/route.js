@@ -14,8 +14,8 @@ export async function POST(req) {
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: email,
       metadata: { user_id: userId },
-      success_url: `https://burnrate-os-app.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://burnrate-os-app.vercel.app/checkout?canceled=true`,
+      success_url: `https://app.burnrate-os.com/success?session_id={CHECKOUT_SESSION_ID}`,
+cancel_url: `https://app.burnrate-os.com/checkout?canceled=true`,
     });
 
     return NextResponse.json({ url: session.url });
