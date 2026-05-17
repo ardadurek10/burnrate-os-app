@@ -156,13 +156,14 @@ export async function POST(req) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object;
-        const userId = session.metadata?.user_id;
-        const customerId = session.customer;
-        const subscriptionId = session.subscription;
-        if (!userId) break;
+  const session = event.data.object;
+  const userId = session.metadata?.user_id;
+  const customerId = session.customer;
+  const subscriptionId = session.subscription;
+  if (!userId) break;
+  if (!subscriptionId) break;
 
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
         const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
