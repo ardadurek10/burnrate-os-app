@@ -312,9 +312,10 @@ export default function Dashboard() {
       const u = localStorage.getItem('burnrate_user')
       if (!u || u === 'undefined' || u === 'null') { window.location.href = '/login'; return }
       const parsed = JSON.parse(u)
-      if (!parsed || !parsed.id) { localStorage.removeItem('burnrate_user'); window.location.href = '/login'; return }
-      setUser(parsed)
-      loadData(parsed.id)
+if (!parsed || !parsed.id) { localStorage.removeItem('burnrate_user'); window.location.href = '/login'; return }
+if (!parsed.onboarded) { window.location.href = '/onboarding'; return }
+setUser(parsed)
+loadData(parsed.id)
     } catch(e) { localStorage.removeItem('burnrate_user'); window.location.href = '/login' }
   }, [])
 
