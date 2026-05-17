@@ -7,9 +7,9 @@ const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118';
 
 const PRICE_IDS = {
-  starter: 'price_1TXetvJ2HRbR9W7W9tNUtDw7',
-  pro: 'price_1TXewBJ2HRbR9W7WSX1xWJJk',
-  elite: 'price_1TXex9J2HRbR9W7WlY2hRRZV',
+  starter: 'price_1TY0OGJ2HRbR9W7W6F5O9Ezh',
+  pro: 'price_1TY0MtJ2HRbR9W7WmkJ81NvB',
+  elite: 'price_1TY0OYJ2HRbR9W7WTlhJnqAQ',
 };
 
 export async function POST(req) {
