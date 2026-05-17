@@ -156,7 +156,6 @@ export async function POST(req) {
   try {
     console.log('[Webhook] event type:', event.type);
     switch (event.type) {
-    switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         let userId = session.metadata?.user_id;
@@ -164,12 +163,10 @@ export async function POST(req) {
         const subscriptionId = session.subscription;
         if (!subscriptionId) break;
 
-        // Müşteri bilgilerini al
         const customerObj = await stripe.customers.retrieve(customerId);
         const customerEmail = customerObj.email;
         const customerName = customerObj.name || (customerEmail ? customerEmail.split('@')[0] : 'BurnRate User');
 
-        // userId yoksa email ile kullanıcı bul veya oluştur
         if (!userId) {
           const searchRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(customerEmail)}&select=*`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
@@ -216,14 +213,60 @@ export async function POST(req) {
 
       case 'invoice.paid': {
         const invoice = event.data.object;
+        console.log('[invoice.paid] customer:', invoice.customer, 'subscription:', invoice.subscription);
         if (!invoice.subscription) break;
-        const user = await getUserByCustomerId(invoice.customer);
+
+        let user = await getUserByCustomerId(invoice.customer);
+
+        if (!user) {
+          const customerObj = await stripe.customers.retrieve(invoice.customer);
+          const customerEmail = customerObj.email;
+          const customerName = customerObj.name || (customerEmail ? customerEmail.split('@')[0] : 'BurnRate User');
+
+          const searchRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(customerEmail)}&select=*`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+          });
+          const searchData = await searchRes.json();
+
+          if (searchData.length > 0) {
+            user = searchData[0];
+          } else {
+            const newUserRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Prefer': 'return=representation'
+              },
+              body: JSON.stringify({ email: customerEmail, name: customerName }),
+            });
+            const newUser = await newUserRes.json();
+            user = newUser[0];
+          }
+        }
+
         if (!user) break;
+
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const priceId = subscription.items.data[0].price.id;
         const plan = PRICE_TO_PLAN[priceId] || 'starter';
         const expiresAt = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
-        await updateUser(user.id, { plan, plan_expires_at: expiresAt });
+
+        if (!user.license_key) {
+          const licenseKey = generateLicenseKey(plan);
+          const customerObj2 = await stripe.customers.retrieve(invoice.customer);
+          await updateUser(user.id, {
+            plan,
+            plan_expires_at: expiresAt,
+            stripe_customer_id: invoice.customer,
+            stripe_sub_id: invoice.subscription,
+            license_key: licenseKey
+          });
+          await sendWelcomeEmail(customerObj2.email, customerObj2.name || user.name, licenseKey, plan);
+        } else {
+          await updateUser(user.id, { plan, plan_expires_at: expiresAt });
+        }
         break;
       }
 
