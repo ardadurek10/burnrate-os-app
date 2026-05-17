@@ -2413,7 +2413,31 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   {[['starter', 'Starter', '$9'], ['pro', 'Pro', '$19'], ['elite', 'Elite', '$39']].map(([key, name, price]) => (
-                    <div key={key} onClick={() => key !== currentPlan && (window.location.href = `/checkout?plan=${key}`)}
+  <div key={key} onClick={async () => {
+    if (key === currentPlan) return;
+    setSaving(true);
+    setMessage('');
+    try {
+      const res = await fetch('/api/stripe/update-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, newPlan: key }),
+      });
+      const data = await res.json();
+      if (data.redirect) {
+        window.location.href = data.redirect;
+      } else if (data.success) {
+        setMessage(lang === 'tr' ? `✓ Plan ${name} olarak güncellendi` : `✓ Plan updated to ${name}`);
+        fetchDbUser();
+      } else {
+        setMessage('Hata: ' + (data.error || 'Bir sorun oluştu'));
+      }
+    } catch {
+      setMessage('Bağlantı hatası');
+    } finally {
+      setSaving(false);
+    }
+  }}
                       style={{ flex: 1, padding: '16px 12px', borderRadius: 12, background: key === currentPlan ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.03)', border: key === currentPlan ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.07)', cursor: key === currentPlan ? 'default' : 'pointer', textAlign: 'center', transition: 'all 0.15s' }}>
                       <div style={{ color: key === currentPlan ? '#c4b5fd' : '#fff', fontWeight: 700, fontSize: 14, fontFamily: FONT }}>{name}</div>
                       <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: MONO }}>{price}/mo</div>
