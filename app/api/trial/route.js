@@ -1,131 +1,125 @@
-export async function POST(request) {
-  try {
-    const { email, lang } = await request.json()
-    const TR = lang === 'tr'
+import { NextResponse } from 'next/server';
 
-    if (!email || !email.includes('@')) {
-      return Response.json({
-        error: TR ? 'Geçerli bir e-posta adresi girin.' : 'Please enter a valid email address.'
-      }, { status: 400 })
-    }
+const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118';
 
-    const cleanEmail = email.toLowerCase().trim()
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+function generateLicenseKey() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const seg = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return `BRNOS-TRL-${seg()}-${seg()}`;
+}
 
-    const headers = {
+async function sendTrialEmail(email, name, licenseKey, lang = 'tr') {
+  const subject = lang === 'tr' ? '🔥 7 Günlük Ücretsiz Denemeniz Başladı!' : '🔥 Your 7-Day Free Trial Has Started!';
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#07070f;font-family:sans-serif">
+<div style="max-width:520px;margin:0 auto;padding:48px 24px">
+  <div style="text-align:center;margin-bottom:40px">
+    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:100px;padding:8px 20px">
+      <div style="width:8px;height:8px;background:#7c3aed;border-radius:50%"></div>
+      <span style="color:#a09ab8;font-size:13px">BURNRATE OS · DENEME</span>
+    </div>
+  </div>
+  <div style="text-align:center;margin-bottom:40px">
+    <h1 style="color:#f1f0ff;font-size:28px;font-weight:700;margin:0 0 12px">${lang === 'tr' ? '7 Günlük Denemeniz Başladı! 🎉' : 'Your 7-Day Trial Has Started! 🎉'}</h1>
+    <p style="color:#a09ab8;font-size:16px;margin:0;line-height:1.6">${lang === 'tr' ? 'Pro özelliklerin tamamına 7 gün boyunca ücretsiz erişin.' : 'Get full access to all Pro features for 7 days, free.'}</p>
+  </div>
+  <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:28px;margin-bottom:28px;text-align:center">
+    <p style="color:#5c5680;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 12px">${lang === 'tr' ? 'Lisans Anahtarınız' : 'Your License Key'}</p>
+    <p style="color:#7c3aed;font-size:22px;font-weight:700;font-family:monospace;letter-spacing:3px;margin:0 0 16px">${licenseKey}</p>
+    <p style="color:#5c5680;font-size:12px;margin:0">${lang === 'tr' ? 'Güvende tutun · Dashboard erişimi için kullanın' : 'Keep this safe · Used to access your dashboard'}</p>
+  </div>
+  <p style="color:#a09ab8;font-size:15px;line-height:1.7;margin:0 0 28px">
+    ${lang === 'tr' ? `Merhaba ${name}, BurnRate OS Pro'ya hoş geldiniz. 7 günlük deneme süreniz bugün başladı.` : `Hey ${name}, welcome to BurnRate OS Pro. Your 7-day trial starts today.`}
+  </p>
+  <div style="text-align:center;margin-bottom:40px">
+    <a href="https://app.burnrate-os.com/login" style="display:inline-block;background:#7c3aed;color:#fff;padding:16px 40px;border-radius:12px;text-decoration:none;font-size:16px;font-weight:600">
+      ${lang === 'tr' ? "Dashboard'ı Aç →" : 'Open Dashboard →'}
+    </a>
+  </div>
+  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:32px">
+    <p style="color:#5c5680;font-size:12px;margin:0 0 8px;text-transform:uppercase">${lang === 'tr' ? 'Giriş Bilgileri' : 'Login Details'}</p>
+    <p style="color:#a09ab8;font-size:14px;margin:0">${lang === 'tr' ? 'E-posta:' : 'Email:'} <span style="color:#f1f0ff">${email}</span></p>
+    <p style="color:#a09ab8;font-size:14px;margin:4px 0 0">${lang === 'tr' ? 'Lisans Anahtarı:' : 'License Key:'} <span style="color:#7c3aed;font-family:monospace">${licenseKey}</span></p>
+  </div>
+  <div style="text-align:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:28px">
+    <p style="color:#3d3a52;font-size:12px;margin:0">BurnRate OS · hello@burnrate-os.com</p>
+    <p style="color:#3d3a52;font-size:12px;margin:4px 0 0">
+      <a href="https://burnrate-os.com" style="color:#5c5680;text-decoration:none">burnrate-os.com</a>
+      · ${lang === 'tr' ? '7 gün ücretsiz · Kart gerekmez' : '7 days free · No credit card required'}
+    </p>
+  </div>
+</div>
+</body>
+</html>`;
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer re_9LCgbRzr_Nhd5NTWrTx6pv5M3z8VyLjYn',
       'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+    body: JSON.stringify({
+      from: 'BurnRate OS <hello@burnrate-os.com>',
+      to: email,
+      subject,
+      html,
+    }),
+  });
+}
+
+export async function POST(req) {
+  try {
+    const { email, lang } = await req.json();
+    if (!email) return NextResponse.json({ error: 'Email gerekli' }, { status: 400 });
+
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Email zaten kayıtlı mı?
+    const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,is_trial,plan`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    });
+    const existing = await checkRes.json();
+
+    if (existing.length > 0) {
+      return NextResponse.json({ error: 'Bu e-posta zaten kayıtlı.', redirect: '/login' }, { status: 400 });
     }
 
-    // Check if user already exists
-    const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=*`,
-      { headers }
-    )
-    const existing = await checkRes.json()
+    // Yeni trial kullanıcısı oluştur
+    const licenseKey = generateLicenseKey();
+    const trialExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const name = cleanEmail.split('@')[0];
 
-    if (existing && existing.length > 0) {
-      const user = existing[0]
-
-      if (!user.is_trial) {
-        return Response.json({
-          error: TR ? 'Bu e-posta zaten kayıtlı. Giriş yapın.' : 'This email is already registered. Please sign in.',
-          redirect: '/login'
-        }, { status: 409 })
-      }
-
-      if (user.trial_expires_at && new Date(user.trial_expires_at) > new Date()) {
-        return Response.json({ success: true, user })
-      }
-
-      return Response.json({
-        error: TR ? 'Deneme süreniz doldu. Lütfen bir plan satın alın.' : 'Your trial has expired. Please purchase a plan.',
-        redirect: 'https://whop.com/burnrate-os'
-      }, { status: 403 })
-    }
-
-    // Create trial user
-    const trialExpires = new Date()
-    trialExpires.setDate(trialExpires.getDate() + 7)
-
-    const rand = () => Math.random().toString(36).substring(2,6).toUpperCase()
-    const licenseKey = `BRNOS-TRIAL-${rand()}-${rand()}`
-    const userName = cleanEmail.split('@')[0]
-
-    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+    const createRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
       method: 'POST',
-      headers: { ...headers, 'Prefer': 'return=representation' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=representation'
+      },
       body: JSON.stringify({
         email: cleanEmail,
-        name: userName,
-        plan: 'pro',
-        billing: 'trial',
+        name,
         license_key: licenseKey,
+        plan: 'pro',
         is_trial: true,
-        trial_expires_at: trialExpires.toISOString(),
-      })
-    })
+        trial_expires_at: trialExpires,
+        onboarded: false,
+      }),
+    });
 
-    const newUsers = await insertRes.json()
-    if (!insertRes.ok) {
-      return Response.json({ error: TR ? 'Hesap oluşturulamadı.' : 'Could not create account.' }, { status: 500 })
-    }
-    const newUser = Array.isArray(newUsers) ? newUsers[0] : newUsers
+    const newUser = await createRes.json();
+    if (!newUser[0]) return NextResponse.json({ error: 'Hesap oluşturulamadı.' }, { status: 500 });
 
-    // Send welcome email
-    try {
-      const expireStr = TR
-        ? trialExpires.toLocaleDateString('tr-TR')
-        : trialExpires.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    // Mail gönder
+    await sendTrialEmail(cleanEmail, name, licenseKey, lang);
 
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'BurnRate OS <hello@burnrate-os.com>',
-          to: cleanEmail,
-          subject: TR ? '🔥 7 Günlük Ücretsiz Denemeniz Başladı!' : '🔥 Your 7-Day Free Trial Has Started!',
-          html: TR ? `
-            <div style="background:#0a0a0f;color:#f1f0ff;font-family:sans-serif;padding:40px;max-width:560px;margin:0 auto;border-radius:16px;border:1px solid rgba(124,58,237,0.3)">
-              <img src="https://burnrate-os.com/logo.svg" width="64" height="64" style="border-radius:16px;margin-bottom:16px;display:block" alt="BurnRate OS"/>
-              <h1 style="color:#a78bfa;font-size:28px;margin-bottom:8px">BurnRate OS</h1>
-              <h2 style="font-size:20px;margin-bottom:16px">7 Günlük Ücretsiz Denemeniz Başladı!</h2>
-              <p style="color:rgba(255,255,255,0.7);line-height:1.7">Deneme süreniz <strong style="color:#a78bfa">${expireStr}</strong> tarihinde sona erecek.</p>
-              <div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:12px;padding:20px;margin:24px 0">
-                <p style="margin:0;color:rgba(255,255,255,0.5);font-size:12px;letter-spacing:1px">LİSANS ANAHTARI</p>
-                <p style="margin:8px 0 0;color:#a78bfa;font-size:18px;font-family:monospace;font-weight:700">${licenseKey}</p>
-              </div>
-              <p style="color:rgba(255,255,255,0.6);font-size:13px">E-posta: <strong>${cleanEmail}</strong></p>
-              <a href="https://burnrate-os-app.vercel.app/login" style="display:block;background:#7c3aed;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:24px">Panele Git →</a>
-            </div>
-          ` : `
-            <div style="background:#0a0a0f;color:#f1f0ff;font-family:sans-serif;padding:40px;max-width:560px;margin:0 auto;border-radius:16px;border:1px solid rgba(124,58,237,0.3)">
-              <img src="https://burnrate-os.com/logo.svg" width="64" height="64" style="border-radius:16px;margin-bottom:16px;display:block" alt="BurnRate OS"/>
-              <h1 style="color:#a78bfa;font-size:28px;margin-bottom:8px">BurnRate OS</h1>
-              <h2 style="font-size:20px;margin-bottom:16px">Your 7-Day Free Trial Has Started!</h2>
-              <p style="color:rgba(255,255,255,0.7);line-height:1.7">Your trial expires on <strong style="color:#a78bfa">${expireStr}</strong>.</p>
-              <div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:12px;padding:20px;margin:24px 0">
-                <p style="margin:0;color:rgba(255,255,255,0.5);font-size:12px;letter-spacing:1px">LICENSE KEY</p>
-                <p style="margin:8px 0 0;color:#a78bfa;font-size:18px;font-family:monospace;font-weight:700">${licenseKey}</p>
-              </div>
-              <p style="color:rgba(255,255,255,0.6);font-size:13px">Email: <strong>${cleanEmail}</strong></p>
-              <a href="https://burnrate-os-app.vercel.app/login" style="display:block;background:#7c3aed;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:24px">Go to Dashboard →</a>
-            </div>
-          `
-        })
-      })
-    } catch (emailErr) {
-      console.error('Email error:', emailErr)
-    }
-
-    return Response.json({ success: true, user: newUser })
-
-  } catch (error) {
-    return Response.json({ error: 'Server error: ' + error.message }, { status: 500 })
+    return NextResponse.json({ success: true, user: newUser[0] });
+  } catch (err) {
+    console.error('Trial error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
