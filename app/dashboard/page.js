@@ -2794,6 +2794,7 @@ function DebtPage({ theme, userId, lang }) {
   }
 
   async function addDebt() {
+    console.log('addDebt called', form.person_name, form.amount)
   if (!form.person_name || !form.amount) return
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/debts`, {
