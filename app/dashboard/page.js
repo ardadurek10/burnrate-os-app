@@ -426,128 +426,131 @@ loadData(parsed.id)
       {/* MANAGE MODAL */}
       {/* AYLIK ÖZET MODAL */}
 {monthlySummaryModal && (
-  <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
-    onClick={e=>e.target===e.currentTarget&&setMonthlySummaryModal(false)}>
-    <div style={{background:'#0f0f1a',border:'1px solid rgba(124,58,237,0.3)',borderRadius:'24px',padding:'36px',maxWidth:'520px',width:'100%',maxHeight:'80vh',overflowY:'auto'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'28px'}}>
-        <div>
-          <h2 style={{color:'#f1f0ff',fontSize:'20px',fontWeight:700,margin:0,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</h2>
-          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:'4px 0 0',fontFamily:FONT}}>{lang==='tr'?'Bir ay seçin':'Select a month'}</p>
-        </div>
-        <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
-      </div>
+  <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
+    onClick={e=>e.target===e.currentTarget&&(setMonthlySummaryModal(false),setSelectedMonth(null))}>
+    <div style={{background:'#0a0a12',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'28px',width:'100%',maxWidth:'680px',maxHeight:'88vh',overflowY:'auto',boxShadow:'0 40px 120px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.1)'}}>
       
-      {/* Ay listesi */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'24px'}}>
-        {(() => {
-          const now = new Date()
-          const months = []
-          for (let i = 0; i < 12; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
-            const isCurrentMonth = i === 0
-            const monthName = d.toLocaleString(lang==='tr'?'tr-TR':'en-US', {month:'long', year:'numeric'})
-            months.push(
-              <button key={key} onClick={()=>setSelectedMonth(selectedMonth===key?null:key)}
-                style={{padding:'14px',borderRadius:'12px',fontSize:'13px',fontWeight:selectedMonth===key?700:400,background:selectedMonth===key?'rgba(124,58,237,0.15)':isCurrentMonth?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)',color:selectedMonth===key?'#c4b5fd':isCurrentMonth?'#f1f0ff':'rgba(255,255,255,0.5)',border:selectedMonth===key?'1px solid rgba(124,58,237,0.4)':isCurrentMonth?'1px solid rgba(255,255,255,0.1)':'1px solid rgba(255,255,255,0.05)',cursor:'pointer',fontFamily:FONT,textAlign:'left',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span>{monthName}</span>
-                {isCurrentMonth && <span style={{fontSize:'10px',color:'#a78bfa',fontFamily:FONT}}>●</span>}
-              </button>
-            )
-          }
-          return months
+      {/* Header */}
+      <div style={{padding:'28px 32px 20px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,background:'#0a0a12',zIndex:1,borderRadius:'28px 28px 0 0'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(124,58,237,0.15)',border:'1px solid rgba(124,58,237,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>📋</div>
+          <div>
+            <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>{lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
+            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>{lang==='tr'?'Bir ay seçerek özeti görün':'Select a month to view summary'}</div>
+          </div>
+        </div>
+        <button onClick={()=>{setMonthlySummaryModal(false);setSelectedMonth(null)}} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+      </div>
+
+      <div style={{padding:'24px 32px'}}>
+        {/* Ay grid */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'24px'}}>
+          {(() => {
+            const now = new Date()
+            const months = []
+            for (let i = 0; i < 12; i++) {
+              const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+              const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+              const isCurrentMonth = i === 0
+              const isSelected = selectedMonth === key
+              const monthName = d.toLocaleString(lang==='tr'?'tr-TR':'en-US', {month:'long'})
+              const yearStr = d.getFullYear()
+              months.push(
+                <button key={key} onClick={()=>setSelectedMonth(isSelected?null:key)}
+                  style={{padding:'12px 14px',borderRadius:'12px',background:isSelected?'rgba(124,58,237,0.18)':isCurrentMonth?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.02)',border:isSelected?'1px solid rgba(124,58,237,0.5)':isCurrentMonth?'1px solid rgba(255,255,255,0.12)':'1px solid rgba(255,255,255,0.04)',cursor:'pointer',fontFamily:FONT,textAlign:'left',transition:'all 0.15s'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
+                    <span style={{fontSize:'13px',fontWeight:isSelected?700:500,color:isSelected?'#c4b5fd':isCurrentMonth?'#f1f0ff':'rgba(255,255,255,0.5)'}}>{monthName}</span>
+                    {isCurrentMonth && <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#a78bfa',boxShadow:'0 0 6px #a78bfa',display:'inline-block'}}></span>}
+                    {isSelected && !isCurrentMonth && <span style={{color:'#7c3aed',fontSize:'12px'}}>✓</span>}
+                  </div>
+                  <div style={{fontSize:'11px',color:'rgba(255,255,255,0.2)',fontFamily:FONT}}>{yearStr}</div>
+                </button>
+              )
+            }
+            return months
+          })()}
+        </div>
+
+        {/* Seçili ay özeti */}
+        {selectedMonth && (() => {
+          const [year, month] = selectedMonth.split('-').map(Number)
+          const monthExpenses = expenses.filter(e => {
+            if (!e.expense_date) return false
+            const d = new Date(e.expense_date)
+            return d.getFullYear()===year && d.getMonth()+1===month
+          })
+          const monthIncome = income.filter(i => {
+            if (!i.income_date) return false
+            const d = new Date(i.income_date)
+            return d.getFullYear()===year && d.getMonth()+1===month
+          })
+          const monthExp = monthExpenses.reduce((a,e)=>a+Number(e.amount),0)
+          const monthInc = monthIncome.reduce((a,i)=>a+Number(i.amount),0)
+          const monthNet = monthInc - monthExp - totalSubs
+          const sr = monthInc>0?Math.round(((monthInc-monthExp-totalSubs)/monthInc)*100):0
+          const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
+          const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
+          const scoreBg = sr>=30?'rgba(16,185,129,0.1)':sr>=20?'rgba(245,158,11,0.1)':sr>=10?'rgba(249,115,22,0.1)':'rgba(239,68,68,0.1)'
+          const monthLabel = new Date(year,month-1,1).toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
+
+          return (
+            <div style={{animation:'fadeIn 0.2s ease'}}>
+              {/* Ay başlık + skor */}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'20px 24px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'16px',marginBottom:'14px'}}>
+                <div>
+                  <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'6px'}}>{lang==='tr'?'Seçili Ay':'Selected Month'}</div>
+                  <div style={{color:'#f1f0ff',fontSize:'20px',fontWeight:700,fontFamily:FONT}}>{monthLabel}</div>
+                </div>
+                <div style={{textAlign:'center'}}>
+                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT,marginBottom:'4px'}}>{lang==='tr'?'Puan':'Score'}</div>
+                  <div style={{width:'56px',height:'56px',borderRadius:'14px',background:scoreBg,border:`1px solid ${scoreColor}44`,display:'flex',alignItems:'center',justifyContent:'center',color:scoreColor,fontSize:'28px',fontWeight:800,fontFamily:FONT}}>{score}</div>
+                </div>
+              </div>
+
+              {/* 4 stat kart */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'14px'}}>
+                {[
+                  {label:lang==='tr'?'Toplam Gelir':'Total Income', value:`₺${monthInc.toFixed(0)}`, color:'#6ee7b7', bg:'rgba(16,185,129,0.08)', border:'rgba(16,185,129,0.2)', icon:'💚'},
+                  {label:lang==='tr'?'Toplam Gider':'Total Expenses', value:`₺${monthExp.toFixed(0)}`, color:'#fca5a5', bg:'rgba(239,68,68,0.08)', border:'rgba(239,68,68,0.2)', icon:'💸'},
+                  {label:lang==='tr'?'Abonelikler':'Subscriptions', value:`₺${totalSubs.toFixed(0)}`, color:'#ef4444', bg:'rgba(239,68,68,0.06)', border:'rgba(239,68,68,0.15)', icon:'⚔️'},
+                  {label:lang==='tr'?'Net Bakiye':'Net Balance', value:`${monthNet>=0?'+':'−'}₺${Math.abs(monthNet).toFixed(0)}`, color:monthNet>=0?'#6ee7b7':'#fca5a5', bg:monthNet>=0?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.08)', border:monthNet>=0?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)', icon:monthNet>=0?'✅':'⚠️'},
+                ].map(item=>(
+                  <div key={item.label} style={{background:item.bg,border:`1px solid ${item.border}`,borderRadius:'14px',padding:'16px 18px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                      <span style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,letterSpacing:'0.05em'}}>{item.label}</span>
+                      <span style={{fontSize:'14px'}}>{item.icon}</span>
+                    </div>
+                    <div style={{color:item.color,fontSize:'22px',fontWeight:700,fontFamily:FONT,letterSpacing:'-0.5px'}}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tasarruf oranı bar */}
+              <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'14px',padding:'16px 18px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                  <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'Tasarruf Oranı':'Savings Rate'}</span>
+                  <span style={{color:scoreColor,fontSize:'14px',fontWeight:700,fontFamily:FONT}}>{sr}%</span>
+                </div>
+                <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
+                  <div style={{height:'100%',borderRadius:'100px',width:`${Math.min(Math.max(sr,0),100)}%`,background:scoreColor,transition:'width 0.5s ease'}}></div>
+                </div>
+                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'11px',fontFamily:FONT,marginTop:'8px'}}>
+                  {sr>=30?(lang==='tr'?'🎉 Mükemmel tasarruf!':'🎉 Excellent savings!'):sr>=20?(lang==='tr'?'💪 İyi gidiyor':'💪 Good progress'):sr>=10?(lang==='tr'?'📈 Gelişmeye devam':'📈 Keep improving'):(lang==='tr'?'⚠️ Harcamalar fazla':'⚠️ Spending too high')}
+                </div>
+              </div>
+
+              {(monthExpenses.length===0 && monthIncome.length===0) && (
+                <div style={{textAlign:'center',padding:'24px',color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT,marginTop:'10px'}}>
+                  {lang==='tr'?'Bu ay için kayıtlı veri bulunamadı.':'No recorded data found for this month.'}
+                </div>
+              )}
+            </div>
+          )
         })()}
       </div>
-
-      {/* Seçili ay özeti */}
-      {selectedMonth && (() => {
-        const [year, month] = selectedMonth.split('-').map(Number)
-        const monthExpenses = expenses.filter(e => {
-          if (!e.expense_date) return false
-          const d = new Date(e.expense_date)
-          return d.getFullYear()===year && d.getMonth()+1===month
-        })
-        const monthIncome = income.filter(i => {
-          if (!i.income_date) return false
-          const d = new Date(i.income_date)
-          return d.getFullYear()===year && d.getMonth()+1===month
-        })
-        const monthExp = monthExpenses.reduce((a,e)=>a+Number(e.amount),0)
-        const monthInc = monthIncome.reduce((a,i)=>a+Number(i.amount),0)
-        const monthNet = monthInc - monthExp - totalSubs
-        const sr = monthInc>0?Math.round(((monthInc-monthExp-totalSubs)/monthInc)*100):0
-        const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
-        const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-
-        return (
-          <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'20px'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-              <div style={{color:'#f1f0ff',fontSize:'16px',fontWeight:700,fontFamily:FONT}}>
-                {new Date(year,month-1,1).toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})}
-              </div>
-              <div style={{color:scoreColor,fontSize:'32px',fontWeight:800,fontFamily:FONT}}>{score}</div>
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-              {[
-                [lang==='tr'?'Gelir':'Income', `₺${monthInc.toFixed(0)}`, '#6ee7b7'],
-                [lang==='tr'?'Gider':'Expenses', `₺${monthExp.toFixed(0)}`, '#fca5a5'],
-                [lang==='tr'?'Abonelik':'Subs', `₺${totalSubs.toFixed(0)}`, '#ef4444'],
-                [lang==='tr'?'Net':'Net', `₺${Math.abs(monthNet).toFixed(0)}`, monthNet>=0?'#6ee7b7':'#fca5a5'],
-              ].map(([label,value,color])=>(
-                <div key={label} style={{background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'12px'}}>
-                  <div style={{color:'rgba(255,255,255,0.35)',fontSize:'11px',fontFamily:FONT,marginBottom:'4px'}}>{label}</div>
-                  <div style={{color,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>{value}</div>
-                </div>
-              ))}
-            </div>
-            {monthExpenses.length===0 && monthIncome.length===0 && (
-              <p style={{color:'rgba(255,255,255,0.25)',fontSize:'13px',textAlign:'center',margin:'16px 0 0',fontFamily:FONT}}>
-                {lang==='tr'?'Bu ay için veri yok':'No data for this month'}
-              </p>
-            )}
-          </div>
-        )
-      })()}
     </div>
   </div>
 )}
-{manageModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
-          onClick={e=>e.target===e.currentTarget&&setManageModal(false)}>
-          <div style={{background:'#0f0f1a',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'24px',padding:'36px',maxWidth:'420px',width:'100%'}}>
-            <div style={{fontSize:'32px',marginBottom:'16px',textAlign:'center'}}>⚙️</div>
-            <h2 style={{color:'#f1f0ff',fontSize:'20px',fontWeight:700,margin:'0 0 8px',fontFamily:FONT,textAlign:'center'}}>
-              {lang==='tr'?'Aboneliği Yönet':'Manage Subscription'}
-            </h2>
-            <p style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',lineHeight:1.7,margin:'0 0 24px',fontFamily:FONT,textAlign:'center'}}>
-              {lang==='tr'?
-                <span>Aboneliğiniz <strong style={{color:'#a78bfa'}}>Stripe</strong> üzerinden yönetilmektedir.<br/><br/>İptal etmek için:<br/>1. Aşağıdaki butona tıklayın<br/>2. Aboneliğinize tıklayın<br/>3. <strong>Cancel membership</strong> butonuna basın</span>
-                :
-                <span>Your subscription is managed through <strong style={{color:'#a78bfa'}}>Stripe</strong>.<br/><br/>To manage your subscription, click below.</span>
-              }
-            </p>
-            <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'16px',marginBottom:'20px'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'Mevcut Plan':'Current Plan'}</span>
-                <span style={{color:planMeta.color,fontSize:'13px',fontWeight:700,fontFamily:MONO}}>{planMeta.emoji} {planMeta.name}</span>
-              </div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'Fiyat':'Price'}</span>
-                <span style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontFamily:MONO}}>{planMeta.price}</span>
-              </div>
-            </div>
-            <a href="/billing"
-              style={{display:'block',textAlign:'center',padding:'14px',borderRadius:'12px',background:'rgba(255,255,255,0.08)',color:'#f5f5f7',fontWeight:600,fontSize:'14px',textDecoration:'none',marginBottom:'10px',fontFamily:FONT}}
-              onClick={()=>setManageModal(false)}>
-              {lang==='tr'?'Fatura Yönetimine Git →':'Go to Billing →'}
-            </a>
-            <button onClick={()=>setManageModal(false)}
-              style={{width:'100%',padding:'12px',borderRadius:'12px',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',fontFamily:FONT}}>
-              {lang==='tr'?'Kapat':'Close'}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* SIDEBAR */}
       <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
