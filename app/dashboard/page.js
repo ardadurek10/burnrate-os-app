@@ -142,6 +142,7 @@ const THEMES = {
   goals:         { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
   ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.1)',  border:'rgba(139,92,246,0.3)',  text:'#ddd6fe',  chart:['#8b5cf6','#7c3aed','#06b6d4','#10b981','#f59e0b'] },
   summary:       { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#6ee7b7','#f97316','#ef4444','#7c3aed','#06b6d4'] },
+  debt:          { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',  border:'rgba(244,63,94,0.3)',  text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
 }
 
 const TIP = {fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
@@ -356,6 +357,7 @@ loadData(parsed.id)
     { id:'spending',      icon:'💸', label: (lang==='tr') ? 'Harcamalar'    : 'Spending' },
     { id:'investments',   icon:'📈', label: (lang==='tr') ? 'Yatırımlar'    : 'Investments' },
     { id:'balance',       icon:'💰', label: (lang==='tr') ? 'Bakiye'        : 'Balance' },
+    { id:'debt', icon:'💸', label: (lang==='tr') ? 'Borç Takibi' : 'Debt Tracker' },
     { id:'goals',         icon:'🎯', label: (lang==='tr') ? 'Meydan Okuma'  : 'Challenge' },
   ]
 
@@ -674,6 +676,7 @@ loadData(parsed.id)
         {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
         {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
         {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
+{page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} lang={lang} />}
 {page==='settings' && <SettingsPage theme={THEMES.dashboard} user={user} lang={lang} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
@@ -2741,6 +2744,367 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   </div>
 )}
 </div>
+      </div>
+    </div>
+  )
+}
+function DebtPage({ theme, userId, lang }) {
+  const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+
+  const [tab, setTab] = useState('receivable')
+  const [debts, setDebts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [adding, setAdding] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [form, setForm] = useState({
+    type: 'receivable', person_name: '', person_phone: '', person_email: '',
+    amount: '', category: 'personal', status: 'pending',
+    due_date: '', description: '', notes: ''
+  })
+
+  const CATS = [
+    { v: 'personal',  label: lang==='tr'?'Kişisel':'Personal',   icon: '👤' },
+    { v: 'business',  label: lang==='tr'?'İş':'Business',        icon: '💼' },
+    { v: 'vehicle',   label: lang==='tr'?'Araç':'Vehicle',        icon: '🚗' },
+    { v: 'home',      label: lang==='tr'?'Ev':'Home',            icon: '🏠' },
+    { v: 'education', label: lang==='tr'?'Eğitim':'Education',   icon: '📚' },
+    { v: 'other',     label: lang==='tr'?'Diğer':'Other',         icon: '📦' },
+  ]
+
+  const STATUS = {
+    pending:  { label: lang==='tr'?'Bekliyor':'Pending',       color: '#fde68a', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)'  },
+    paid:     { label: lang==='tr'?'Ödendi':'Paid',            color: '#6ee7b7', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)'  },
+    overdue:  { label: lang==='tr'?'Gecikmiş':'Overdue',       color: '#fca5a5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)'   },
+    partial:  { label: lang==='tr'?'Kısmi':'Partial',          color: '#67e8f9', bg: 'rgba(6,182,212,0.12)',  border: 'rgba(6,182,212,0.3)'   },
+  }
+
+  useEffect(() => { loadDebts() }, [userId])
+
+  async function loadDebts() {
+    setLoading(true)
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/debts?user_id=eq.${userId}&order=created_at.desc&select=*`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      )
+      const data = await res.json()
+      setDebts(Array.isArray(data) ? data : [])
+    } catch(e) { setDebts([]) }
+    setLoading(false)
+  }
+
+  async function addDebt() {
+    if (!form.person_name || !form.amount) return
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/debts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ ...form, amount: parseFloat(form.amount), user_id: userId, type: tab })
+      })
+      setForm({ type: 'receivable', person_name: '', person_phone: '', person_email: '', amount: '', category: 'personal', status: 'pending', due_date: '', description: '', notes: '' })
+      setAdding(false)
+      loadDebts()
+    } catch(e) {}
+  }
+
+  async function updateStatus(id, status) {
+    await fetch(`${SUPABASE_URL}/rest/v1/debts?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ status })
+    })
+    loadDebts()
+  }
+
+  async function deleteDebt(id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/debts?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    })
+    setSelected(null)
+    loadDebts()
+  }
+
+  const receivables = debts.filter(d => d.type === 'receivable')
+  const payables = debts.filter(d => d.type === 'payable')
+  const currentList = tab === 'receivable' ? receivables : payables
+
+  const totalReceivable = receivables.filter(d => d.status !== 'paid').reduce((a, d) => a + Number(d.amount), 0)
+  const totalPayable = payables.filter(d => d.status !== 'paid').reduce((a, d) => a + Number(d.amount), 0)
+  const netStatus = totalReceivable - totalPayable
+
+  function getAvatar(name) {
+    return name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'
+  }
+
+  function getAvatarColor(name) {
+    const colors = ['#7c3aed','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899']
+    let hash = 0
+    for (let i = 0; i < (name||'').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    return colors[Math.abs(hash) % colors.length]
+  }
+
+  return (
+    <div className="page-pad" style={{padding:'36px'}}>
+      {/* Başlık */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px',flexWrap:'wrap',gap:'12px'}}>
+        <div>
+          <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>
+            💸 {lang==='tr'?'Borç Takibi':'Debt Tracker'}
+          </h1>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>
+            {lang==='tr'?'Alacak ve vereceklerinizi takip edin':'Track your receivables and payables'}
+          </p>
+        </div>
+        <button onClick={()=>{setAdding(!adding);setSelected(null)}}
+          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>
+          + {lang==='tr'?'Borç Ekle':'Add Debt'}
+        </button>
+      </div>
+
+      {/* Özet kartlar */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
+        <div style={{background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'16px',padding:'20px'}}>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Alacak':'Total Receivable'}</div>
+          <div style={{color:'#6ee7b7',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>₺{totalReceivable.toFixed(0)}</div>
+          <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{receivables.filter(d=>d.status!=='paid').length} {lang==='tr'?'bekleyen':'pending'}</div>
+        </div>
+        <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'16px',padding:'20px'}}>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Verecek':'Total Payable'}</div>
+          <div style={{color:'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>₺{totalPayable.toFixed(0)}</div>
+          <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{payables.filter(d=>d.status!=='paid').length} {lang==='tr'?'bekleyen':'pending'}</div>
+        </div>
+        <div style={{background:netStatus>=0?'rgba(124,58,237,0.08)':'rgba(239,68,68,0.08)',border:`1px solid ${netStatus>=0?'rgba(124,58,237,0.2)':'rgba(239,68,68,0.2)'}`,borderRadius:'16px',padding:'20px'}}>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Net Durum':'Net Status'}</div>
+          <div style={{color:netStatus>=0?'#c4b5fd':'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{netStatus>=0?'+':''}₺{netStatus.toFixed(0)}</div>
+          <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{netStatus>=0?(lang==='tr'?'Net alacaklısınız':'Net receivable'):(lang==='tr'?'Net borçlusunuz':'Net payable')}</div>
+        </div>
+      </div>
+
+      {/* Ekleme formu */}
+      {adding && (
+        <div style={{background:'rgba(255,255,255,0.02)',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:'20px',padding:'24px',marginBottom:'20px'}}>
+          <div style={{color:'#f1f0ff',fontSize:'15px',fontWeight:700,fontFamily:FONT,marginBottom:'20px'}}>
+            {lang==='tr'?'Yeni Borç Ekle':'Add New Debt'}
+          </div>
+
+          {/* Tür seçimi */}
+          <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',padding:'4px',marginBottom:'20px',width:'fit-content'}}>
+            {[
+              {v:'receivable', label:lang==='tr'?'💚 Alacak':'💚 Receivable'},
+              {v:'payable',    label:lang==='tr'?'🔴 Verecek':'🔴 Payable'},
+            ].map(t=>(
+              <button key={t.v} onClick={()=>setForm({...form,type:t.v})}
+                style={{padding:'9px 20px',borderRadius:'9px',fontSize:'13px',fontWeight:form.type===t.v?600:400,background:form.type===t.v?theme.bg:'transparent',color:form.type===t.v?theme.text:'rgba(255,255,255,0.4)',border:form.type===t.v?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT}}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
+            {/* Kişi adı */}
+            <div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Ad Soyad *':'Full Name *'}</div>
+              <input value={form.person_name} onChange={e=>setForm({...form,person_name:e.target.value})}
+                placeholder={lang==='tr'?'Ahmet Yılmaz':'John Doe'}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
+            </div>
+
+            {/* Tutar */}
+            <div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tutar (₺) *':'Amount (₺) *'}</div>
+              <div style={{position:'relative'}}>
+                <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontFamily:MONO}}>₺</span>
+                <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})}
+                  placeholder="1000"
+                  style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:MONO,boxSizing:'border-box'}} />
+              </div>
+            </div>
+
+            {/* Telefon */}
+            <div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Telefon':'Phone'}</div>
+              <input value={form.person_phone} onChange={e=>setForm({...form,person_phone:e.target.value})}
+                placeholder="+90 5xx xxx xx xx"
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
+            </div>
+
+            {/* Email */}
+            <div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'E-posta':'Email'}</div>
+              <input value={form.person_email} onChange={e=>setForm({...form,person_email:e.target.value})}
+                placeholder="ornek@mail.com"
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
+            </div>
+
+            {/* Vade */}
+            <div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Vade Tarihi':'Due Date'}</div>
+              <input type="date" value={form.due_date} onChange={e=>setForm({...form,due_date:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,colorScheme:'dark',boxSizing:'border-box'}} />
+            </div>
+
+            {/* Kategori */}
+            <div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
+              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(30,30,50,0.9)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,cursor:'pointer'}}>
+                {CATS.map(c=><option key={c.v} value={c.v}>{c.icon} {c.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Açıklama */}
+          <div style={{marginBottom:'14px'}}>
+            <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Ne Borcu? / Açıklama':'Description'}</div>
+            <input value={form.description} onChange={e=>setForm({...form,description:e.target.value})}
+              placeholder={lang==='tr'?'Kira, araba tamiri, iş ödemesi...':'Rent, car repair, business payment...'}
+              style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
+          </div>
+
+          {/* Notlar */}
+          <div style={{marginBottom:'20px'}}>
+            <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Notlar':'Notes'}</div>
+            <textarea value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}
+              placeholder={lang==='tr'?'Ek bilgiler...':'Additional notes...'}
+              rows={2}
+              style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,resize:'vertical',boxSizing:'border-box'}} />
+          </div>
+
+          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+            <button onClick={()=>setAdding(false)} style={{padding:'10px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
+              {lang==='tr'?'İptal':'Cancel'}
+            </button>
+            <button onClick={addDebt} disabled={!form.person_name||!form.amount}
+              style={{padding:'10px 20px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',opacity:!form.person_name||!form.amount?0.4:1,fontFamily:FONT}}>
+              {lang==='tr'?'Kaydet':'Save'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sekmeler */}
+      <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',padding:'4px',marginBottom:'20px',width:'fit-content'}}>
+        {[
+          {v:'receivable', icon:'💚', label:lang==='tr'?'Alacaklar':'Receivables', count:receivables.length},
+          {v:'payable',    icon:'🔴', label:lang==='tr'?'Verecekler':'Payables',    count:payables.length},
+        ].map(t=>(
+          <button key={t.v} onClick={()=>setTab(t.v)}
+            style={{padding:'9px 20px',borderRadius:'9px',fontSize:'13px',fontWeight:tab===t.v?600:400,background:tab===t.v?theme.bg:'transparent',color:tab===t.v?theme.text:'rgba(255,255,255,0.4)',border:tab===t.v?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'7px'}}>
+            {t.icon} {t.label}
+            <span style={{background:'rgba(255,255,255,0.08)',borderRadius:'100px',padding:'1px 8px',fontSize:'11px',fontFamily:MONO}}>{t.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Liste */}
+      <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+        {loading ? (
+          <div style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.25)',fontFamily:FONT,fontSize:'13px'}}>
+            {lang==='tr'?'Yükleniyor...':'Loading...'}
+          </div>
+        ) : currentList.length === 0 ? (
+          <div style={{textAlign:'center',padding:'48px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'16px'}}>
+            <div style={{fontSize:'36px',marginBottom:'12px'}}>{tab==='receivable'?'💚':'🔴'}</div>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontFamily:FONT,marginBottom:'16px'}}>
+              {tab==='receivable'
+                ?(lang==='tr'?'Henüz alacak kaydı yok':'No receivables yet')
+                :(lang==='tr'?'Henüz verecek kaydı yok':'No payables yet')}
+            </div>
+            <button onClick={()=>setAdding(true)}
+              style={{padding:'10px 20px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
+              + {lang==='tr'?'İlk Kaydı Ekle':'Add First Entry'}
+            </button>
+          </div>
+        ) : currentList.map(debt => {
+          const st = STATUS[debt.status] || STATUS.pending
+          const cat = CATS.find(c=>c.v===debt.category)
+          const isSelected = selected?.id === debt.id
+          const avatarColor = getAvatarColor(debt.person_name)
+          const isOverdue = debt.due_date && new Date(debt.due_date) < new Date() && debt.status === 'pending'
+
+          return (
+            <div key={debt.id}>
+              <div onClick={()=>setSelected(isSelected?null:debt)}
+                style={{background:isSelected?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)',border:`1px solid ${isSelected?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.06)'}`,borderRadius:'16px',padding:'18px 20px',cursor:'pointer',transition:'all 0.15s'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'14px'}}>
+
+                  {/* Avatar */}
+                  <div style={{width:'44px',height:'44px',borderRadius:'12px',background:avatarColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:800,color:'#fff',fontFamily:FONT,flexShrink:0}}>
+                    {getAvatar(debt.person_name)}
+                  </div>
+
+                  {/* Bilgi */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'3px'}}>
+                      <span style={{color:'#f1f0ff',fontSize:'14px',fontWeight:600,fontFamily:FONT}}>{debt.person_name}</span>
+                      {isOverdue && <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:'rgba(239,68,68,0.15)',color:'#fca5a5',fontFamily:FONT}}>⚠️ {lang==='tr'?'Gecikmiş':'Overdue'}</span>}
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                      {debt.description && <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{debt.description}</span>}
+                      {cat && <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:FONT}}>{cat.icon} {cat.label}</span>}
+                      {debt.due_date && <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:MONO}}>{new Date(debt.due_date).toLocaleDateString('tr-TR')}</span>}
+                    </div>
+                  </div>
+
+                  {/* Tutar + durum */}
+                  <div style={{textAlign:'right',flexShrink:0}}>
+                    <div style={{color:tab==='receivable'?'#6ee7b7':'#fca5a5',fontSize:'18px',fontWeight:800,fontFamily:FONT}}>
+                      {tab==='receivable'?'+':'−'}₺{Number(debt.amount).toLocaleString('tr-TR')}
+                    </div>
+                    <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:st.bg,color:st.color,border:`1px solid ${st.border}`,fontFamily:FONT,fontWeight:600}}>
+                      {st.label}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detay paneli */}
+              {isSelected && (
+                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'0 0 16px 16px',borderTop:'none',padding:'16px 20px',animation:'fadeIn 0.2s ease'}}>
+                  {/* Kişi bilgileri */}
+                  <div style={{display:'flex',gap:'16px',marginBottom:'16px',flexWrap:'wrap'}}>
+                    {debt.person_phone && (
+                      <a href={`tel:${debt.person_phone}`} style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT,textDecoration:'none'}}>
+                        📞 {debt.person_phone}
+                      </a>
+                    )}
+                    {debt.person_email && (
+                      <a href={`mailto:${debt.person_email}`} style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT,textDecoration:'none'}}>
+                        ✉️ {debt.person_email}
+                      </a>
+                    )}
+                    {debt.notes && (
+                      <span style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT}}>
+                        📝 {debt.notes}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Durum güncelle */}
+                  <div style={{marginBottom:'14px'}}>
+                    <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Durumu Güncelle':'Update Status'}</div>
+                    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                      {Object.entries(STATUS).map(([key, val]) => (
+                        <button key={key} onClick={()=>updateStatus(debt.id,key)}
+                          style={{padding:'6px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:debt.status===key?700:400,background:debt.status===key?val.bg:'transparent',color:debt.status===key?val.color:'rgba(255,255,255,0.3)',border:`1px solid ${debt.status===key?val.border:'rgba(255,255,255,0.08)'}`,cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
+                          {val.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Sil */}
+                  <button onClick={()=>{if(confirm(lang==='tr'?'Bu kaydı silmek istediğinizden emin misiniz?':'Are you sure you want to delete this entry?'))deleteDebt(debt.id)}}
+                    style={{padding:'8px 16px',borderRadius:'10px',fontSize:'12px',background:'rgba(239,68,68,0.1)',color:'#fca5a5',border:'1px solid rgba(239,68,68,0.2)',cursor:'pointer',fontFamily:FONT}}>
+                    🗑️ {lang==='tr'?'Kaydı Sil':'Delete Entry'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
