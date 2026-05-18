@@ -2799,8 +2799,13 @@ function DebtPage({ theme, userId, lang }) {
       await fetch(`${SUPABASE_URL}/rest/v1/debts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
-        body: JSON.stringify({ ...form, amount: parseFloat(form.amount), user_id: userId, type: tab })
-      })
+        body: JSON.stringify({ 
+  ...form, 
+  amount: parseFloat(form.amount), 
+  user_id: userId, 
+  type: tab,
+  due_date: form.due_date || null
+})
       setForm({ type: 'receivable', person_name: '', person_phone: '', person_email: '', amount: '', category: 'personal', status: 'pending', due_date: '', description: '', notes: '' })
       setAdding(false)
       loadDebts()
