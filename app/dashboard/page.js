@@ -354,10 +354,10 @@ loadData(parsed.id)
   const navItems = [
     { id:'dashboard',     icon:'⚡', label: (lang==='tr') ? 'Genel Bakış'   : 'Overview' },
     { id:'subscriptions', icon:'⚔️', label: (lang==='tr') ? 'Abonelikler'   : 'Subscriptions' },
-    { id:'spending',      icon:'💸', label: (lang==='tr') ? 'Harcamalar'    : 'Spending' },
+   { id:'spending', icon:'🧾', label: (lang==='tr') ? 'Harcamalar' : 'Spending' },
     { id:'investments',   icon:'📈', label: (lang==='tr') ? 'Yatırımlar'    : 'Investments' },
     { id:'balance',       icon:'💰', label: (lang==='tr') ? 'Bakiye'        : 'Balance' },
-    { id:'debt', icon:'💸', label: (lang==='tr') ? 'Borç Takibi' : 'Debt Tracker' },
+    { id:'debt', icon:'🤝', label: (lang==='tr') ? 'Borç Takibi' : 'Debt Tracker' },
     { id:'goals',         icon:'🎯', label: (lang==='tr') ? 'Meydan Okuma'  : 'Challenge' },
   ]
 
