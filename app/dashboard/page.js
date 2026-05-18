@@ -425,6 +425,39 @@ loadData(parsed.id)
 })()}
       {/* MANAGE MODAL */}
       {/* AYLIK ÖZET MODAL */}
+{monthlyGoalModal && (
+  <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
+    onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
+    <div style={{background:'#0a0a12',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'28px',width:'100%',maxWidth:'620px',maxHeight:'88vh',overflowY:'auto',boxShadow:'0 40px 120px rgba(0,0,0,0.6)'}}>
+      
+      {/* Header */}
+      <div style={{padding:'28px 32px 20px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,background:'#0a0a12',zIndex:1,borderRadius:'28px 28px 0 0'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(16,185,129,0.15)',border:'1px solid rgba(16,185,129,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>🎯</div>
+          <div>
+            <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>{lang==='tr'?'Aylık Hedefler':'Monthly Goals'}</div>
+            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>
+              {new Date().toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})}
+            </div>
+          </div>
+        </div>
+        <button onClick={()=>setMonthlyGoalModal(false)} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+      </div>
+
+      <MonthlyGoalContent
+        userId={user.id}
+        totalIncome={totalIncome}
+        totalExp={totalExp}
+        totalSubs={totalSubs}
+        netBal={netBal}
+        lang={lang}
+        FONT={FONT}
+        MONO={MONO}
+        onClose={()=>setMonthlyGoalModal(false)}
+      />
+    </div>
+  </div>
+)}
 {monthlySummaryModal && (
   <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
     onClick={e=>e.target===e.currentTarget&&(setMonthlySummaryModal(false),setSelectedMonth(null))}>
@@ -2718,4 +2751,213 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
       </div>
     </div>
   )
+function MonthlyGoalContent({ userId, totalIncome, totalExp, totalSubs, netBal, lang, FONT, MONO, onClose }) {
+  const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+
+  const now = new Date()
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
+
+  const [goals, setGoals] = React.useState({ income_goal: '', savings_goal: '', spending_limit: '' })
+  const [saving, setSaving] = React.useState(false)
+  const [saved, setSaved] = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    async function loadGoals() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/monthly_goals?user_id=eq.${userId}&month=eq.${currentMonth}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      })
+      const data = await res.json()
+      if (data[0]) {
+        setGoals({
+          income_goal: data[0].income_goal || '',
+          savings_goal: data[0].savings_goal || '',
+          spending_limit: data[0].spending_limit || '',
+        })
+      }
+      setLoading(false)
+    }
+    loadGoals()
+  }, [userId])
+
+  async function saveGoals() {
+    setSaving(true)
+    const payload = {
+      user_id: userId,
+      month: currentMonth,
+      income_goal: parseFloat(goals.income_goal) || null,
+      savings_goal: parseFloat(goals.savings_goal) || null,
+      spending_limit: parseFloat(goals.spending_limit) || null,
+    }
+    await fetch(`${SUPABASE_URL}/rest/v1/monthly_goals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const totalSpend = totalExp + totalSubs
+  const currentSavings = totalIncome - totalSpend
+  const savingsRate = totalIncome > 0 ? Math.round((currentSavings / totalIncome) * 100) : 0
+
+  function ProgressBar({ current, goal, color, reverse = false }) {
+    if (!goal || goal <= 0) return (
+      <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
+        <div style={{height:'100%',width:'0%',borderRadius:'100px',background:'rgba(255,255,255,0.1)'}}></div>
+      </div>
+    )
+    const pct = Math.min(Math.max((current / goal) * 100, 0), 100)
+    const isOver = current > goal
+    const barColor = reverse
+      ? (isOver ? '#fca5a5' : pct > 80 ? '#fde68a' : color)
+      : (pct >= 100 ? '#6ee7b7' : color)
+    return (
+      <div>
+        <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)',marginBottom:'6px'}}>
+          <div style={{height:'100%',borderRadius:'100px',width:`${pct}%`,background:barColor,transition:'width 0.5s ease'}}></div>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',fontFamily:FONT}}>
+          <span style={{color:'rgba(255,255,255,0.3)'}}>
+            {lang==='tr'?'Mevcut:':'Current:'} ₺{current.toFixed(0)}
+          </span>
+          <span style={{color:barColor,fontWeight:600}}>{pct.toFixed(0)}%</span>
+        </div>
+      </div>
+    )
+  }
+
+  const goalCards = [
+    {
+      key: 'income_goal',
+      icon: '💚',
+      label: lang==='tr'?'Gelir Hedefi':'Income Goal',
+      desc: lang==='tr'?'Bu ay kazanmak istediğim tutar':'Target income this month',
+      color: '#6ee7b7',
+      bg: 'rgba(16,185,129,0.08)',
+      border: 'rgba(16,185,129,0.2)',
+      current: totalIncome,
+      reverse: false,
+      placeholder: '10000',
+    },
+    {
+      key: 'savings_goal',
+      icon: '💙',
+      label: lang==='tr'?'Tasarruf Hedefi':'Savings Goal',
+      desc: lang==='tr'?'Bu ay biriktirmek istediğim tutar':'Target savings this month',
+      color: '#67e8f9',
+      bg: 'rgba(6,182,212,0.08)',
+      border: 'rgba(6,182,212,0.2)',
+      current: Math.max(currentSavings, 0),
+      reverse: false,
+      placeholder: '3000',
+    },
+    {
+      key: 'spending_limit',
+      icon: '⚠️',
+      label: lang==='tr'?'Harcama Limiti':'Spending Limit',
+      desc: lang==='tr'?'Bu ay max harcayacağım tutar':'Max spending this month',
+      color: '#fde68a',
+      bg: 'rgba(245,158,11,0.08)',
+      border: 'rgba(245,158,11,0.2)',
+      current: totalSpend,
+      reverse: true,
+      placeholder: '5000',
+    },
+  ]
+
+  if (loading) return (
+    <div style={{padding:'40px',textAlign:'center',color:'rgba(255,255,255,0.3)',fontFamily:FONT,fontSize:'13px'}}>
+      {lang==='tr'?'Yükleniyor...':'Loading...'}
+    </div>
+  )
+
+  return (
+    <div style={{padding:'24px 32px 32px'}}>
+      
+      {/* Özet satırı */}
+      <div style={{display:'flex',gap:'10px',marginBottom:'24px'}}>
+        {[
+          {label:lang==='tr'?'Bu Ay Gelir':'Income', value:`₺${totalIncome.toFixed(0)}`, color:'#6ee7b7'},
+          {label:lang==='tr'?'Harcama':'Spent', value:`₺${totalSpend.toFixed(0)}`, color:'#fca5a5'},
+          {label:lang==='tr'?'Tasarruf':'Saved', value:`₺${Math.max(currentSavings,0).toFixed(0)}`, color:'#67e8f9'},
+          {label:lang==='tr'?'Oran':'Rate', value:`%${savingsRate}`, color:savingsRate>=30?'#6ee7b7':savingsRate>=15?'#fde68a':'#fca5a5'},
+        ].map(item=>(
+          <div key={item.label} style={{flex:1,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'12px',padding:'12px'}}>
+            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:FONT,marginBottom:'4px',letterSpacing:'0.05em'}}>{item.label}</div>
+            <div style={{color:item.color,fontSize:'15px',fontWeight:700,fontFamily:FONT}}>{item.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 3 hedef kartı */}
+      <div style={{display:'flex',flexDirection:'column',gap:'12px',marginBottom:'24px'}}>
+        {goalCards.map(card=>{
+          const goalVal = parseFloat(goals[card.key]) || 0
+          return (
+            <div key={card.key} style={{background:card.bg,border:`1px solid ${card.border}`,borderRadius:'16px',padding:'20px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'14px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <span style={{fontSize:'20px'}}>{card.icon}</span>
+                  <div>
+                    <div style={{color:'#f1f0ff',fontSize:'14px',fontWeight:600,fontFamily:FONT}}>{card.label}</div>
+                    <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT,marginTop:'2px'}}>{card.desc}</div>
+                  </div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  {goalVal > 0 && (
+                    <div style={{color:card.color,fontSize:'16px',fontWeight:700,fontFamily:FONT}}>₺{goalVal.toFixed(0)}</div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Input */}
+              <div style={{display:'flex',gap:'8px',alignItems:'center',marginBottom:'12px'}}>
+                <div style={{position:'relative',flex:1}}>
+                  <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:MONO}}>₺</span>
+                  <input
+                    type="number"
+                    value={goals[card.key]}
+                    onChange={e=>setGoals({...goals,[card.key]:e.target.value})}
+                    placeholder={card.placeholder}
+                    style={{width:'100%',padding:'10px 12px 10px 28px',borderRadius:'10px',background:'rgba(0,0,0,0.3)',border:`1px solid ${card.border}`,color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:MONO}}
+                  />
+                </div>
+                {goals[card.key] && (
+                  <button onClick={()=>setGoals({...goals,[card.key]:''})}
+                    style={{padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)',cursor:'pointer',fontSize:'12px',fontFamily:FONT}}>
+                    {lang==='tr'?'Temizle':'Clear'}
+                  </button>
+                )}
+              </div>
+
+              {/* Progress */}
+              {goalVal > 0 && (
+                <ProgressBar current={card.current} goal={goalVal} color={card.color} reverse={card.reverse} />
+              )}
+              {!goalVal && (
+                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'11px',fontFamily:FONT}}>{lang==='tr'?'Hedef belirlenmedi':'No goal set'}</div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Kaydet butonu */}
+      <button onClick={saveGoals} disabled={saving}
+        style={{width:'100%',padding:'14px',borderRadius:'14px',fontSize:'15px',fontWeight:600,background:saved?'rgba(16,185,129,0.2)':'linear-gradient(135deg,#10b981,#059669)',color:saved?'#6ee7b7':'#fff',border:saved?'1px solid rgba(16,185,129,0.4)':'none',cursor:saving?'not-allowed':'pointer',fontFamily:FONT,transition:'all 0.2s',opacity:saving?0.7:1}}>
+        {saving?(lang==='tr'?'Kaydediliyor...':'Saving...'):saved?(lang==='tr'?'✓ Kaydedildi!':'✓ Saved!'):( lang==='tr'?'Hedefleri Kaydet':'Save Goals')}
+      </button>
+    </div>
+  )
 }
+}
+
