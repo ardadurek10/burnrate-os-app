@@ -649,14 +649,7 @@ loadData(parsed.id)
           </button>
         </div>
 
-        <div style={{marginBottom:'8px'}}>
-          <button onClick={() => navigateTo('summary')}
-            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:page==='summary'?600:400,background:page==='summary'?THEMES.summary.bg:'transparent',color:page==='summary'?THEMES.summary.text:canAccess(userPlan,'summary')?'rgba(255,255,255,0.38)':'rgba(255,255,255,0.2)',border:page==='summary'?`1px solid ${THEMES.summary.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
-            <span style={{fontSize:'14px',opacity:canAccess(userPlan,'summary')?1:0.5}}>📋</span>
-            <span style={{flex:1}}>{lang==='tr'?'Aylık Özet':(lang==='tr')?'Aylık Özet':'Monthly Summary'}</span>
-            {!canAccess(userPlan,'summary') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
-          </button>
-        </div>
+        
 
         <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'14px'}}>
           <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
