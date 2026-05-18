@@ -652,13 +652,13 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} {lang==='tr'?'gün kaldı':'days left'}</p>
         </div>
         <div style={{display:'flex',gap:'10px'}}>
-          <button onClick={onQuickAdd}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(245,158,11,0.12)',color:'#fde68a',border:'1px solid rgba(245,158,11,0.25)',cursor:'pointer',fontFamily:FONT}}>
-            + {lang==='tr'?'Hızlı Harcama':'Quick Expense'}
+          <button onClick={onMonthlyGoal}
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(16,185,129,0.12)',color:'#6ee7b7',border:'1px solid rgba(16,185,129,0.25)',cursor:'pointer',fontFamily:FONT}}>
+            🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
-          <button onClick={onSummary}
+          <button onClick={onMonthlySummary}
             style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
-            📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'} {!canAccess(userPlan,'summary') && '🔒'}
+            📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
         </div>
       </div>
