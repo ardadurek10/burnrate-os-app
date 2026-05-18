@@ -104,8 +104,8 @@ const LOGO_SVG = (size = 32) => (
 // ── PLAN CONFIG ───────────────────────────────────────────────────
 const PLAN_ACCESS = {
   starter: ['dashboard', 'spending', 'balance', 'settings'],
-  pro:     ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'settings'],
-  elite:   ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'investments', 'summary', 'settings'],
+  pro:     ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'debt', 'settings'],
+  elite:   ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'investments', 'summary', 'debt', 'settings'],
 }
 
 const PLAN_META = {
