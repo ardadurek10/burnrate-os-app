@@ -424,7 +424,94 @@ loadData(parsed.id)
   )
 })()}
       {/* MANAGE MODAL */}
-      {manageModal && (
+      {/* AYLIK ÖZET MODAL */}
+{monthlySummaryModal && (
+  <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
+    onClick={e=>e.target===e.currentTarget&&setMonthlySummaryModal(false)}>
+    <div style={{background:'#0f0f1a',border:'1px solid rgba(124,58,237,0.3)',borderRadius:'24px',padding:'36px',maxWidth:'520px',width:'100%',maxHeight:'80vh',overflowY:'auto'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'28px'}}>
+        <div>
+          <h2 style={{color:'#f1f0ff',fontSize:'20px',fontWeight:700,margin:0,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</h2>
+          <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:'4px 0 0',fontFamily:FONT}}>{lang==='tr'?'Bir ay seçin':'Select a month'}</p>
+        </div>
+        <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+      </div>
+      
+      {/* Ay listesi */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'24px'}}>
+        {(() => {
+          const now = new Date()
+          const months = []
+          for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+            const isCurrentMonth = i === 0
+            const monthName = d.toLocaleString(lang==='tr'?'tr-TR':'en-US', {month:'long', year:'numeric'})
+            months.push(
+              <button key={key} onClick={()=>setSelectedMonth(selectedMonth===key?null:key)}
+                style={{padding:'14px',borderRadius:'12px',fontSize:'13px',fontWeight:selectedMonth===key?700:400,background:selectedMonth===key?'rgba(124,58,237,0.15)':isCurrentMonth?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)',color:selectedMonth===key?'#c4b5fd':isCurrentMonth?'#f1f0ff':'rgba(255,255,255,0.5)',border:selectedMonth===key?'1px solid rgba(124,58,237,0.4)':isCurrentMonth?'1px solid rgba(255,255,255,0.1)':'1px solid rgba(255,255,255,0.05)',cursor:'pointer',fontFamily:FONT,textAlign:'left',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span>{monthName}</span>
+                {isCurrentMonth && <span style={{fontSize:'10px',color:'#a78bfa',fontFamily:FONT}}>●</span>}
+              </button>
+            )
+          }
+          return months
+        })()}
+      </div>
+
+      {/* Seçili ay özeti */}
+      {selectedMonth && (() => {
+        const [year, month] = selectedMonth.split('-').map(Number)
+        const monthExpenses = expenses.filter(e => {
+          if (!e.expense_date) return false
+          const d = new Date(e.expense_date)
+          return d.getFullYear()===year && d.getMonth()+1===month
+        })
+        const monthIncome = income.filter(i => {
+          if (!i.income_date) return false
+          const d = new Date(i.income_date)
+          return d.getFullYear()===year && d.getMonth()+1===month
+        })
+        const monthExp = monthExpenses.reduce((a,e)=>a+Number(e.amount),0)
+        const monthInc = monthIncome.reduce((a,i)=>a+Number(i.amount),0)
+        const monthNet = monthInc - monthExp - totalSubs
+        const sr = monthInc>0?Math.round(((monthInc-monthExp-totalSubs)/monthInc)*100):0
+        const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
+        const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
+
+        return (
+          <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'20px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              <div style={{color:'#f1f0ff',fontSize:'16px',fontWeight:700,fontFamily:FONT}}>
+                {new Date(year,month-1,1).toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})}
+              </div>
+              <div style={{color:scoreColor,fontSize:'32px',fontWeight:800,fontFamily:FONT}}>{score}</div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+              {[
+                [lang==='tr'?'Gelir':'Income', `₺${monthInc.toFixed(0)}`, '#6ee7b7'],
+                [lang==='tr'?'Gider':'Expenses', `₺${monthExp.toFixed(0)}`, '#fca5a5'],
+                [lang==='tr'?'Abonelik':'Subs', `₺${totalSubs.toFixed(0)}`, '#ef4444'],
+                [lang==='tr'?'Net':'Net', `₺${Math.abs(monthNet).toFixed(0)}`, monthNet>=0?'#6ee7b7':'#fca5a5'],
+              ].map(([label,value,color])=>(
+                <div key={label} style={{background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'12px'}}>
+                  <div style={{color:'rgba(255,255,255,0.35)',fontSize:'11px',fontFamily:FONT,marginBottom:'4px'}}>{label}</div>
+                  <div style={{color,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>{value}</div>
+                </div>
+              ))}
+            </div>
+            {monthExpenses.length===0 && monthIncome.length===0 && (
+              <p style={{color:'rgba(255,255,255,0.25)',fontSize:'13px',textAlign:'center',margin:'16px 0 0',fontFamily:FONT}}>
+                {lang==='tr'?'Bu ay için veri yok':'No data for this month'}
+              </p>
+            )}
+          </div>
+        )
+      })()}
+    </div>
+  </div>
+)}
+{manageModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
           onClick={e=>e.target===e.currentTarget&&setManageModal(false)}>
           <div style={{background:'#0f0f1a',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'24px',padding:'36px',maxWidth:'420px',width:'100%'}}>
