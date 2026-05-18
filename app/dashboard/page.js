@@ -2805,7 +2805,7 @@ function DebtPage({ theme, userId, lang }) {
     setForm({ type: 'receivable', person_name: '', person_phone: '', person_email: '', amount: '', category: 'personal', status: 'pending', due_date: '', description: '', notes: '' })
     setAdding(false)
     loadDebts()
-  } catch(e) {}
+  } catch(e) { console.error('addDebt error:', e) }
 }
 
   async function updateStatus(id, status) {
