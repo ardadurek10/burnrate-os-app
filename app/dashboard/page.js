@@ -2791,16 +2791,22 @@ function MonthlyGoalContent({ userId, totalIncome, totalExp, totalSubs, netBal, 
       savings_goal: parseFloat(goals.savings_goal) || null,
       spending_limit: parseFloat(goals.spending_limit) || null,
     }
-    await fetch(`${SUPABASE_URL}/rest/v1/monthly_goals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify(payload)
-    })
+    // Önce mevcut kaydı sil
+await fetch(`${SUPABASE_URL}/rest/v1/monthly_goals?user_id=eq.${userId}&month=eq.${currentMonth}`, {
+  method: 'DELETE',
+  headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+})
+// Sonra yeni kaydet
+await fetch(`${SUPABASE_URL}/rest/v1/monthly_goals`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'return=representation'
+  },
+  body: JSON.stringify(payload)
+})
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
