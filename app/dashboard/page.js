@@ -296,6 +296,9 @@ export default function Dashboard() {
   const [investments, setInvestments] = useState([])
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
+  const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
+const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
+const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
 
   useEffect(() => {
@@ -547,7 +550,7 @@ loadData(parsed.id)
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
+        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending'      && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
