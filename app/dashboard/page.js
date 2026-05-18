@@ -636,7 +636,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, onQuickAdd, onMonthlySummary, onMonthlyGoal, userPlan, userName, lang })
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, onQuickAdd, onMonthlySummary, onMonthlyGoal, userPlan, userName, lang }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
