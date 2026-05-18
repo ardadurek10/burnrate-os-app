@@ -59,6 +59,17 @@ export default function LoginPage() {
   if (saved) setLang(saved)
   const params = new URLSearchParams(window.location.search)
   if (params.get('mode') === 'trial') setMode('trial')
+  
+  // V2.1 geliştirme modu — erişim kodu kontrolü
+  const accessGranted = localStorage.getItem('burnrate_access')
+  if (accessGranted !== 'ardadurek10') {
+    const code = prompt('Erişim kodu:')
+    if (code !== 'ardadurek10') {
+      window.location.href = 'https://burnrate-os.com'
+    } else {
+      localStorage.setItem('burnrate_access', 'ardadurek10')
+    }
+  }
 }, [])
   const TR = lang === 'tr'
 
