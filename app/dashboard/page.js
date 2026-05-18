@@ -2749,6 +2749,8 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   )
 }
 function DebtPage({ theme, userId, lang }) {
+  const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
   
 
   const [tab, setTab] = useState('receivable')
