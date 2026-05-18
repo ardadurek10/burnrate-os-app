@@ -2751,13 +2751,14 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
 function DebtPage({ theme, userId, lang }) {
   const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
-  
 
   const [tab, setTab] = useState('receivable')
   const [debts, setDebts] = useState([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
   const [selected, setSelected] = useState(null)
+  const [partialAmount, setPartialAmount] = useState('')
+  const [showPartialInput, setShowPartialInput] = useState(false)
   const [form, setForm] = useState({
     type: 'receivable', person_name: '', person_phone: '', person_email: '',
     amount: '', category: 'personal', status: 'pending',
@@ -2767,17 +2768,17 @@ function DebtPage({ theme, userId, lang }) {
   const CATS = [
     { v: 'personal',  label: lang==='tr'?'Kişisel':'Personal',   icon: '👤' },
     { v: 'business',  label: lang==='tr'?'İş':'Business',        icon: '💼' },
-    { v: 'vehicle',   label: lang==='tr'?'Araç':'Vehicle',        icon: '🚗' },
+    { v: 'vehicle',   label: lang==='tr'?'Araç':'Vehicle',       icon: '🚗' },
     { v: 'home',      label: lang==='tr'?'Ev':'Home',            icon: '🏠' },
     { v: 'education', label: lang==='tr'?'Eğitim':'Education',   icon: '📚' },
-    { v: 'other',     label: lang==='tr'?'Diğer':'Other',         icon: '📦' },
+    { v: 'other',     label: lang==='tr'?'Diğer':'Other',        icon: '📦' },
   ]
 
   const STATUS = {
-    pending:  { label: lang==='tr'?'Bekliyor':'Pending',       color: '#fde68a', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)'  },
-    paid:     { label: lang==='tr'?'Ödendi':'Paid',            color: '#6ee7b7', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)'  },
-    overdue:  { label: lang==='tr'?'Gecikmiş':'Overdue',       color: '#fca5a5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)'   },
-    partial:  { label: lang==='tr'?'Kısmi':'Partial',          color: '#67e8f9', bg: 'rgba(6,182,212,0.12)',  border: 'rgba(6,182,212,0.3)'   },
+    pending:  { label: lang==='tr'?'Bekliyor':'Pending',    color: '#fde68a', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)'  },
+    paid:     { label: lang==='tr'?'Ödendi':'Paid',         color: '#6ee7b7', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)'  },
+    overdue:  { label: lang==='tr'?'Gecikmiş':'Overdue',    color: '#fca5a5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)'   },
+    partial:  { label: lang==='tr'?'Kısmi':'Partial',       color: '#67e8f9', bg: 'rgba(6,182,212,0.12)',  border: 'rgba(6,182,212,0.3)'   },
   }
 
   useEffect(() => { loadDebts() }, [userId])
@@ -2796,19 +2797,18 @@ function DebtPage({ theme, userId, lang }) {
   }
 
   async function addDebt() {
-    console.log('addDebt called', form.person_name, form.amount)
-  if (!form.person_name || !form.amount) return
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/debts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ ...form, amount: parseFloat(form.amount), user_id: userId, type: tab, due_date: form.due_date || null })
-    })
-    setForm({ type: 'receivable', person_name: '', person_phone: '', person_email: '', amount: '', category: 'personal', status: 'pending', due_date: '', description: '', notes: '' })
-    setAdding(false)
-    loadDebts()
-  } catch(e) { console.error('addDebt error:', e) }
-}
+    if (!form.person_name || !form.amount) return
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/debts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ ...form, amount: parseFloat(form.amount), paid_amount: 0, user_id: userId, type: tab, due_date: form.due_date || null })
+      })
+      setForm({ type: 'receivable', person_name: '', person_phone: '', person_email: '', amount: '', category: 'personal', status: 'pending', due_date: '', description: '', notes: '' })
+      setAdding(false)
+      loadDebts()
+    } catch(e) { console.error('addDebt error:', e) }
+  }
 
   async function updateStatus(id, status) {
     await fetch(`${SUPABASE_URL}/rest/v1/debts?id=eq.${id}`, {
@@ -2817,6 +2817,23 @@ function DebtPage({ theme, userId, lang }) {
       body: JSON.stringify({ status })
     })
     loadDebts()
+    setSelected(prev => prev ? { ...prev, status } : null)
+  }
+
+  async function addPartialPayment(debt) {
+    const paid = parseFloat(partialAmount)
+    if (!paid || paid <= 0) return
+    const newPaid = Math.min((Number(debt.paid_amount) || 0) + paid, Number(debt.amount))
+    const newStatus = newPaid >= Number(debt.amount) ? 'paid' : 'partial'
+    await fetch(`${SUPABASE_URL}/rest/v1/debts?id=eq.${debt.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ paid_amount: newPaid, status: newStatus })
+    })
+    setPartialAmount('')
+    setShowPartialInput(false)
+    loadDebts()
+    setSelected(prev => prev ? { ...prev, paid_amount: newPaid, status: newStatus } : null)
   }
 
   async function deleteDebt(id) {
@@ -2832,8 +2849,8 @@ function DebtPage({ theme, userId, lang }) {
   const payables = debts.filter(d => d.type === 'payable')
   const currentList = tab === 'receivable' ? receivables : payables
 
-  const totalReceivable = receivables.filter(d => d.status !== 'paid').reduce((a, d) => a + Number(d.amount), 0)
-  const totalPayable = payables.filter(d => d.status !== 'paid').reduce((a, d) => a + Number(d.amount), 0)
+  const totalReceivable = receivables.filter(d => d.status !== 'paid').reduce((a, d) => a + Number(d.amount) - (Number(d.paid_amount) || 0), 0)
+  const totalPayable = payables.filter(d => d.status !== 'paid').reduce((a, d) => a + Number(d.amount) - (Number(d.paid_amount) || 0), 0)
   const netStatus = totalReceivable - totalPayable
 
   function getAvatar(name) {
@@ -2853,7 +2870,7 @@ function DebtPage({ theme, userId, lang }) {
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px',flexWrap:'wrap',gap:'12px'}}>
         <div>
           <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>
-            💸 {lang==='tr'?'Borç Takibi':'Debt Tracker'}
+            🤝 {lang==='tr'?'Borç Takibi':'Debt Tracker'}
           </h1>
           <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>
             {lang==='tr'?'Alacak ve vereceklerinizi takip edin':'Track your receivables and payables'}
@@ -2886,12 +2903,10 @@ function DebtPage({ theme, userId, lang }) {
 
       {/* Ekleme formu */}
       {adding && (
-        <div style={{background:'rgba(255,255,255,0.02)',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:'20px',padding:'24px',marginBottom:'20px'}}>
+        <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'20px',padding:'24px',marginBottom:'20px'}}>
           <div style={{color:'#f1f0ff',fontSize:'15px',fontWeight:700,fontFamily:FONT,marginBottom:'20px'}}>
             {lang==='tr'?'Yeni Borç Ekle':'Add New Debt'}
           </div>
-
-          {/* Tür seçimi */}
           <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',padding:'4px',marginBottom:'20px',width:'fit-content'}}>
             {[
               {v:'receivable', label:lang==='tr'?'💚 Alacak':'💚 Receivable'},
@@ -2905,49 +2920,35 @@ function DebtPage({ theme, userId, lang }) {
           </div>
 
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
-            {/* Kişi adı */}
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Ad Soyad *':'Full Name *'}</div>
               <input value={form.person_name} onChange={e=>setForm({...form,person_name:e.target.value})}
                 placeholder={lang==='tr'?'Ahmet Yılmaz':'John Doe'}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
             </div>
-
-            {/* Tutar */}
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tutar (₺) *':'Amount (₺) *'}</div>
               <div style={{position:'relative'}}>
                 <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontFamily:MONO}}>₺</span>
-                <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})}
-                  placeholder="1000"
+                <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="1000"
                   style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:MONO,boxSizing:'border-box'}} />
               </div>
             </div>
-
-            {/* Telefon */}
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Telefon':'Phone'}</div>
-              <input value={form.person_phone} onChange={e=>setForm({...form,person_phone:e.target.value})}
-                placeholder="+90 5xx xxx xx xx"
+              <input value={form.person_phone} onChange={e=>setForm({...form,person_phone:e.target.value})} placeholder="+90 5xx xxx xx xx"
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
             </div>
-
-            {/* Email */}
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'E-posta':'Email'}</div>
-              <input value={form.person_email} onChange={e=>setForm({...form,person_email:e.target.value})}
-                placeholder="ornek@mail.com"
+              <input value={form.person_email} onChange={e=>setForm({...form,person_email:e.target.value})} placeholder="ornek@mail.com"
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
             </div>
-
-            {/* Vade */}
             <div>
-              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Vade Tarihi':'Due Date'}</div>
+              <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Son Ödeme Tarihi':'Due Date'}</div>
               <input type="date" value={form.due_date} onChange={e=>setForm({...form,due_date:e.target.value})}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,colorScheme:'dark',boxSizing:'border-box'}} />
             </div>
-
-            {/* Kategori */}
             <div>
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Kategori':'Category'}</div>
               <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
@@ -2957,20 +2958,16 @@ function DebtPage({ theme, userId, lang }) {
             </div>
           </div>
 
-          {/* Açıklama */}
           <div style={{marginBottom:'14px'}}>
-            <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Ne Borcu? / Açıklama':'Description'}</div>
+            <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Ne Borcu?':'Description'}</div>
             <input value={form.description} onChange={e=>setForm({...form,description:e.target.value})}
               placeholder={lang==='tr'?'Kira, araba tamiri, iş ödemesi...':'Rent, car repair, business payment...'}
               style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
           </div>
-
-          {/* Notlar */}
           <div style={{marginBottom:'20px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Notlar':'Notes'}</div>
             <textarea value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}
-              placeholder={lang==='tr'?'Ek bilgiler...':'Additional notes...'}
-              rows={2}
+              placeholder={lang==='tr'?'Ek bilgiler...':'Additional notes...'} rows={2}
               style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,resize:'vertical',boxSizing:'border-box'}} />
           </div>
 
@@ -3003,16 +3000,12 @@ function DebtPage({ theme, userId, lang }) {
       {/* Liste */}
       <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
         {loading ? (
-          <div style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.25)',fontFamily:FONT,fontSize:'13px'}}>
-            {lang==='tr'?'Yükleniyor...':'Loading...'}
-          </div>
+          <div style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.25)',fontFamily:FONT,fontSize:'13px'}}>{lang==='tr'?'Yükleniyor...':'Loading...'}</div>
         ) : currentList.length === 0 ? (
           <div style={{textAlign:'center',padding:'48px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'16px'}}>
             <div style={{fontSize:'36px',marginBottom:'12px'}}>{tab==='receivable'?'💚':'🔴'}</div>
             <div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontFamily:FONT,marginBottom:'16px'}}>
-              {tab==='receivable'
-                ?(lang==='tr'?'Henüz alacak kaydı yok':'No receivables yet')
-                :(lang==='tr'?'Henüz verecek kaydı yok':'No payables yet')}
+              {tab==='receivable'?(lang==='tr'?'Henüz alacak kaydı yok':'No receivables yet'):(lang==='tr'?'Henüz verecek kaydı yok':'No payables yet')}
             </div>
             <button onClick={()=>setAdding(true)}
               style={{padding:'10px 20px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
@@ -3025,19 +3018,19 @@ function DebtPage({ theme, userId, lang }) {
           const isSelected = selected?.id === debt.id
           const avatarColor = getAvatarColor(debt.person_name)
           const isOverdue = debt.due_date && new Date(debt.due_date) < new Date() && debt.status === 'pending'
+          const paidAmt = Number(debt.paid_amount) || 0
+          const totalAmt = Number(debt.amount)
+          const remaining = totalAmt - paidAmt
+          const paidPct = totalAmt > 0 ? Math.round((paidAmt / totalAmt) * 100) : 0
 
           return (
             <div key={debt.id}>
-              <div onClick={()=>setSelected(isSelected?null:debt)}
-                style={{background:isSelected?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)',border:`1px solid ${isSelected?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.06)'}`,borderRadius:'16px',padding:'18px 20px',cursor:'pointer',transition:'all 0.15s'}}>
+              <div onClick={()=>{setSelected(isSelected?null:debt);setShowPartialInput(false);setPartialAmount('')}}
+                style={{background:isSelected?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)',border:`1px solid ${isSelected?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.06)'}`,borderRadius:isSelected?'16px 16px 0 0':'16px',padding:'18px 20px',cursor:'pointer',transition:'all 0.15s'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'14px'}}>
-
-                  {/* Avatar */}
                   <div style={{width:'44px',height:'44px',borderRadius:'12px',background:avatarColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:800,color:'#fff',fontFamily:FONT,flexShrink:0}}>
                     {getAvatar(debt.person_name)}
                   </div>
-
-                  {/* Bilgi */}
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'3px'}}>
                       <span style={{color:'#f1f0ff',fontSize:'14px',fontWeight:600,fontFamily:FONT}}>{debt.person_name}</span>
@@ -3048,13 +3041,25 @@ function DebtPage({ theme, userId, lang }) {
                       {cat && <span style={{fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:FONT}}>{cat.icon} {cat.label}</span>}
                       {debt.due_date && <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:MONO}}>{new Date(debt.due_date).toLocaleDateString('tr-TR')}</span>}
                     </div>
+                    {/* Kısmi ödeme progress */}
+                    {paidAmt > 0 && debt.status !== 'paid' && (
+                      <div style={{marginTop:'8px'}}>
+                        <div style={{height:'4px',borderRadius:'100px',background:'rgba(255,255,255,0.08)',overflow:'hidden'}}>
+                          <div style={{height:'100%',width:`${paidPct}%`,background:'#67e8f9',borderRadius:'100px'}}></div>
+                        </div>
+                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',fontFamily:FONT,marginTop:'3px'}}>
+                          ₺{paidAmt.toFixed(0)} {lang==='tr'?'ödendi':'paid'} · ₺{remaining.toFixed(0)} {lang==='tr'?'kaldı':'remaining'}
+                        </div>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Tutar + durum */}
                   <div style={{textAlign:'right',flexShrink:0}}>
                     <div style={{color:tab==='receivable'?'#6ee7b7':'#fca5a5',fontSize:'18px',fontWeight:800,fontFamily:FONT}}>
-                      {tab==='receivable'?'+':'−'}₺{Number(debt.amount).toLocaleString('tr-TR')}
+                      {tab==='receivable'?'+':'−'}₺{totalAmt.toLocaleString('tr-TR')}
                     </div>
+                    {paidAmt > 0 && debt.status !== 'paid' && (
+                      <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT}}>₺{remaining.toFixed(0)} {lang==='tr'?'kaldı':'left'}</div>
+                    )}
                     <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:st.bg,color:st.color,border:`1px solid ${st.border}`,fontFamily:FONT,fontWeight:600}}>
                       {st.label}
                     </span>
@@ -3064,7 +3069,8 @@ function DebtPage({ theme, userId, lang }) {
 
               {/* Detay paneli */}
               {isSelected && (
-                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'0 0 16px 16px',borderTop:'none',padding:'16px 20px',animation:'fadeIn 0.2s ease'}}>
+                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.08)',borderTop:'none',borderRadius:'0 0 16px 16px',padding:'16px 20px',animation:'fadeIn 0.2s ease'}}>
+
                   {/* Kişi bilgileri */}
                   <div style={{display:'flex',gap:'16px',marginBottom:'16px',flexWrap:'wrap'}}>
                     {debt.person_phone && (
@@ -3077,10 +3083,53 @@ function DebtPage({ theme, userId, lang }) {
                         ✉️ {debt.person_email}
                       </a>
                     )}
-                    {debt.notes && (
-                      <span style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT}}>
-                        📝 {debt.notes}
-                      </span>
+                    {debt.notes && <span style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT}}>📝 {debt.notes}</span>}
+                  </div>
+
+                  {/* Kısmi ödeme */}
+                  <div style={{marginBottom:'16px',padding:'14px',background:'rgba(6,182,212,0.06)',border:'1px solid rgba(6,182,212,0.2)',borderRadius:'12px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                      <div>
+                        <div style={{color:'#67e8f9',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>💳 {lang==='tr'?'Ödeme Durumu':'Payment Status'}</div>
+                        <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>
+                          {lang==='tr'?`₺${paidAmt.toFixed(0)} ödendi · ₺${remaining.toFixed(0)} kaldı`:`₺${paidAmt.toFixed(0)} paid · ₺${remaining.toFixed(0)} remaining`}
+                        </div>
+                      </div>
+                      <div style={{color:'#67e8f9',fontSize:'20px',fontWeight:800,fontFamily:FONT}}>{paidPct}%</div>
+                    </div>
+                    {totalAmt > 0 && (
+                      <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.08)',marginBottom:'12px',overflow:'hidden'}}>
+                        <div style={{height:'100%',width:`${paidPct}%`,background:'#67e8f9',borderRadius:'100px',transition:'width 0.4s ease'}}></div>
+                      </div>
+                    )}
+
+                    {debt.status !== 'paid' && (
+                      <>
+                        {!showPartialInput ? (
+                          <button onClick={()=>setShowPartialInput(true)}
+                            style={{padding:'8px 16px',borderRadius:'10px',fontSize:'12px',fontWeight:600,background:'rgba(6,182,212,0.15)',color:'#67e8f9',border:'1px solid rgba(6,182,212,0.3)',cursor:'pointer',fontFamily:FONT}}>
+                            + {lang==='tr'?'Ödeme Ekle':'Add Payment'}
+                          </button>
+                        ) : (
+                          <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                            <div style={{position:'relative',flex:1}}>
+                              <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontFamily:MONO,fontSize:'13px'}}>₺</span>
+                              <input type="number" value={partialAmount} onChange={e=>setPartialAmount(e.target.value)}
+                                placeholder={lang==='tr'?'Ödenen tutar':'Amount paid'}
+                                autoFocus
+                                style={{width:'100%',padding:'9px 12px 9px 26px',borderRadius:'10px',background:'rgba(0,0,0,0.3)',border:'1px solid rgba(6,182,212,0.4)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:MONO,boxSizing:'border-box'}} />
+                            </div>
+                            <button onClick={()=>addPartialPayment(debt)}
+                              style={{padding:'9px 14px',borderRadius:'10px',fontSize:'12px',fontWeight:600,background:'rgba(6,182,212,0.2)',color:'#67e8f9',border:'1px solid rgba(6,182,212,0.4)',cursor:'pointer',fontFamily:FONT}}>
+                              {lang==='tr'?'Kaydet':'Save'}
+                            </button>
+                            <button onClick={()=>{setShowPartialInput(false);setPartialAmount('')}}
+                              style={{padding:'9px 12px',borderRadius:'10px',fontSize:'13px',background:'transparent',color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
