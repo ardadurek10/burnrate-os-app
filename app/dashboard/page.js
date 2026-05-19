@@ -2566,9 +2566,9 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme: prefForm.theme } }))
     console.log('Theme changed to:', prefForm.theme)
     
-  setMessage(lang === 'tr' ? '✓ Tercihler kaydedildi' : '✓ Preferences saved')
+  setMessage(lang === 'tr' ? '✓ Kaydedildi, yükleniyor...' : '✓ Saved, loading...')
   setSaving(false)
-  setTimeout(() => setMessage(''), 3000)
+  setTimeout(() => window.location.reload(), 800)
 }
 
   async function handleCancel() {
