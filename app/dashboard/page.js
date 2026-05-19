@@ -940,7 +940,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <div style={{display:'flex',gap:'10px'}}>
           <button onClick={onMonthlyGoal}
-           style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: getTheme(activeTheme).isElite?'rgba(255,255,255,0.06)':'rgba(16,185,129,0.12)',color: getTheme(activeTheme).isElite?'rgba(255,255,255,0.8)':'#6ee7b7',border: getTheme(activeTheme).isElite?'1px solid rgba(255,255,255,0.12)':'1px solid rgba(16,185,129,0.25)',
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(16,185,129,0.12)',color:'#6ee7b7',border:'1px solid rgba(16,185,129,0.25)',cursor:'pointer',fontFamily:FONT}}>
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
           <button onClick={onMonthlySummary}
