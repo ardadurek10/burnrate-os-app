@@ -2648,7 +2648,6 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                     <option value="TRY">🇹🇷 TRY — Türk Lirası</option>
                     <option value="USD">🇺🇸 USD — US Dollar</option>
                     <option value="EUR">🇪🇺 EUR — Euro</option>
-                    <option value="GBP">🇬🇧 GBP — British Pound</option>
                   </select>
                 </div>
               </div>
