@@ -428,7 +428,9 @@ export default function Dashboard() {
 const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
 const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
-  const [activeTheme, setActiveTheme] = useState('default')
+  const [activeTheme, setActiveTheme] = useState(() => {
+  try { return localStorage.getItem('burnrate_theme') || 'default' } catch { return 'default' }
+})
   const [currency, setCurrency] = useState('TRY')
 const [currencyRate, setCurrencyRate] = useState(1)
 const [currencySymbol, setCurrencySymbol] = useState('₺')
