@@ -301,10 +301,18 @@ export default function Dashboard() {
 const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
 const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
+  const [currency, setCurrency] = useState('TRY')
+const [currencyRate, setCurrencyRate] = useState(1)
+const [currencySymbol, setCurrencySymbol] = useState('₺')
 
-  useEffect(() => {
-    setLang(getLang())
-  }, [])
+  uuseEffect(() => {
+  setLang(getLang())
+  const savedCurrency = localStorage.getItem('burnrate_currency') || 'TRY'
+  setCurrency(savedCurrency)
+  if (savedCurrency !== 'TRY') {
+    fetchCurrencyRate(savedCurrency)
+  }
+}, [])
 
   function changeLang(l) {
     setDashboardLang(l)
@@ -344,6 +352,18 @@ loadData(parsed.id)
     setIncome(Array.isArray(i) ? i : [])
     setInvestments(Array.isArray(inv) ? inv.map(i=>({...i,shares:Number(i.shares),buyPrice:Number(i.buy_price),currentPrice:Number(i.current_price)||0,symbol:i.symbol,name:i.name,type:i.type})) : [])
   }
+  async function fetchCurrencyRate(cur) {
+  try {
+    const symbol = cur === 'USD' ? 'USDTRY=X' : 'EURTRY=X'
+    const res = await fetch(`/api/stocks?symbol=${symbol}`)
+    const data = await res.json()
+    if (data.price) {
+      const rate = parseFloat(data.price)
+      setCurrencyRate(rate)
+      setCurrencySymbol(cur === 'USD' ? '$' : '€')
+    }
+  } catch(e) {}
+}
 
   function navigateTo(moduleId) {
     if (!canAccess(user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
