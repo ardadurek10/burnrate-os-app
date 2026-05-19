@@ -443,7 +443,7 @@ const [currencySymbol, setCurrencySymbol] = useState('₺')
     fetchCurrencyRate(savedCurrency)
   }
   const savedTheme = localStorage.getItem('burnrate_theme') || 'default'
-  setActiveTheme(savedTheme)
+setActiveTheme(savedTheme)
 }, [])
 
   function changeLang(l) {
