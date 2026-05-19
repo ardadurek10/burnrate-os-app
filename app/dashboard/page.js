@@ -1907,11 +1907,11 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
         <div style={{...TIP,marginBottom:'8px'}}>{lang==='tr'?'Net Bakiye':'Net Balance'}</div>
         <div style={{color:netBal>=0?'#6ee7b7':'#fca5a5',fontSize:'52px',fontWeight:700,letterSpacing:'-2px',lineHeight:1,marginBottom:'8px',...VAL}}>
-          ₺{Math.abs(netBal).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+          {currencySymbol}{(Math.abs(netBal)/currencyRate).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
         </div>
         <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginBottom:'24px',fontFamily:FONT}}>{lang==='tr'?(netBal>=0?'↑ Bu ay net pozitifsiniz':'↓ Harcamalar geliri aşıyor'):(netBal>=0?lang==='tr'?'↑ Bu ay net pozitifsiniz':'↑ You are net positive this month':lang==='tr'?'↓ Harcamalar geliri aşıyor':'↓ Spending exceeds income')}</div>
         <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'24px',paddingTop:'20px',borderTop:'1px solid rgba(255,255,255,0.07)'}}>
-          {[[lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(2)}`,'#6ee7b7'],[lang==='tr'?'Toplam Gider':'Total Expenses',`₺${(totalExp+totalSubs).toFixed(2)}`,'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
+          {[[lang==='tr'?'Toplam Gelir':'Total Income',`${currencySymbol}${(totalIncome/currencyRate).toFixed(2)}`,'#6ee7b7'],[lang==='tr'?'Toplam Gider':'Total Expenses',`${currencySymbol}${((totalExp+totalSubs)/currencyRate).toFixed(2)}`,'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5']].map(([l,v,c])=>(
             <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginBottom:'4px',fontFamily:FONT}}>{l}</div><div style={{color:c,fontSize:'20px',fontWeight:700,...VAL}}>{v}</div></div>
           ))}
         </div>
@@ -1970,7 +1970,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
             : income.map(i=>(
               <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                 <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{i.source}</td>
-                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+₺{Number(i.amount).toFixed(2)}</td>
+                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+{currencySymbol}{(Number(i.amount)/currencyRate).toFixed(2)}</td>
                 <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{i.income_date||'—'}</td>
                 <td style={{padding:'12px 0'}}><button onClick={()=>del(i.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
               </tr>
