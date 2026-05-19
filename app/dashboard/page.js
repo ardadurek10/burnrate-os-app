@@ -780,6 +780,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 // ── OVERVIEW ──────────────────────────────────────────────────────
 function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, onQuickAdd, onMonthlySummary, onMonthlyGoal, userPlan, userName, currency, currencyRate, currencySymbol, lang }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
+  const fmt = (amount) => `${currencySymbol}${(amount / currencyRate).toFixed(0)}`
   const now = new Date()
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
@@ -893,7 +894,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 }
 
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
-function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
+function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
 
   const SUB_CATS = [
     { v:'saas',          tr:'SaaS / Araçlar',       en:'SaaS / Tools',       icon:'🛠️', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
@@ -1046,7 +1047,7 @@ function SubsPage({ theme, subs, userId, onRefresh, lang='en' }) {
 }
 
 // ── SPENDING ──────────────────────────────────────────────────────────────────
-function SpendingPage({ theme, expenses, userId, onRefresh, lang='en' }) {
+function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
 
   const CATS = [
     {v:'kira',     tr:'Kira / Mortgage',      en:'Rent / Mortgage',      g_tr:'Ev & Yaşam',       g_en:'Home & Life'},
@@ -1885,7 +1886,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 }
 
 
-function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, lang='en' }) {
+function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
 
@@ -2769,7 +2770,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     </div>
   )
 }
-function DebtPage({ theme, userId, lang }) {
+function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbol='₺', lang }) {
   const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
 
