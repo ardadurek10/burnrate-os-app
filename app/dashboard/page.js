@@ -2809,7 +2809,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
         <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Dashboard Teması' : 'Dashboard Theme'}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {Object.values(THEMES_CONFIG).map(t => {
-            const hasAccess = canUseTheme(userPlan, t.id)
+            const hasAccess = canUseTheme(currentPlan, t.id)
             const isActive = prefForm.theme === t.id
             return (
               <div key={t.id} onClick={() => hasAccess && setPrefForm({ ...prefForm, theme: t.id })}
