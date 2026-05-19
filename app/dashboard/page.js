@@ -305,7 +305,7 @@ const [selectedMonth, setSelectedMonth] = useState(null)
 const [currencyRate, setCurrencyRate] = useState(1)
 const [currencySymbol, setCurrencySymbol] = useState('₺')
 
-  uuseEffect(() => {
+  useEffect(() => {
   setLang(getLang())
   const savedCurrency = localStorage.getItem('burnrate_currency') || 'TRY'
   setCurrency(savedCurrency)
