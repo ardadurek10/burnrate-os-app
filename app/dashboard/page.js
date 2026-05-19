@@ -2516,10 +2516,12 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-    body: JSON.stringify({ currency: prefForm.currency })
+    body: JSON.stringify({ currency: prefForm.currency, theme: prefForm.theme })
   })
   localStorage.setItem('burnrate_currency', prefForm.currency)
+  localStorage.setItem('burnrate_theme', prefForm.theme)
   window.dispatchEvent(new CustomEvent('currencyChange', { detail: { currency: prefForm.currency } }))
+  window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme: prefForm.theme } }))
   setMessage(lang === 'tr' ? '✓ Tercihler kaydedildi' : '✓ Preferences saved')
   setSaving(false)
   setTimeout(() => setMessage(''), 3000)
