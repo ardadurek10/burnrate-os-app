@@ -2974,8 +2974,15 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
       fetchCurrencyRate(cur)
     }
   }
+  const themeHandler = (e) => {
+    setActiveTheme(e.detail.theme)
+  }
   window.addEventListener('currencyChange', handler)
-  return () => window.removeEventListener('currencyChange', handler)
+  window.addEventListener('themeChange', themeHandler)
+  return () => {
+    window.removeEventListener('currencyChange', handler)
+    window.removeEventListener('themeChange', themeHandler)
+  }
 }, [])
 
   async function updateStatus(id, status) {
