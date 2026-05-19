@@ -494,6 +494,27 @@ loadData(parsed.id)
     }
   } catch(e) {}
 }
+  useEffect(() => {
+    const handler = (e) => {
+      const cur = e.detail.currency
+      setCurrency(cur)
+      if (cur === 'TRY') {
+        setCurrencyRate(1)
+        setCurrencySymbol('₺')
+      } else {
+        fetchCurrencyRate(cur)
+      }
+    }
+    const themeHandler = (e) => {
+      setActiveTheme(e.detail.theme)
+    }
+    window.addEventListener('currencyChange', handler)
+    window.addEventListener('themeChange', themeHandler)
+    return () => {
+      window.removeEventListener('currencyChange', handler)
+      window.removeEventListener('themeChange', themeHandler)
+    }
+  }, [])
 
   function navigateTo(moduleId) {
     if (!canAccess(user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
