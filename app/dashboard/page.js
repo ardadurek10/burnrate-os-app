@@ -413,6 +413,215 @@ function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
   )
 }
 
+'use client'
+import React, { useState, useEffect } from 'react'
+import { supabaseQuery, supabaseInsert, supabaseDelete } from '../lib/supabase'
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+
+const THEMES_CONFIG = {
+  default: {
+    id: 'default', name: 'Koyu Mor', emoji: '⚡', plan: 'starter',
+    bg: '#0a0a0f', bgGradient: 'linear-gradient(160deg, #07070f 0%, #0a0518 60%, #07070f 100%)',
+    accent: '#7c3aed', accentLight: '#a78bfa', accentBg: 'rgba(124,58,237,0.12)',
+    accentBorder: 'rgba(124,58,237,0.3)', accentText: '#c4b5fd',
+    sbBg: 'rgba(255,255,255,0.015)', sbBorder: 'rgba(255,255,255,0.06)',
+    cardBg: 'rgba(255,255,255,0.03)', cardBorder: 'rgba(255,255,255,0.07)',
+    btnBg: 'rgba(255,255,255,0.05)', btnBorder: 'rgba(255,255,255,0.1)', btnText: 'rgba(255,255,255,0.7)',
+  },
+  neon: {
+    id: 'neon', name: 'Neon', emoji: '🟢', plan: 'pro',
+    bg: '#000000', bgGradient: '#000000', accent: '#00ff88', accentLight: '#00ffaa',
+    accentBg: 'rgba(0,255,136,0.08)', accentBorder: 'rgba(0,255,136,0.25)', accentText: '#00ff88',
+    sbBg: 'rgba(255,255,255,0.015)', sbBorder: 'rgba(255,255,255,0.05)',
+    cardBg: 'rgba(255,255,255,0.02)', cardBorder: 'rgba(255,255,255,0.05)',
+    btnBg: 'rgba(0,255,136,0.08)', btnBorder: 'rgba(0,255,136,0.25)', btnText: '#00ff88',
+  },
+  gold: {
+    id: 'gold', name: 'Altın', emoji: '✨', plan: 'pro',
+    bg: '#020b18', bgGradient: 'linear-gradient(160deg, #020b18 0%, #050d1f 60%, #020b18 100%)',
+    accent: '#f59e0b', accentLight: '#fde68a', accentBg: 'rgba(245,158,11,0.12)',
+    accentBorder: 'rgba(245,158,11,0.28)', accentText: '#fde68a',
+    sbBg: 'rgba(255,255,255,0.02)', sbBorder: 'rgba(245,158,11,0.1)',
+    cardBg: 'rgba(245,158,11,0.04)', cardBorder: 'rgba(245,158,11,0.1)',
+    btnBg: 'rgba(245,158,11,0.12)', btnBorder: 'rgba(245,158,11,0.28)', btnText: '#fde68a',
+  },
+  rose: {
+    id: 'rose', name: 'Rose', emoji: '🌸', plan: 'pro',
+    bg: '#080608', bgGradient: 'linear-gradient(160deg, #080608 0%, #0d080f 60%, #080608 100%)',
+    accent: '#ec4899', accentLight: '#f9a8d4', accentBg: 'rgba(236,72,153,0.12)',
+    accentBorder: 'rgba(236,72,153,0.28)', accentText: '#f9a8d4',
+    sbBg: 'rgba(255,255,255,0.02)', sbBorder: 'rgba(236,72,153,0.1)',
+    cardBg: 'rgba(236,72,153,0.03)', cardBorder: 'rgba(236,72,153,0.08)',
+    btnBg: 'rgba(236,72,153,0.12)', btnBorder: 'rgba(236,72,153,0.28)', btnText: '#f9a8d4',
+  },
+  elite: {
+    id: 'elite', name: 'BurnElite+', emoji: '👑', plan: 'elite',
+    bg: '#060610',
+    bgGradient: `radial-gradient(ellipse at 20% 20%, rgba(124,58,237,0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(6,182,212,0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(245,158,11,0.12) 0%, transparent 50%),
+      linear-gradient(135deg, #060610 0%, #080818 40%, #060614 100%)`,
+    accent: '#a78bfa', accentLight: '#c4b5fd', accentBg: 'rgba(255,255,255,0.06)',
+    accentBorder: 'rgba(255,255,255,0.12)', accentText: 'rgba(255,255,255,0.88)',
+    sbBg: 'rgba(255,255,255,0.04)', sbBorder: 'rgba(255,255,255,0.08)',
+    cardBg: 'rgba(255,255,255,0.04)', cardBorder: 'rgba(255,255,255,0.08)',
+    btnBg: 'rgba(255,255,255,0.08)', btnBorder: 'rgba(255,255,255,0.15)', btnText: 'rgba(255,255,255,0.85)',
+    isElite: true,
+  },
+}
+
+const THEME_ACCESS = {
+  starter: ['default'],
+  pro: ['default', 'neon', 'gold', 'rose'],
+  elite: ['default', 'neon', 'gold', 'rose', 'elite'],
+}
+
+function getAvailableThemes(plan) { return THEME_ACCESS[plan] || THEME_ACCESS.starter }
+function canUseTheme(plan, themeId) { return getAvailableThemes(plan).includes(themeId) }
+function getTheme(themeId) { return THEMES_CONFIG[themeId] || THEMES_CONFIG.default }
+const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
+const MONO = "'DM Mono',monospace"
+
+const LANG_STORAGE_KEY = 'burnrate_lang'
+
+const DASHBOARD_TRANSLATIONS = {
+  en: {
+    overview: 'Overview', subscriptions: 'Subscriptions', spending: 'Spending',
+    investments: 'Investments', balance: 'Balance', challenge: 'Challenge',
+    ai_advisor: 'AI Advisor', monthly_summary: 'Monthly Summary',
+    sign_out: 'Sign out →', command_center: 'command center',
+    greeting_morning: 'Good morning', greeting_afternoon: 'Good afternoon',
+    greeting_evening: 'Good evening', greeting_night: 'Good night',
+    days_left: 'days left in month', monthly_summary_btn: '📋 Monthly Summary',
+    powered_by: 'powered by claude',
+  },
+  tr: {
+    overview: 'Genel Bakış', subscriptions: 'Abonelikler', spending: 'Harcamalar',
+    investments: 'Yatırımlar', balance: 'Bakiye', challenge: 'Meydan Okuma',
+    ai_advisor: 'Yapay Zeka', monthly_summary: 'Aylık Özet',
+    sign_out: 'Çıkış Yap →', command_center: 'komuta merkezi',
+    greeting_morning: 'Günaydın', greeting_afternoon: 'İyi öğlenler',
+    greeting_evening: 'İyi akşamlar', greeting_night: 'İyi geceler',
+    days_left: 'gün kaldı', monthly_summary_btn: '📋 Aylık Özet',
+    powered_by: 'claude ile güçlendirildi',
+  }
+}
+
+function getLang() {
+  if (typeof window === 'undefined') return 'en'
+  return localStorage.getItem(LANG_STORAGE_KEY) || 'tr'
+}
+
+function setDashboardLang(lang) {
+  if (typeof window !== 'undefined') localStorage.setItem(LANG_STORAGE_KEY, lang)
+}
+
+function getGreeting(name, lang = 'en') {
+  const hour = new Date().getHours()
+  const greetings = {
+    en: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', night: 'Good night' },
+    tr: { morning: 'Günaydın', afternoon: 'İyi öğlenler', evening: 'İyi akşamlar', night: 'İyi geceler' }
+  }
+  const g = greetings[lang] || greetings.en
+  let greet
+  if (hour >= 6 && hour < 12) greet = g.morning
+  else if (hour >= 12 && hour < 18) greet = g.afternoon
+  else if (hour >= 18 && hour < 24) greet = g.evening
+  else greet = g.night
+  const emoji = hour >= 6 && hour < 12 ? '☀️' : hour >= 12 && hour < 18 ? '🌤️' : hour >= 18 && hour < 22 ? '🌙' : '⭐'
+  return `${greet}, ${name} ${emoji}`
+}
+const LOGO_SVG = (size = 32) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="dashFireGrad" x1="0.2" y1="1" x2="0.2" y2="0">
+        <stop offset="0%" stopColor="#ef4444"/>
+        <stop offset="40%" stopColor="#f59e0b"/>
+        <stop offset="85%" stopColor="#a78bfa"/>
+        <stop offset="100%" stopColor="#c4b5fd"/>
+      </linearGradient>
+      <linearGradient id="dashBgGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#111120"/>
+        <stop offset="100%" stopColor="#0a0a0f"/>
+      </linearGradient>
+      <linearGradient id="dashBorderGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#7c3aed"/>
+        <stop offset="100%" stopColor="#4c1d95"/>
+      </linearGradient>
+      <clipPath id="dashSq">
+        <rect x="0" y="0" width="100" height="100" rx="22"/>
+      </clipPath>
+    </defs>
+    <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#dashBgGrad)"/>
+    <rect x="0" y="0" width="100" height="100" rx="22" fill="none" stroke="url(#dashBorderGrad)" strokeWidth="1.5"/>
+    <g clipPath="url(#dashSq)" opacity="0.12">
+      <line x1="0" y1="25" x2="100" y2="25" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="0" y1="50" x2="100" y2="50" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="0" y1="75" x2="100" y2="75" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="25" y1="0" x2="25" y2="100" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="50" y1="0" x2="50" y2="100" stroke="#7c3aed" strokeWidth="0.8"/>
+      <line x1="75" y1="0" x2="75" y2="100" stroke="#7c3aed" strokeWidth="0.8"/>
+    </g>
+    <path d="M50 88 C32 88 18 76 19 62 C20 52 28 46 27 36 C27 27 22 20 20 12 C32 20 37 31 36 42 C42 30 44 14 39 2 C54 14 58 32 55 48 C61 36 63 18 58 4 C74 20 77 44 71 60 C77 48 79 32 74 18 C88 36 90 60 82 74 C80 62 80 48 76 36 C86 52 85 74 76 84 C68 90 58 88 50 88Z" fill="url(#dashFireGrad)"/>
+    <path d="M50 80 C36 80 28 70 29 60 C30 52 36 47 35 38 C35 30 32 24 30 17 C40 25 43 35 41 45 C47 35 48 22 44 12 C56 22 58 38 54 52 C59 42 60 28 56 18 C66 32 67 50 62 62 C66 54 67 42 63 34 C70 46 69 62 63 72 C57 80 50 80 50 80Z" fill="#fff" opacity="0.07"/>
+  </svg>
+)
+
+const PLAN_ACCESS = {
+  starter: ['dashboard', 'spending', 'balance', 'settings'],
+  pro:     ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'debt', 'settings'],
+  elite:   ['dashboard', 'spending', 'balance', 'subscriptions', 'goals', 'ai', 'investments', 'summary', 'debt', 'settings'],
+}
+
+const PLAN_META = {
+  starter: { name: 'Starter', color: '#06b6d4', emoji: '🚀', price: '$9/mo' },
+  pro:     { name: 'Pro',     color: '#7c3aed', emoji: '💜', price: '$19/mo' },
+  elite:   { name: 'Elite',   color: '#f59e0b', emoji: '⚡', price: '$39/mo' },
+}
+
+const WHOP_UPGRADE_LINKS = {
+  starter: '/checkout?plan=pro',
+  pro:     '/checkout?plan=elite',
+  elite:   null,
+}
+
+const MODULE_PLAN = {
+  subscriptions: 'pro',
+  goals:         'pro',
+  ai:            'pro',
+  investments:   'elite',
+  summary:       'elite',
+}
+
+function canAccess(userPlan, moduleId) {
+  const plan = userPlan || 'starter'
+  return (PLAN_ACCESS[plan] || PLAN_ACCESS.starter).includes(moduleId)
+}
+
+const THEMES = {
+  dashboard:     { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#7c3aed','#06b6d4','#10b981','#f59e0b','#f43f5e'] },
+  subscriptions: { accent:'#ef4444', bg:'rgba(239,68,68,0.1)',   border:'rgba(239,68,68,0.3)',   text:'#fca5a5',  chart:['#ef4444','#f97316','#fbbf24','#a3e635','#34d399'] },
+  spending:      { accent:'#f59e0b', bg:'rgba(245,158,11,0.1)',  border:'rgba(245,158,11,0.3)',  text:'#fde68a',  chart:['#f59e0b','#f97316','#ef4444','#a78bfa','#34d399'] },
+  investments:   { accent:'#10b981', bg:'rgba(16,185,129,0.1)',  border:'rgba(16,185,129,0.3)',  text:'#6ee7b7',  chart:['#10b981','#06b6d4','#3b82f6','#8b5cf6','#f59e0b'] },
+  balance:       { accent:'#06b6d4', bg:'rgba(6,182,212,0.1)',   border:'rgba(6,182,212,0.3)',   text:'#67e8f9',  chart:['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b'] },
+  goals:         { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
+  ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.1)',  border:'rgba(139,92,246,0.3)',  text:'#ddd6fe',  chart:['#8b5cf6','#7c3aed','#06b6d4','#10b981','#f59e0b'] },
+  summary:       { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#6ee7b7','#f97316','#ef4444','#7c3aed','#06b6d4'] },
+  debt:          { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
+}
+
+const TIP = {fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
+const VAL = {fontFamily:MONO}
+const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.12)',borderRadius:'12px',color:'#f5f5f7',fontSize:'12px',fontFamily:FONT}
+const tooltipItemStyle = {color:'#f5f5f7'}
+const tooltipLabelStyle = {color:'rgba(255,255,255,0.5)',marginBottom:'4px'}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16)
+  const g = parseInt(hex.slice(3,5),16)
+  const b = parseInt(hex.slice(5,7),16)
+  return `${r},${g},${b}`
+}
 export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [page, setPage] = useState(() => {
@@ -425,26 +634,25 @@ export default function Dashboard() {
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
   const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
-const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
-const [selectedMonth, setSelectedMonth] = useState(null)
+  const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
+  const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
-  const [activeTheme, setActiveTheme] = useState(() => {
-  try { return localStorage.getItem('burnrate_theme') || 'default' } catch { return 'default' }
-})
+  const [activeTheme, setActiveTheme] = useState('default')
   const [currency, setCurrency] = useState('TRY')
-const [currencyRate, setCurrencyRate] = useState(1)
-const [currencySymbol, setCurrencySymbol] = useState('₺')
+  const [currencyRate, setCurrencyRate] = useState(1)
+  const [currencySymbol, setCurrencySymbol] = useState('₺')
 
   useEffect(() => {
-  setLang(getLang())
-  const savedCurrency = localStorage.getItem('burnrate_currency') || 'TRY'
-  setCurrency(savedCurrency)
-  if (savedCurrency !== 'TRY') {
-    fetchCurrencyRate(savedCurrency)
-  }
-  const savedTheme = localStorage.getItem('burnrate_theme') || 'default'
-setActiveTheme(savedTheme)
-}, [])
+    setLang(getLang())
+    const savedCurrency = localStorage.getItem('burnrate_currency') || 'TRY'
+    setCurrency(savedCurrency)
+    if (savedCurrency !== 'TRY') {
+      fetchCurrencyRate(savedCurrency)
+    }
+    const savedTheme = localStorage.getItem('burnrate_theme') || 'default'
+    console.log('Theme loaded:', savedTheme)
+    setActiveTheme(savedTheme)
+  }, [])
 
   function changeLang(l) {
     setDashboardLang(l)
@@ -456,19 +664,18 @@ setActiveTheme(savedTheme)
       const u = localStorage.getItem('burnrate_user')
       if (!u || u === 'undefined' || u === 'null') { window.location.href = '/login'; return }
       const parsed = JSON.parse(u)
-if (!parsed || !parsed.id) { localStorage.removeItem('burnrate_user'); window.location.href = '/login'; return }
-if (!parsed.onboarded) { window.location.href = '/onboarding'; return }
-// Trial kontrolü
-if (parsed.is_trial && parsed.trial_expires_at) {
-  const expires = new Date(parsed.trial_expires_at)
-  const now = new Date()
-  if (expires < now) {
-    window.location.href = '/checkout?plan=pro&trial_expired=true'
-    return
-  }
-}
+      if (!parsed || !parsed.id) { localStorage.removeItem('burnrate_user'); window.location.href = '/login'; return }
+      if (!parsed.onboarded) { window.location.href = '/onboarding'; return }
+      if (parsed.is_trial && parsed.trial_expires_at) {
+        const expires = new Date(parsed.trial_expires_at)
+        const now = new Date()
+        if (expires < now) {
+          window.location.href = '/checkout?plan=pro&trial_expired=true'
+          return
+        }
+      }
       setUser(parsed)
-loadData(parsed.id)
+      loadData(parsed.id)
     } catch(e) { localStorage.removeItem('burnrate_user'); window.location.href = '/login' }
   }, [])
 
@@ -484,18 +691,20 @@ loadData(parsed.id)
     setIncome(Array.isArray(i) ? i : [])
     setInvestments(Array.isArray(inv) ? inv.map(i=>({...i,shares:Number(i.shares),buyPrice:Number(i.buy_price),currentPrice:Number(i.current_price)||0,symbol:i.symbol,name:i.name,type:i.type})) : [])
   }
+
   async function fetchCurrencyRate(cur) {
-  try {
-    const symbol = cur === 'USD' ? 'USDTRY=X' : 'EURTRY=X'
-    const res = await fetch(`/api/stocks?symbol=${symbol}`)
-    const data = await res.json()
-    if (data.price) {
-      const rate = parseFloat(data.price)
-      setCurrencyRate(rate)
-      setCurrencySymbol(cur === 'USD' ? '$' : '€')
-    }
-  } catch(e) {}
-}
+    try {
+      const symbol = cur === 'USD' ? 'USDTRY=X' : 'EURTRY=X'
+      const res = await fetch(`/api/stocks?symbol=${symbol}`)
+      const data = await res.json()
+      if (data.price) {
+        const rate = parseFloat(data.price)
+        setCurrencyRate(rate)
+        setCurrencySymbol(cur === 'USD' ? '$' : '€')
+      }
+    } catch(e) {}
+  }
+
   useEffect(() => {
     const handler = (e) => {
       const cur = e.detail.currency
@@ -527,10 +736,10 @@ loadData(parsed.id)
   const navItems = [
     { id:'dashboard',     icon:'⚡', label: (lang==='tr') ? 'Genel Bakış'   : 'Overview' },
     { id:'subscriptions', icon:'⚔️', label: (lang==='tr') ? 'Abonelikler'   : 'Subscriptions' },
-   { id:'spending', icon:'🧾', label: (lang==='tr') ? 'Harcamalar' : 'Spending' },
+    { id:'spending',      icon:'🧾', label: (lang==='tr') ? 'Harcamalar'    : 'Spending' },
     { id:'investments',   icon:'📈', label: (lang==='tr') ? 'Yatırımlar'    : 'Investments' },
     { id:'balance',       icon:'💰', label: (lang==='tr') ? 'Bakiye'        : 'Balance' },
-    { id:'debt', icon:'🤝', label: (lang==='tr') ? 'Borç Takibi' : 'Debt Tracker' },
+    { id:'debt',          icon:'🤝', label: (lang==='tr') ? 'Borç Takibi'   : 'Debt Tracker' },
     { id:'goals',         icon:'🎯', label: (lang==='tr') ? 'Meydan Okuma'  : 'Challenge' },
   ]
 
@@ -539,14 +748,17 @@ loadData(parsed.id)
       <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Loading...</div>
     </div>
   )
+
   const ACTIVE_THEME = getTheme(activeTheme)
-const DYNAMIC_THEME = {
-  ...THEMES.dashboard,
-  accent: ACTIVE_THEME.accent,
-  bg: ACTIVE_THEME.accentBg,
-  border: ACTIVE_THEME.accentBorder,
-  text: ACTIVE_THEME.accentText,
-}
+  const DYNAMIC_THEME = {
+    ...THEMES.dashboard,
+    accent: ACTIVE_THEME.accent,
+    bg: ACTIVE_THEME.accentBg,
+    border: ACTIVE_THEME.accentBorder,
+    text: ACTIVE_THEME.accentText,
+    chart: THEMES.dashboard.chart,
+  }
+
   const userPlan = user.plan || 'starter'
   const planMeta = PLAN_META[userPlan] || PLAN_META.starter
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan]
@@ -559,23 +771,12 @@ const DYNAMIC_THEME = {
   const totalInvValue = investments.reduce((a,inv) => a+(inv.shares*inv.currentPrice), 0)
   const totalInvCost = investments.reduce((a,inv) => a+(inv.shares*inv.buyPrice), 0)
   const invGain = totalInvValue - totalInvCost
-
-  return (
+return (
     <div style={{
-  '--theme-accent': getTheme(activeTheme).accent,
-  '--theme-accent-bg': getTheme(activeTheme).accentBg,
-  '--theme-accent-border': getTheme(activeTheme).accentBorder,
-  '--theme-accent-text': getTheme(activeTheme).accentText,
-  '--theme-sb-bg': getTheme(activeTheme).sbBg,
-  '--theme-sb-border': getTheme(activeTheme).sbBorder,
-  '--theme-card-bg': getTheme(activeTheme).cardBg,
-  '--theme-card-border': getTheme(activeTheme).cardBorder,
-  '--theme-btn-bg': getTheme(activeTheme).btnBg,
-  '--theme-btn-border': getTheme(activeTheme).btnBorder,
-  '--theme-btn-text': getTheme(activeTheme).btnText,
-  background: activeTheme==='neon'?'#000000':activeTheme==='gold'?'linear-gradient(160deg,#020b18 0%,#050d1f 60%,#020b18 100%)':activeTheme==='rose'?'linear-gradient(160deg,#080608 0%,#0d080f 60%,#080608 100%)':activeTheme==='elite'?'linear-gradient(135deg,#060610 0%,#080818 40%,#060614 100%)':'linear-gradient(160deg,#07070f 0%,#0a0518 60%,#07070f 100%)',
-  fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex', transition:'background 0.4s ease'
-}}>
+      background: ACTIVE_THEME.bgGradient,
+      fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex',
+      transition:'background 0.4s ease'
+    }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
@@ -600,189 +801,28 @@ const DYNAMIC_THEME = {
       {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
 
       {/* TRIAL BANNER */}
-     {user?.is_trial && user?.trial_expires_at && (() => {
-  const daysLeft = Math.ceil((new Date(user.trial_expires_at) - new Date()) / (1000*60*60*24))
-  if (daysLeft <= 0) return null
-  const isUrgent = daysLeft <= 3
-  return (
-    <div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:isUrgent?'linear-gradient(90deg,#ef4444,#dc2626)':'linear-gradient(90deg,#7c3aed,#4c1d95)',padding:'10px 20px',display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
-      <span style={{color:'#fff',fontSize:'13px',fontFamily:FONT,fontWeight:500}}>
-        {isUrgent
-          ? (lang==='tr')?`🚨 Denemeniz ${daysLeft} gün içinde sona eriyor! Verilerinizi kaybetmemek için şimdi yükseltin.`:`🚨 Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}! Upgrade now to keep your data.`
-          : (lang==='tr')?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`
-        }
-      </span>
-      <a href="/checkout?plan=pro"
-        style={{background:'rgba(255,255,255,0.2)',color:'#fff',padding:'5px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:FONT,whiteSpace:'nowrap'}}>
-        {(lang==='tr')?'Şimdi Yükselt →':'Upgrade Now →'}
-      </a>
-    </div>
-  )
-})()}
-      {/* MANAGE MODAL */}
-      {/* AYLIK ÖZET MODAL */}
-{monthlyGoalModal && (
-  <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
-    onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
-    <div style={{background:'#0a0a12',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'28px',width:'100%',maxWidth:'620px',maxHeight:'88vh',overflowY:'auto',boxShadow:'0 40px 120px rgba(0,0,0,0.6)'}}>
-      
-      {/* Header */}
-      <div style={{padding:'28px 32px 20px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,background:'#0a0a12',zIndex:1,borderRadius:'28px 28px 0 0'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(16,185,129,0.15)',border:'1px solid rgba(16,185,129,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>🎯</div>
-          <div>
-            <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>{lang==='tr'?'Aylık Hedefler':'Monthly Goals'}</div>
-            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>
-              {new Date().toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})}
-            </div>
+      {user?.is_trial && user?.trial_expires_at && (() => {
+        const daysLeft = Math.ceil((new Date(user.trial_expires_at) - new Date()) / (1000*60*60*24))
+        if (daysLeft <= 0) return null
+        const isUrgent = daysLeft <= 3
+        return (
+          <div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:isUrgent?'linear-gradient(90deg,#ef4444,#dc2626)':'linear-gradient(90deg,#7c3aed,#4c1d95)',padding:'10px 20px',display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
+            <span style={{color:'#fff',fontSize:'13px',fontFamily:FONT,fontWeight:500}}>
+              {isUrgent
+                ? (lang==='tr')?`🚨 Denemeniz ${daysLeft} gün içinde sona eriyor! Verilerinizi kaybetmemek için şimdi yükseltin.`:`🚨 Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}! Upgrade now to keep your data.`
+                : (lang==='tr')?`⏳ Denemeniz ${daysLeft} gün içinde sona eriyor`:`⏳ Your trial expires in ${daysLeft} day${daysLeft!==1?'s':''}`
+              }
+            </span>
+            <a href="/checkout?plan=pro"
+              style={{background:'rgba(255,255,255,0.2)',color:'#fff',padding:'5px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:FONT,whiteSpace:'nowrap'}}>
+              {(lang==='tr')?'Şimdi Yükselt →':'Upgrade Now →'}
+            </a>
           </div>
-        </div>
-        <button onClick={()=>setMonthlyGoalModal(false)} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
-      </div>
-
-      <MonthlyGoalContent
-        userId={user.id}
-        totalIncome={totalIncome}
-        totalExp={totalExp}
-        totalSubs={totalSubs}
-        netBal={netBal}
-        lang={lang}
-        FONT={FONT}
-        MONO={MONO}
-        onClose={()=>setMonthlyGoalModal(false)}
-      />
-    </div>
-  </div>
-)}
-{monthlySummaryModal && (
-  <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}}
-    onClick={e=>e.target===e.currentTarget&&(setMonthlySummaryModal(false),setSelectedMonth(null))}>
-    <div style={{background:'#0a0a12',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'28px',width:'100%',maxWidth:'680px',maxHeight:'88vh',overflowY:'auto',boxShadow:'0 40px 120px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.1)'}}>
-      
-      {/* Header */}
-      <div style={{padding:'28px 32px 20px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,background:'#0a0a12',zIndex:1,borderRadius:'28px 28px 0 0'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(124,58,237,0.15)',border:'1px solid rgba(124,58,237,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>📋</div>
-          <div>
-            <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>{lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
-            <div style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT,marginTop:'2px'}}>{lang==='tr'?'Bir ay seçerek özeti görün':'Select a month to view summary'}</div>
-          </div>
-        </div>
-        <button onClick={()=>{setMonthlySummaryModal(false);setSelectedMonth(null)}} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
-      </div>
-
-      <div style={{padding:'24px 32px'}}>
-        {/* Ay grid */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'24px'}}>
-          {(() => {
-            const now = new Date()
-            const months = []
-            for (let i = 0; i < 12; i++) {
-              const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-              const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
-              const isCurrentMonth = i === 0
-              const isSelected = selectedMonth === key
-              const monthName = d.toLocaleString(lang==='tr'?'tr-TR':'en-US', {month:'long'})
-              const yearStr = d.getFullYear()
-              months.push(
-                <button key={key} onClick={()=>setSelectedMonth(isSelected?null:key)}
-                  style={{padding:'12px 14px',borderRadius:'12px',background:isSelected?'rgba(124,58,237,0.18)':isCurrentMonth?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.02)',border:isSelected?'1px solid rgba(124,58,237,0.5)':isCurrentMonth?'1px solid rgba(255,255,255,0.12)':'1px solid rgba(255,255,255,0.04)',cursor:'pointer',fontFamily:FONT,textAlign:'left',transition:'all 0.15s'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
-                    <span style={{fontSize:'13px',fontWeight:isSelected?700:500,color:isSelected?'#c4b5fd':isCurrentMonth?'#f1f0ff':'rgba(255,255,255,0.5)'}}>{monthName}</span>
-                    {isCurrentMonth && <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#a78bfa',boxShadow:'0 0 6px #a78bfa',display:'inline-block'}}></span>}
-                    {isSelected && !isCurrentMonth && <span style={{color:'#7c3aed',fontSize:'12px'}}>✓</span>}
-                  </div>
-                  <div style={{fontSize:'11px',color:'rgba(255,255,255,0.2)',fontFamily:FONT}}>{yearStr}</div>
-                </button>
-              )
-            }
-            return months
-          })()}
-        </div>
-
-        {/* Seçili ay özeti */}
-        {selectedMonth && (() => {
-          const [year, month] = selectedMonth.split('-').map(Number)
-          const monthExpenses = expenses.filter(e => {
-            if (!e.expense_date) return false
-            const d = new Date(e.expense_date)
-            return d.getFullYear()===year && d.getMonth()+1===month
-          })
-          const monthIncome = income.filter(i => {
-            if (!i.income_date) return false
-            const d = new Date(i.income_date)
-            return d.getFullYear()===year && d.getMonth()+1===month
-          })
-          const monthExp = monthExpenses.reduce((a,e)=>a+Number(e.amount),0)
-          const monthInc = monthIncome.reduce((a,i)=>a+Number(i.amount),0)
-          const monthNet = monthInc - monthExp - totalSubs
-          const sr = monthInc>0?Math.round(((monthInc-monthExp-totalSubs)/monthInc)*100):0
-          const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
-          const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-          const scoreBg = sr>=30?'rgba(16,185,129,0.1)':sr>=20?'rgba(245,158,11,0.1)':sr>=10?'rgba(249,115,22,0.1)':'rgba(239,68,68,0.1)'
-          const monthLabel = new Date(year,month-1,1).toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
-
-          return (
-            <div style={{animation:'fadeIn 0.2s ease'}}>
-              {/* Ay başlık + skor */}
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'20px 24px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'16px',marginBottom:'14px'}}>
-                <div>
-                  <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'6px'}}>{lang==='tr'?'Seçili Ay':'Selected Month'}</div>
-                  <div style={{color:'#f1f0ff',fontSize:'20px',fontWeight:700,fontFamily:FONT}}>{monthLabel}</div>
-                </div>
-                <div style={{textAlign:'center'}}>
-                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT,marginBottom:'4px'}}>{lang==='tr'?'Puan':'Score'}</div>
-                  <div style={{width:'56px',height:'56px',borderRadius:'14px',background:scoreBg,border:`1px solid ${scoreColor}44`,display:'flex',alignItems:'center',justifyContent:'center',color:scoreColor,fontSize:'28px',fontWeight:800,fontFamily:FONT}}>{score}</div>
-                </div>
-              </div>
-
-              {/* 4 stat kart */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'14px'}}>
-                {[
-                  {label:lang==='tr'?'Toplam Gelir':'Total Income', value:`₺${monthInc.toFixed(0)}`, color:'#6ee7b7', bg:'rgba(16,185,129,0.08)', border:'rgba(16,185,129,0.2)', icon:'💚'},
-                  {label:lang==='tr'?'Toplam Gider':'Total Expenses', value:`₺${monthExp.toFixed(0)}`, color:'#fca5a5', bg:'rgba(239,68,68,0.08)', border:'rgba(239,68,68,0.2)', icon:'💸'},
-                  {label:lang==='tr'?'Abonelikler':'Subscriptions', value:`₺${totalSubs.toFixed(0)}`, color:'#ef4444', bg:'rgba(239,68,68,0.06)', border:'rgba(239,68,68,0.15)', icon:'⚔️'},
-                  {label:lang==='tr'?'Net Bakiye':'Net Balance', value:`${monthNet>=0?'+':'−'}₺${Math.abs(monthNet).toFixed(0)}`, color:monthNet>=0?'#6ee7b7':'#fca5a5', bg:monthNet>=0?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.08)', border:monthNet>=0?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)', icon:monthNet>=0?'✅':'⚠️'},
-                ].map(item=>(
-                  <div key={item.label} style={{background:item.bg,border:`1px solid ${item.border}`,borderRadius:'14px',padding:'16px 18px'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                      <span style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,letterSpacing:'0.05em'}}>{item.label}</span>
-                      <span style={{fontSize:'14px'}}>{item.icon}</span>
-                    </div>
-                    <div style={{color:item.color,fontSize:'22px',fontWeight:700,fontFamily:FONT,letterSpacing:'-0.5px'}}>{item.value}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Tasarruf oranı bar */}
-              <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'14px',padding:'16px 18px'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                  <span style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'Tasarruf Oranı':'Savings Rate'}</span>
-                  <span style={{color:scoreColor,fontSize:'14px',fontWeight:700,fontFamily:FONT}}>{sr}%</span>
-                </div>
-                <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
-                  <div style={{height:'100%',borderRadius:'100px',width:`${Math.min(Math.max(sr,0),100)}%`,background:scoreColor,transition:'width 0.5s ease'}}></div>
-                </div>
-                <div style={{color:'rgba(255,255,255,0.2)',fontSize:'11px',fontFamily:FONT,marginTop:'8px'}}>
-                  {sr>=30?(lang==='tr'?'🎉 Mükemmel tasarruf!':'🎉 Excellent savings!'):sr>=20?(lang==='tr'?'💪 İyi gidiyor':'💪 Good progress'):sr>=10?(lang==='tr'?'📈 Gelişmeye devam':'📈 Keep improving'):(lang==='tr'?'⚠️ Harcamalar fazla':'⚠️ Spending too high')}
-                </div>
-              </div>
-
-              {(monthExpenses.length===0 && monthIncome.length===0) && (
-                <div style={{textAlign:'center',padding:'24px',color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT,marginTop:'10px'}}>
-                  {lang==='tr'?'Bu ay için kayıtlı veri bulunamadı.':'No recorded data found for this month.'}
-                </div>
-              )}
-            </div>
-          )
-        })()}
-      </div>
-    </div>
-  </div>
-)}
+        )
+      })()}
 
       {/* SIDEBAR */}
-      <div className="sidebar" style={{width:'224px',background: ACTIVE_THEME.sbBg, borderRight:`1px solid ${ACTIVE_THEME.sbBorder}`,flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
+      <div className="sidebar" style={{width:'224px',background:ACTIVE_THEME.sbBg,borderRight:`1px solid ${ACTIVE_THEME.sbBorder}`,flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
@@ -791,7 +831,6 @@ const DYNAMIC_THEME = {
           </div>
         </div>
 
-        {/* PLAN BADGE */}
         <div style={{background:`rgba(${hexToRgb(planMeta.color)},0.1)`,border:`1px solid ${planMeta.color}44`,borderRadius:'10px',padding:'9px 12px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'8px'}}>
           <span style={{fontSize:'14px'}}>{planMeta.emoji}</span>
           <div style={{flex:1}}>
@@ -809,7 +848,7 @@ const DYNAMIC_THEME = {
         <div style={{display:'flex',gap:'6px',marginBottom:'12px'}}>
           {['en','tr'].map(l => (
             <button key={l} onClick={()=>changeLang(l)}
-              style={{flex:1,padding:'4px 0',fontSize:'10px',fontFamily:MONO,fontWeight:600,color:lang===l?'#fff':'rgba(255,255,255,0.25)',background:lang===l?'#7c3aed':'transparent',border:`1px solid ${lang===l?'#7c3aed':'rgba(255,255,255,0.08)'}`,borderRadius:'6px',cursor:'pointer',letterSpacing:'0.08em',transition:'all 0.2s'}}>
+              style={{flex:1,padding:'4px 0',fontSize:'10px',fontFamily:MONO,fontWeight:600,color:lang===l?'#fff':'rgba(255,255,255,0.25)',background:lang===l?ACTIVE_THEME.accent:'transparent',border:`1px solid ${lang===l?ACTIVE_THEME.accent:'rgba(255,255,255,0.08)'}`,borderRadius:'6px',cursor:'pointer',letterSpacing:'0.08em',transition:'all 0.2s'}}>
               {l.toUpperCase()}
             </button>
           ))}
@@ -835,43 +874,40 @@ const DYNAMIC_THEME = {
 
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
-            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(124,58,237,0.1)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
+            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?`linear-gradient(135deg,${ACTIVE_THEME.accent},${ACTIVE_THEME.accent}cc)`:ACTIVE_THEME.accentBg,color:page==='ai'?'#fff':ACTIVE_THEME.accentText,border:`1px solid ${ACTIVE_THEME.accentBorder}`,cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
             <span style={{fontSize:'15px',opacity:canAccess(userPlan,'ai')?1:0.5}}>🤖</span>
             <div style={{textAlign:'left',flex:1}}>
               <div style={{fontSize:'13px',fontWeight:600}}>{lang==='tr'?'Yapay Zeka':'AI Advisor'}</div>
-              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'rgba(196,181,253,0.5)',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
+              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':ACTIVE_THEME.accentText+'88',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
             </div>
             {!canAccess(userPlan,'ai') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
-
-        
 
         <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'14px'}}>
           <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:500}}>{user.name || 'User'}</div>
             <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO,marginTop:'2px'}}>{user.email}</div>
           </div>
-          
           <button onClick={()=>navigateTo('settings')}
-  style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:page==='settings'?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',background:page==='settings'?'rgba(255,255,255,0.05)':'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
-  ⚙️ {lang==='tr'?'Ayarlar':'Settings'}
-</button>
+            style={{width:'100%',textAlign:'left',padding:'6px 8px',borderRadius:'8px',fontSize:'12px',color:page==='settings'?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',background:page==='settings'?'rgba(255,255,255,0.05)':'transparent',border:'none',cursor:'pointer',fontFamily:FONT,marginBottom:'2px'}}>
+            ⚙️ {lang==='tr'?'Ayarlar':'Settings'}
+          </button>
         </div>
       </div>
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0'}}>
-        {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'}currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
+        {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} lang={lang} />)}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
-       {page==='balance' && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='goals'         && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} />)}
-        {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
-        {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
-{page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-{page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
+        {page==='investments' && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} lang={lang} />)}
+        {page==='balance' && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='goals' && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} lang={lang} />)}
+        {page==='summary' && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} lang={lang} />)}
+        {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={DYNAMIC_THEME} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} lang={lang} />)}
+        {page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -895,6 +931,7 @@ const DYNAMIC_THEME = {
     </div>
   )
 }
+
 
 // ── SHARED ────────────────────────────────────────────────────────
 function Card({ children, style={}, accent=null }) {
