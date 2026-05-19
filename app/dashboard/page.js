@@ -815,10 +815,10 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
       )}
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':'Net Balance'} value={`₺${Math.abs(netBal).toFixed(0)}`} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Harcama':'Monthly Burn'} value={`₺${(totalExp+totalSubs).toFixed(0)}`} sub={lang==='tr'?'harcama + abonelik':'expenses + subs'} color="#fb7185" icon="🔥" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Net Bakiye':'Net Balance'} value={fmt(Math.abs(netBal))} sub={lang==='tr'?(netBal>=0?'↑ Pozitif':'↓ Açıkta'):(netBal>=0?'↑ Positive':'↓ In the red')} color={netBal>=0?'#6ee7b7':'#fca5a5'} icon="💰" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Harcama':'Monthly Burn'} value={fmt(totalExp+totalSubs)} sub={lang==='tr'?'harcama + abonelik':'expenses + subs'} color="#fb7185" icon="🔥" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={`₺${totalInvValue.toFixed(0)}`} sub={lang==='tr'?(invGain>=0?`+₺${invGain.toFixed(0)} kazanç`:`-₺${Math.abs(invGain).toFixed(0)} kayıp`):(invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`)} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={fmt(totalInvValue)} sub={lang==='tr'?(invGain>=0?`+₺${invGain.toFixed(0)} kazanç`:`-₺${Math.abs(invGain).toFixed(0)} kayıp`):(invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`)} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
