@@ -752,7 +752,7 @@ loadData(parsed.id)
 )}
 
       {/* SIDEBAR */}
-      <div className="sidebar" style={{width:'224px',background: getTheme(activeTheme).sbBg, borderRight:`1px solid ${getTheme(activeTheme).sbBorder}`,flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
+      <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)', borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
@@ -944,7 +944,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
           <button onClick={onMonthlySummary}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: getTheme(activeTheme).accentBg,color: getTheme(activeTheme).accentText,border:`1px solid ${getTheme(activeTheme).accentBorder}`,
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',
             📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
         </div>
