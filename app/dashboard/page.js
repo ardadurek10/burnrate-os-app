@@ -2380,17 +2380,19 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   }
 
   async function savePrefs() {
-    setSaving(true)
-    setMessage('')
-    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-      body: JSON.stringify({ currency: prefForm.currency })
-    })
-    setMessage(lang === 'tr' ? '✓ Tercihler kaydedildi' : '✓ Preferences saved')
-    setSaving(false)
-    setTimeout(() => setMessage(''), 3000)
-  }
+  setSaving(true)
+  setMessage('')
+  await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    body: JSON.stringify({ currency: prefForm.currency })
+  })
+  localStorage.setItem('burnrate_currency', prefForm.currency)
+  window.dispatchEvent(new CustomEvent('currencyChange', { detail: { currency: prefForm.currency } }))
+  setMessage(lang === 'tr' ? '✓ Tercihler kaydedildi' : '✓ Preferences saved')
+  setSaving(false)
+  setTimeout(() => setMessage(''), 3000)
+}
 
   async function handleCancel() {
     if (!dbUser?.stripe_sub_id) return
@@ -2828,6 +2830,20 @@ function DebtPage({ theme, userId, lang }) {
       loadDebts()
     } catch(e) { console.error('addDebt error:', e) }
   }
+  useEffect(() => {
+  const handler = (e) => {
+    const cur = e.detail.currency
+    setCurrency(cur)
+    if (cur === 'TRY') {
+      setCurrencyRate(1)
+      setCurrencySymbol('₺')
+    } else {
+      fetchCurrencyRate(cur)
+    }
+  }
+  window.addEventListener('currencyChange', handler)
+  return () => window.removeEventListener('currencyChange', handler)
+}, [])
 
   async function updateStatus(id, status) {
     await fetch(`${SUPABASE_URL}/rest/v1/debts?id=eq.${id}`, {
