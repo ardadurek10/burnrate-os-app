@@ -947,11 +947,11 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <div style={{display:'flex',gap:'10px'}}>
           <button onClick={onMonthlyGoal}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: ACTIVE_THEME.accentBg,color: ACTIVE_THEME.accentText,border:`1px solid ${ACTIVE_THEME.accentBorder}`,cursor:'pointer',fontFamily:FONT}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: theme.bg,color: theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
           <button onClick={onMonthlySummary}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: ACTIVE_THEME.btnBg,color: ACTIVE_THEME.btnText,border:`1px solid ${ACTIVE_THEME.btnBorder}`,cursor:'pointer',fontFamily:FONT}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: theme.bg,color: theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
             📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
         </div>
