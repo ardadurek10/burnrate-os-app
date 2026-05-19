@@ -943,8 +943,8 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
       <PageHeader theme={theme} title={lang==='tr'?'⚔️ Abonelik Guillotine':'⚔️ Subscription Guillotine'} subtitle={lang==='tr'?'Tüm yinelenen ücretleri takip et. Ölüleri öldür.':'Track every recurring charge. Kill the dead ones.'}
         action={<AddBtn theme={theme} label={lang==='tr'?'+ Abonelik Ekle':'+ Add Subscription'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Maliyet':'Monthly Cost'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Ölü Araçlar':'Dead Tools'} value={dead.length} sub={lang==='tr'?`₺${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/ay israf`:`₺${dead.reduce((a,s)=>a+Number(s.cost),0).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Maliyet':'Monthly Cost'} value={`${currencySymbol}${(total/currencyRate).toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label={lang==='tr'?'Ölü Araçlar':'Dead Tools'} value={dead.length} sub={lang==='tr'?`${currencySymbol}${(dead.reduce((a,s)=>a+Number(s.cost),0)/currencyRate).toFixed(2)}/ay israf`:`${currencySymbol}${(dead.reduce((a,s)=>a+Number(s.cost),0)/currencyRate).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Tutmaya Değer':'Worth Keeping'} value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
       {adding && (
@@ -1017,7 +1017,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                 : subs.map(s=>(
                   <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
-                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>₺{Number(s.cost).toFixed(2)}</td>
+                    <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>{currencySymbol}{(Number(s.cost)/currencyRate).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{getSubCatLabel(s.category)}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{lang==='tr'?(s.days_since_used===0?'Bugün':`${s.days_since_used}g önce`):(s.days_since_used===0?'Today':`${s.days_since_used}d ago`)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?((lang==='tr')?'ÖLÜ':'DEAD'):s.status==='warn'?((lang==='tr')?'UYARI':'WARN'):((lang==='tr')?'TUTUN':'KEEP')}</span></td>
