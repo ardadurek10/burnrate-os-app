@@ -2476,7 +2476,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   const [canceling, setCanceling] = useState(false)
 
   const [profileForm, setProfileForm] = useState({ name: '', profession: '', monthly_income: '' })
-  const [prefForm, setPrefForm] = useState({ currency: 'TRY' })
+  const [prefForm, setPrefForm] = useState({ currency: 'TRY', theme: 'default' })
   const [deleteConfirm, setDeleteConfirm] = useState('')
 
   useEffect(() => { fetchDbUser() }, [])
@@ -2489,7 +2489,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     if (data[0]) {
       setDbUser(data[0])
       setProfileForm({ name: data[0].name || '', profession: data[0].profession || '', monthly_income: data[0].monthly_income || '' })
-      setPrefForm({ currency: data[0].currency || 'TRY' })
+      setPrefForm({ currency: data[0].currency || 'TRY', theme: data[0].theme || 'default' })
     }
     setLoading(false)
   }
