@@ -1115,10 +1115,10 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
       <PageHeader theme={theme} title={(lang==='tr')?'💸 Günlük Harcama':'💸 Daily Spending'} subtitle={(lang==='tr')?'Ani alımları ve sızıntıları takip et.':'Track impulse buys and convenience leaks.'}
         action={<AddBtn theme={theme} label={(lang==='tr')?'+ Harcama Ekle':'+ Log Expense'} onClick={()=>setAdding(!adding)} />} />
       <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-        <StatCard accent={theme.accent} label={(lang==='tr')?'Toplam Harcama':'Total Spent'} value={`₺${total.toFixed(2)}`} color={theme.text} icon="💸" />
-        <StatCard accent={theme.accent} label={(lang==='tr')?'Sızıntı Miktarı':'Leak Amount'} value={`₺${leakAmt.toFixed(2)}`} sub={(lang==='tr')?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'Toplam Harcama':'Total Spent'} value={`${currencySymbol}${(total/currencyRate).toFixed(2)}`} color={theme.text} icon="💸" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'Sızıntı Miktarı':'Leak Amount'} value={`${currencySymbol}${(leakAmt/currencyRate).toFixed(2)}`} sub={(lang==='tr')?`Bütçenin %${total>0?Math.round(leakAmt/total*100):0}'ı`:`${total>0?Math.round(leakAmt/total*100):0}% of spending`} color="#fca5a5" icon="🩸" />
         <StatCard accent={theme.accent} label={(lang==='tr')?'İşlem Sayısı':'Transactions'} value={expenses.length} color={theme.text} icon="📋" />
-        <StatCard accent={theme.accent} label={(lang==='tr')?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`₺${(total/expenses.length).toFixed(2)}`:'₺0'} color={theme.text} icon="📊" />
+        <StatCard accent={theme.accent} label={(lang==='tr')?'Ort. / İşlem':'Avg / Transaction'} value={expenses.length>0?`${currencySymbol}${(total/expenses.length/currencyRate).toFixed(2)}`:`${currencySymbol}0`} color={theme.text} icon="📊" />
       </div>
       {adding&&(
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
@@ -1192,7 +1192,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
               <div key={cat} style={{marginBottom:'12px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'5px'}}>
                   <span style={{color:'rgba(255,255,255,0.45)',fontFamily:FONT}}>{getCL(cat)}</span>
-                  <span style={{fontFamily:MONO,color:col}}>₺{amt.toFixed(2)}</span>
+                  <span style={{fontFamily:MONO,color:col}}>{currencySymbol}{(amt/currencyRate).toFixed(2)}</span>
                 </div>
                 <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}>
                   <div style={{height:'100%',borderRadius:'100px',width:`${pct}%`,background:col,transition:'width 0.5s'}}></div>
@@ -1229,7 +1229,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
                 :filtered.map(e=>(
                   <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
-                    <td style={{padding:'12px 0',fontFamily:MONO,color:theme.text,fontSize:'13px'}}>-₺{Number(e.amount).toFixed(2)}</td>
+                    <td style={{padding:'12px 0',fontFamily:MONO,color:theme.text,fontSize:'13px'}}>-{currencySymbol}{(Number(e.amount)/currencyRate).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${CAT_COLORS_MAP[e.category]||theme.accent}22`,color:CAT_COLORS_MAP[e.category]||theme.text,fontFamily:FONT}}>{getCL(e.category)}</span></td>
                     <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{e.expense_date||'—'}</td>
                     <td style={{padding:'12px 0'}}><button onClick={()=>del(e.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
