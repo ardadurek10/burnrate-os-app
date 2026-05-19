@@ -531,7 +531,7 @@ loadData(parsed.id)
   const invGain = totalInvValue - totalInvCost
 
   return (
-    <div style={{background: getTheme(activeTheme).bgGradient, fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
+    <div style={{background: activeTheme==='neon'?'#000000':activeTheme==='gold'?'linear-gradient(160deg,#020b18 0%,#050d1f 60%,#020b18 100%)':activeTheme==='rose'?'linear-gradient(160deg,#080608 0%,#0d080f 60%,#080608 100%)':activeTheme==='elite'?'linear-gradient(135deg,#060610 0%,#080818 40%,#060614 100%)':'linear-gradient(160deg,#07070f 0%,#0a0518 60%,#07070f 100%)', fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
