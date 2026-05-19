@@ -3,6 +3,133 @@ import React, { useState, useEffect } from 'react'
 import { supabaseQuery, supabaseInsert, supabaseDelete } from '../lib/supabase'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
+// ── THEME SYSTEM ──────────────────────────────────────────────────
+const THEMES_CONFIG = {
+  default: {
+    id: 'default',
+    name: 'Koyu Mor',
+    emoji: '⚡',
+    plan: 'starter',
+    bg: '#0a0a0f',
+    bgGradient: 'linear-gradient(160deg, #07070f 0%, #0a0518 60%, #07070f 100%)',
+    accent: '#7c3aed',
+    accentLight: '#a78bfa',
+    accentBg: 'rgba(124,58,237,0.12)',
+    accentBorder: 'rgba(124,58,237,0.3)',
+    accentText: '#c4b5fd',
+    sbBg: 'rgba(255,255,255,0.015)',
+    sbBorder: 'rgba(255,255,255,0.06)',
+    cardBg: 'rgba(255,255,255,0.03)',
+    cardBorder: 'rgba(255,255,255,0.07)',
+    btnBg: 'rgba(255,255,255,0.05)',
+    btnBorder: 'rgba(255,255,255,0.1)',
+    btnText: 'rgba(255,255,255,0.7)',
+  },
+  neon: {
+    id: 'neon',
+    name: 'Neon',
+    emoji: '🟢',
+    plan: 'pro',
+    bg: '#000000',
+    bgGradient: '#000000',
+    accent: '#00ff88',
+    accentLight: '#00ffaa',
+    accentBg: 'rgba(0,255,136,0.08)',
+    accentBorder: 'rgba(0,255,136,0.25)',
+    accentText: '#00ff88',
+    sbBg: 'rgba(255,255,255,0.015)',
+    sbBorder: 'rgba(255,255,255,0.05)',
+    cardBg: 'rgba(255,255,255,0.02)',
+    cardBorder: 'rgba(255,255,255,0.05)',
+    btnBg: 'rgba(0,255,136,0.08)',
+    btnBorder: 'rgba(0,255,136,0.25)',
+    btnText: '#00ff88',
+  },
+  gold: {
+    id: 'gold',
+    name: 'Altın',
+    emoji: '✨',
+    plan: 'pro',
+    bg: '#020b18',
+    bgGradient: 'linear-gradient(160deg, #020b18 0%, #050d1f 60%, #020b18 100%)',
+    accent: '#f59e0b',
+    accentLight: '#fde68a',
+    accentBg: 'rgba(245,158,11,0.12)',
+    accentBorder: 'rgba(245,158,11,0.28)',
+    accentText: '#fde68a',
+    sbBg: 'rgba(255,255,255,0.02)',
+    sbBorder: 'rgba(245,158,11,0.1)',
+    cardBg: 'rgba(245,158,11,0.04)',
+    cardBorder: 'rgba(245,158,11,0.1)',
+    btnBg: 'rgba(245,158,11,0.12)',
+    btnBorder: 'rgba(245,158,11,0.28)',
+    btnText: '#fde68a',
+  },
+  rose: {
+    id: 'rose',
+    name: 'Rose',
+    emoji: '🌸',
+    plan: 'pro',
+    bg: '#080608',
+    bgGradient: 'linear-gradient(160deg, #080608 0%, #0d080f 60%, #080608 100%)',
+    accent: '#ec4899',
+    accentLight: '#f9a8d4',
+    accentBg: 'rgba(236,72,153,0.12)',
+    accentBorder: 'rgba(236,72,153,0.28)',
+    accentText: '#f9a8d4',
+    sbBg: 'rgba(255,255,255,0.02)',
+    sbBorder: 'rgba(236,72,153,0.1)',
+    cardBg: 'rgba(236,72,153,0.03)',
+    cardBorder: 'rgba(236,72,153,0.08)',
+    btnBg: 'rgba(236,72,153,0.12)',
+    btnBorder: 'rgba(236,72,153,0.28)',
+    btnText: '#f9a8d4',
+  },
+  elite: {
+    id: 'elite',
+    name: 'BurnElite+',
+    emoji: '👑',
+    plan: 'elite',
+    bg: '#060610',
+    bgGradient: `
+      radial-gradient(ellipse at 20% 20%, rgba(124,58,237,0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(6,182,212,0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(245,158,11,0.12) 0%, transparent 50%),
+      linear-gradient(135deg, #060610 0%, #080818 40%, #060614 100%)
+    `,
+    accent: '#a78bfa',
+    accentLight: '#c4b5fd',
+    accentBg: 'rgba(255,255,255,0.06)',
+    accentBorder: 'rgba(255,255,255,0.12)',
+    accentText: 'rgba(255,255,255,0.88)',
+    sbBg: 'rgba(255,255,255,0.04)',
+    sbBorder: 'rgba(255,255,255,0.08)',
+    cardBg: 'rgba(255,255,255,0.04)',
+    cardBorder: 'rgba(255,255,255,0.08)',
+    btnBg: 'rgba(255,255,255,0.08)',
+    btnBorder: 'rgba(255,255,255,0.15)',
+    btnText: 'rgba(255,255,255,0.85)',
+    isElite: true,
+  },
+}
+
+const THEME_ACCESS = {
+  starter: ['default'],
+  pro: ['default', 'neon', 'gold', 'rose'],
+  elite: ['default', 'neon', 'gold', 'rose', 'elite'],
+}
+
+function getAvailableThemes(plan) {
+  return THEME_ACCESS[plan] || THEME_ACCESS.starter
+}
+
+function canUseTheme(plan, themeId) {
+  return getAvailableThemes(plan).includes(themeId)
+}
+
+function getTheme(themeId) {
+  return THEMES_CONFIG[themeId] || THEMES_CONFIG.default
+}
 const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
 const MONO = "'DM Mono',monospace"
 
@@ -301,6 +428,7 @@ export default function Dashboard() {
 const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
 const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
+  const [activeTheme, setActiveTheme] = useState('default')
   const [currency, setCurrency] = useState('TRY')
 const [currencyRate, setCurrencyRate] = useState(1)
 const [currencySymbol, setCurrencySymbol] = useState('₺')
