@@ -2922,17 +2922,17 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
         <div style={{background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'16px',padding:'20px'}}>
           <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Alacak':'Total Receivable'}</div>
-          <div style={{color:'#6ee7b7',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>₺{totalReceivable.toFixed(0)}</div>
+          <div style={{color:'#6ee7b7',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{currencySymbol}{(totalReceivable/currencyRate).toFixed(0)}</div>
           <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{receivables.filter(d=>d.status!=='paid').length} {lang==='tr'?'bekleyen':'pending'}</div>
         </div>
         <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'16px',padding:'20px'}}>
           <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Verecek':'Total Payable'}</div>
-          <div style={{color:'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>₺{totalPayable.toFixed(0)}</div>
+          <div style={{color:'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{currencySymbol}{(totalPayable/currencyRate).toFixed(0)}</div>
           <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{payables.filter(d=>d.status!=='paid').length} {lang==='tr'?'bekleyen':'pending'}</div>
         </div>
         <div style={{background:netStatus>=0?'rgba(124,58,237,0.08)':'rgba(239,68,68,0.08)',border:`1px solid ${netStatus>=0?'rgba(124,58,237,0.2)':'rgba(239,68,68,0.2)'}`,borderRadius:'16px',padding:'20px'}}>
           <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Net Durum':'Net Status'}</div>
-          <div style={{color:netStatus>=0?'#c4b5fd':'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{netStatus>=0?'+':''}₺{netStatus.toFixed(0)}</div>
+          <div style={{color:netStatus>=0?'#c4b5fd':'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{netStatus>=0?'+':''}{currencySymbol}{(Math.abs(netStatus)/currencyRate).toFixed(0)}</div>
           <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{netStatus>=0?(lang==='tr'?'Net alacaklısınız':'Net receivable'):(lang==='tr'?'Net borçlusunuz':'Net payable')}</div>
         </div>
       </div>
@@ -3084,14 +3084,14 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
                           <div style={{height:'100%',width:`${paidPct}%`,background:'#67e8f9',borderRadius:'100px'}}></div>
                         </div>
                         <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',fontFamily:FONT,marginTop:'3px'}}>
-                          ₺{paidAmt.toFixed(0)} {lang==='tr'?'ödendi':'paid'} · ₺{remaining.toFixed(0)} {lang==='tr'?'kaldı':'remaining'}
+                         {currencySymbol}{(paidAmt/currencyRate).toFixed(0)} {lang==='tr'?'ödendi':'paid'} · {currencySymbol}{(remaining/currencyRate).toFixed(0)} {lang==='tr'?'kaldı':'remaining'}
                         </div>
                       </div>
                     )}
                   </div>
                   <div style={{textAlign:'right',flexShrink:0}}>
                     <div style={{color:tab==='receivable'?'#6ee7b7':'#fca5a5',fontSize:'18px',fontWeight:800,fontFamily:FONT}}>
-                      {tab==='receivable'?'+':'−'}₺{totalAmt.toLocaleString('tr-TR')}
+                      {tab==='receivable'?'+':'−'}{currencySymbol}{(totalAmt/currencyRate).toLocaleString('tr-TR')}
                     </div>
                     {paidAmt > 0 && debt.status !== 'paid' && (
                       <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:FONT}}>₺{remaining.toFixed(0)} {lang==='tr'?'kaldı':'left'}</div>
