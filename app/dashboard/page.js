@@ -531,7 +531,7 @@ loadData(parsed.id)
   const invGain = totalInvValue - totalInvCost
 
   return (
-    <div style={{background:'#0a0a0f',fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
+    <div style={{background: getTheme(activeTheme).bgGradient, fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
