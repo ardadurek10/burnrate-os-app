@@ -516,7 +516,14 @@ loadData(parsed.id)
       <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Loading...</div>
     </div>
   )
-
+  const ACTIVE_THEME = getTheme(activeTheme)
+const DYNAMIC_THEME = {
+  ...THEMES.dashboard,
+  accent: ACTIVE_THEME.accent,
+  bg: ACTIVE_THEME.accentBg,
+  border: ACTIVE_THEME.accentBorder,
+  text: ACTIVE_THEME.accentText,
+}
   const userPlan = user.plan || 'starter'
   const planMeta = PLAN_META[userPlan] || PLAN_META.starter
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan]
@@ -544,7 +551,7 @@ loadData(parsed.id)
   '--theme-btn-border': getTheme(activeTheme).btnBorder,
   '--theme-btn-text': getTheme(activeTheme).btnText,
   background: activeTheme==='neon'?'#000000':activeTheme==='gold'?'linear-gradient(160deg,#020b18 0%,#050d1f 60%,#020b18 100%)':activeTheme==='rose'?'linear-gradient(160deg,#080608 0%,#0d080f 60%,#080608 100%)':activeTheme==='elite'?'linear-gradient(135deg,#060610 0%,#080818 40%,#060614 100%)':'linear-gradient(160deg,#07070f 0%,#0a0518 60%,#07070f 100%)',
-  fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex'
+  fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex', transition:'background 0.4s ease'
 }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
@@ -752,7 +759,7 @@ loadData(parsed.id)
 )}
 
       {/* SIDEBAR */}
-      <div className="sidebar" style={{width:'224px',background:'var(--theme-sb-bg)', borderRight:'1px solid var(--theme-sb-border)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
+      <div className="sidebar" style={{width:'224px',background: ACTIVE_THEME.sbBg, borderRight:`1px solid ${ACTIVE_THEME.sbBorder}`,flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
@@ -832,7 +839,7 @@ loadData(parsed.id)
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0'}}>
-        {page==='dashboard'     && <OverviewPage theme={THEMES.dashboard} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'}currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'}currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} />)}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='investments'   && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} />)}
@@ -841,7 +848,7 @@ loadData(parsed.id)
         {page==='summary'       && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} />)}
         {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={THEMES.ai} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} />)}
 {page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-{page==='settings' && <SettingsPage theme={THEMES.dashboard} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
+{page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -940,11 +947,11 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <div style={{display:'flex',gap:'10px'}}>
           <button onClick={onMonthlyGoal}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(16,185,129,0.12)',color:'#6ee7b7',border:'1px solid rgba(16,185,129,0.25)',cursor:'pointer',fontFamily:FONT}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: ACTIVE_THEME.accentBg,color: ACTIVE_THEME.accentText,border:`1px solid ${ACTIVE_THEME.accentBorder}`,cursor:'pointer',fontFamily:FONT}}>
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
           <button onClick={onMonthlySummary}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.12)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.25)',cursor:'pointer',fontFamily:FONT}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: ACTIVE_THEME.btnBg,color: ACTIVE_THEME.btnText,border:`1px solid ${ACTIVE_THEME.btnBorder}`,cursor:'pointer',fontFamily:FONT}}>
             📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
         </div>
