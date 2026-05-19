@@ -2780,38 +2780,67 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
 
           {/* TERCİHLER */}
           {activeSection === 'prefs' && (
-            <Card accent={theme.accent} style={{ padding: 24 }}>
-              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
-                {lang === 'tr' ? 'Dil & Para Birimi' : 'Language & Currency'}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
-                <div>
-                  <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Arayüz Dili' : 'Interface Language'}</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {['tr', 'en'].map(l => (
-                      <button key={l} onClick={() => onLangChange(l)}
-                        style={{ flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: lang === l ? 700 : 400, background: lang === l ? '#7c3aed' : 'rgba(255,255,255,0.04)', color: lang === l ? '#fff' : 'rgba(255,255,255,0.4)', border: `1px solid ${lang === l ? '#7c3aed' : 'rgba(255,255,255,0.09)'}`, cursor: 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}>
-                        {l === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
-                      </button>
-                    ))}
+  <Card accent={theme.accent} style={{ padding: 24 }}>
+    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
+      {lang === 'tr' ? 'Dil, Para Birimi & Tema' : 'Language, Currency & Theme'}
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+      <div>
+        <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Arayüz Dili' : 'Interface Language'}</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['tr', 'en'].map(l => (
+            <button key={l} onClick={() => onLangChange(l)}
+              style={{ flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: lang === l ? 700 : 400, background: lang === l ? '#7c3aed' : 'rgba(255,255,255,0.04)', color: lang === l ? '#fff' : 'rgba(255,255,255,0.4)', border: `1px solid ${lang === l ? '#7c3aed' : 'rgba(255,255,255,0.09)'}`, cursor: 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}>
+              {l === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Para Birimi' : 'Currency'}</div>
+        <select value={prefForm.currency} onChange={e => setPrefForm({ ...prefForm, currency: e.target.value })}
+          style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(30,30,50,0.9)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer' }}>
+          <option value="TRY">🇹🇷 TRY — Türk Lirası</option>
+          <option value="USD">🇺🇸 USD — US Dollar</option>
+          <option value="EUR">🇪🇺 EUR — Euro</option>
+        </select>
+      </div>
+      <div>
+        <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Dashboard Teması' : 'Dashboard Theme'}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+          {Object.values(THEMES_CONFIG).map(t => {
+            const hasAccess = canUseTheme(userPlan, t.id)
+            const isActive = prefForm.theme === t.id
+            return (
+              <div key={t.id} onClick={() => hasAccess && setPrefForm({ ...prefForm, theme: t.id })}
+                style={{ padding: '12px 10px', borderRadius: 12, border: isActive ? `1px solid ${t.accent}` : '1px solid rgba(255,255,255,0.08)', background: isActive ? t.accentBg : 'rgba(255,255,255,0.02)', cursor: hasAccess ? 'pointer' : 'not-allowed', opacity: hasAccess ? 1 : 0.45, position: 'relative', transition: 'all 0.2s', textAlign: 'center' }}>
+                <div style={{ fontSize: 20, marginBottom: 6 }}>{t.emoji}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: isActive ? t.accentText : 'rgba(255,255,255,0.55)', fontFamily: FONT }}>{t.name}</div>
+                {!hasAccess && (
+                  <div style={{ position: 'absolute', top: 5, right: 5, fontSize: 9, padding: '1px 5px', borderRadius: 100, background: t.id === 'elite' ? 'rgba(245,158,11,0.15)' : 'rgba(124,58,237,0.15)', color: t.id === 'elite' ? '#fde68a' : '#c4b5fd', border: t.id === 'elite' ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(124,58,237,0.3)', fontFamily: FONT }}>
+                    {t.id === 'elite' ? 'ELITE' : 'PRO+'}
                   </div>
-                </div>
-                <div>
-                  <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Para Birimi' : 'Currency'}</div>
-                  <select value={prefForm.currency} onChange={e => setPrefForm({ ...prefForm, currency: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(30,30,50,0.9)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer' }}>
-                    <option value="TRY">🇹🇷 TRY — Türk Lirası</option>
-                    <option value="USD">🇺🇸 USD — US Dollar</option>
-                    <option value="EUR">🇪🇺 EUR — Euro</option>
-                  </select>
-                </div>
+                )}
+                {isActive && (
+                  <div style={{ position: 'absolute', top: 6, left: 6, width: 7, height: 7, borderRadius: '50%', background: t.accent, boxShadow: `0 0 6px ${t.accent}` }}></div>
+                )}
               </div>
-              <button onClick={savePrefs} disabled={saving}
-                style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg,#7c3aed,#4c1d95)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, fontFamily: FONT }}>
-                {saving ? (lang === 'tr' ? 'Kaydediliyor...' : 'Saving...') : (lang === 'tr' ? 'Kaydet' : 'Save')}
-              </button>
-            </Card>
-          )}
+            )
+          })}
+        </div>
+        {prefForm.theme === 'elite' && (
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 12, color: '#fde68a', fontFamily: FONT }}>
+            👑 {lang === 'tr' ? 'BurnElite+ Liquid Glass — sadece Elite üyelerine özel.' : 'BurnElite+ Liquid Glass — exclusive to Elite members.'}
+          </div>
+        )}
+      </div>
+    </div>
+    <button onClick={savePrefs} disabled={saving}
+      style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg,#7c3aed,#4c1d95)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, fontFamily: FONT }}>
+      {saving ? (lang === 'tr' ? 'Kaydediliyor...' : 'Saving...') : (lang === 'tr' ? 'Kaydet' : 'Save')}
+    </button>
+  </Card>
+)}
 
           {/* GÜVENLİK */}
           {activeSection === 'security' && (
