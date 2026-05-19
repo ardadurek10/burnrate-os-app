@@ -531,7 +531,21 @@ loadData(parsed.id)
   const invGain = totalInvValue - totalInvCost
 
   return (
-    <div style={{background: activeTheme==='neon'?'#000000':activeTheme==='gold'?'linear-gradient(160deg,#020b18 0%,#050d1f 60%,#020b18 100%)':activeTheme==='rose'?'linear-gradient(160deg,#080608 0%,#0d080f 60%,#080608 100%)':activeTheme==='elite'?'linear-gradient(135deg,#060610 0%,#080818 40%,#060614 100%)':'linear-gradient(160deg,#07070f 0%,#0a0518 60%,#07070f 100%)', fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
+    <div style={{
+  '--theme-accent': getTheme(activeTheme).accent,
+  '--theme-accent-bg': getTheme(activeTheme).accentBg,
+  '--theme-accent-border': getTheme(activeTheme).accentBorder,
+  '--theme-accent-text': getTheme(activeTheme).accentText,
+  '--theme-sb-bg': getTheme(activeTheme).sbBg,
+  '--theme-sb-border': getTheme(activeTheme).sbBorder,
+  '--theme-card-bg': getTheme(activeTheme).cardBg,
+  '--theme-card-border': getTheme(activeTheme).cardBorder,
+  '--theme-btn-bg': getTheme(activeTheme).btnBg,
+  '--theme-btn-border': getTheme(activeTheme).btnBorder,
+  '--theme-btn-text': getTheme(activeTheme).btnText,
+  background: activeTheme==='neon'?'#000000':activeTheme==='gold'?'linear-gradient(160deg,#020b18 0%,#050d1f 60%,#020b18 100%)':activeTheme==='rose'?'linear-gradient(160deg,#080608 0%,#0d080f 60%,#080608 100%)':activeTheme==='elite'?'linear-gradient(135deg,#060610 0%,#080818 40%,#060614 100%)':'linear-gradient(160deg,#07070f 0%,#0a0518 60%,#07070f 100%)',
+  fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex'
+}}>'#000000':activeTheme==='gold'?'linear-gradient(160deg,#020b18 0%,#050d1f 60%,#020b18 100%)':activeTheme==='rose'?'linear-gradient(160deg,#080608 0%,#0d080f 60%,#080608 100%)':activeTheme==='elite'?'linear-gradient(135deg,#060610 0%,#080818 40%,#060614 100%)':'linear-gradient(160deg,#07070f 0%,#0a0518 60%,#07070f 100%)', fontFamily:FONT,height:'100vh',overflow:'hidden',display:'flex'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
