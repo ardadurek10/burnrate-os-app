@@ -2522,6 +2522,8 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   localStorage.setItem('burnrate_theme', prefForm.theme)
   window.dispatchEvent(new CustomEvent('currencyChange', { detail: { currency: prefForm.currency } }))
   window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme: prefForm.theme } }))
+    console.log('Theme changed to:', prefForm.theme)
+    
   setMessage(lang === 'tr' ? '✓ Tercihler kaydedildi' : '✓ Preferences saved')
   setSaving(false)
   setTimeout(() => setMessage(''), 3000)
