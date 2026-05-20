@@ -561,7 +561,8 @@ return (
         @keyframes spin{to{transform:rotate(360deg)}}
         .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
         .sidebar nav::-webkit-scrollbar{display:none}
-.sidebar::-webkit-scrollbar{display:none}
+        .sidebar::-webkit-scrollbar{display:none}
+        .page-wrap::-webkit-scrollbar{display:none}
         .recharts-default-tooltip { background: #12121c !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; }
         .recharts-tooltip-label { color: rgba(255,255,255,0.5) !important; }
         .recharts-tooltip-item { color: #f5f5f7 !important; }
@@ -675,7 +676,7 @@ return (
       </div>
 
       {/* MAIN */}
-      <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0'}}>
+      <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0',scrollbarWidth:'none',msOverflowStyle:'none'}}>
         {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} lang={lang} />)}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
