@@ -2377,7 +2377,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   })
   localStorage.setItem('burnrate_currency', prefForm.currency)
   window.dispatchEvent(new CustomEvent('currencyChange', { detail: { currency: prefForm.currency } }))
-    console.log('Theme changed to:', prefForm.theme)
+  
     
   setMessage(lang === 'tr' ? '✓ Kaydedildi, yükleniyor...' : '✓ Saved, loading...')
   setSaving(false)
