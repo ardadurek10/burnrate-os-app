@@ -560,6 +560,8 @@ return (
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
+        .sidebar nav::-webkit-scrollbar{display:none}
+.sidebar::-webkit-scrollbar{display:none}
         .recharts-default-tooltip { background: #12121c !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; }
         .recharts-tooltip-label { color: rgba(255,255,255,0.5) !important; }
         .recharts-tooltip-item { color: #f5f5f7 !important; }
@@ -630,7 +632,7 @@ return (
           ))}
         </div>
 
-        <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1}}>
+       <nav style={{display:'flex',flexDirection:'column',gap:'4px',flex:1,overflowY:'auto',scrollbarWidth:'none',msOverflowStyle:'none'}}>
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
