@@ -2346,7 +2346,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     if (data[0]) {
       setDbUser(data[0])
       setProfileForm({ name: data[0].name || '', profession: data[0].profession || '', monthly_income: data[0].monthly_income || '' })
-      setPrefForm({ currency: data[0].currency || 'TRY', theme: data[0].theme || 'default' })
+     setPrefForm({ currency: data[0].currency || 'TRY' })
     }
     setLoading(false)
   }
