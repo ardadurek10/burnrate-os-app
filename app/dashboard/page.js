@@ -269,7 +269,7 @@ const THEMES = {
   goals:         { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
   ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.1)',  border:'rgba(139,92,246,0.3)',  text:'#ddd6fe',  chart:['#8b5cf6','#7c3aed','#06b6d4','#10b981','#f59e0b'] },
   summary:       { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#6ee7b7','#f97316','#ef4444','#7c3aed','#06b6d4'] },
-  debt:          { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',  border:'rgba(244,63,94,0.3)',  text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
+  debt:          { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
 }
 
 const TIP = {fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
@@ -429,7 +429,6 @@ export default function Dashboard() {
   const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
-  const [activeTheme, setActiveTheme] = useState('default')
   const [currency, setCurrency] = useState('TRY')
   const [currencyRate, setCurrencyRate] = useState(1)
   const [currencySymbol, setCurrencySymbol] = useState('₺')
@@ -441,9 +440,7 @@ export default function Dashboard() {
     if (savedCurrency !== 'TRY') {
       fetchCurrencyRate(savedCurrency)
     }
-    const savedTheme = localStorage.getItem('burnrate_theme') || 'default'
-    console.log('Theme loaded:', savedTheme)
-    setActiveTheme(savedTheme)
+    
   }, [])
 
   function changeLang(l) {
@@ -508,14 +505,11 @@ export default function Dashboard() {
         fetchCurrencyRate(cur)
       }
     }
-    const themeHandler = (e) => {
-      setActiveTheme(e.detail.theme)
+    
     }
     window.addEventListener('currencyChange', handler)
-    window.addEventListener('themeChange', themeHandler)
     return () => {
       window.removeEventListener('currencyChange', handler)
-      window.removeEventListener('themeChange', themeHandler)
     }
   }, [])
 
@@ -541,15 +535,7 @@ export default function Dashboard() {
     </div>
   )
 
-  const ACTIVE_THEME = getTheme(activeTheme)
-  const DYNAMIC_THEME = {
-    ...THEMES.dashboard,
-    accent: ACTIVE_THEME.accent,
-    bg: ACTIVE_THEME.accentBg,
-    border: ACTIVE_THEME.accentBorder,
-    text: ACTIVE_THEME.accentText,
-    chart: THEMES.dashboard.chart,
-  }
+  const DYNAMIC_THEME = THEMES.dashboard
 
   const userPlan = user.plan || 'starter'
   const planMeta = PLAN_META[userPlan] || PLAN_META.starter
@@ -565,7 +551,7 @@ export default function Dashboard() {
   const invGain = totalInvValue - totalInvCost
 return (
     <div style={{
-      background: ACTIVE_THEME.bgGradient,
+      background: 'linear-gradient(160deg, #07070f 0%, #0a0518 60%, #07070f 100%)',
       fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex',
       transition:'background 0.4s ease'
     }}>
@@ -614,7 +600,7 @@ return (
       })()}
 
       {/* SIDEBAR */}
-      <div className="sidebar" style={{width:'224px',background:ACTIVE_THEME.sbBg,borderRight:`1px solid ${ACTIVE_THEME.sbBorder}`,flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
+      <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
@@ -640,7 +626,7 @@ return (
         <div style={{display:'flex',gap:'6px',marginBottom:'12px'}}>
           {['en','tr'].map(l => (
             <button key={l} onClick={()=>changeLang(l)}
-              style={{flex:1,padding:'4px 0',fontSize:'10px',fontFamily:MONO,fontWeight:600,color:lang===l?'#fff':'rgba(255,255,255,0.25)',background:lang===l?ACTIVE_THEME.accent:'transparent',border:`1px solid ${lang===l?ACTIVE_THEME.accent:'rgba(255,255,255,0.08)'}`,borderRadius:'6px',cursor:'pointer',letterSpacing:'0.08em',transition:'all 0.2s'}}>
+              style={{flex:1,padding:'4px 0',fontSize:'10px',fontFamily:MONO,fontWeight:600,color:lang===l?'#fff':'rgba(255,255,255,0.25)',background:lang===l?'#7c3aed':'transparent',border:`1px solid ${lang===l?'#7c3aed':'rgba(255,255,255,0.08)'}`,borderRadius:'6px',cursor:'pointer',letterSpacing:'0.08em',transition:'all 0.2s'}}>
               {l.toUpperCase()}
             </button>
           ))}
@@ -666,11 +652,11 @@ return (
 
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
-            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?`linear-gradient(135deg,${ACTIVE_THEME.accent},${ACTIVE_THEME.accent}cc)`:ACTIVE_THEME.accentBg,color:page==='ai'?'#fff':ACTIVE_THEME.accentText,border:`1px solid ${ACTIVE_THEME.accentBorder}`,cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
+           style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#7c3aedcc)':'rgba(124,58,237,0.12)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
             <span style={{fontSize:'15px',opacity:canAccess(userPlan,'ai')?1:0.5}}>🤖</span>
             <div style={{textAlign:'left',flex:1}}>
               <div style={{fontSize:'13px',fontWeight:600}}>{lang==='tr'?'Yapay Zeka':'AI Advisor'}</div>
-              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':ACTIVE_THEME.accentText+'88',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
+              <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'#c4b5fd88',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
             </div>
             {!canAccess(userPlan,'ai') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
@@ -2349,7 +2335,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   const [canceling, setCanceling] = useState(false)
 
   const [profileForm, setProfileForm] = useState({ name: '', profession: '', monthly_income: '' })
-  const [prefForm, setPrefForm] = useState({ currency: 'TRY', theme: 'default' })
+  const [prefForm, setPrefForm] = useState({ currency: data[0].currency || 'TRY' })
   const [deleteConfirm, setDeleteConfirm] = useState('')
 
   useEffect(() => { fetchDbUser() }, [])
@@ -2389,12 +2375,10 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-    body: JSON.stringify({ currency: prefForm.currency, theme: prefForm.theme })
+    body: JSON.stringify({ currency: prefForm.currency })
   })
   localStorage.setItem('burnrate_currency', prefForm.currency)
-  localStorage.setItem('burnrate_theme', prefForm.theme)
   window.dispatchEvent(new CustomEvent('currencyChange', { detail: { currency: prefForm.currency } }))
-  window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme: prefForm.theme } }))
     console.log('Theme changed to:', prefForm.theme)
     
   setMessage(lang === 'tr' ? '✓ Kaydedildi, yükleniyor...' : '✓ Saved, loading...')
@@ -2679,35 +2663,6 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
           <option value="USD">🇺🇸 USD — US Dollar</option>
           <option value="EUR">🇪🇺 EUR — Euro</option>
         </select>
-      </div>
-      <div>
-        <div style={{ ...TIP, marginBottom: 8 }}>{lang === 'tr' ? 'Dashboard Teması' : 'Dashboard Theme'}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-          {Object.values(THEMES_CONFIG).map(t => {
-            const hasAccess = canUseTheme(currentPlan, t.id)
-            const isActive = prefForm.theme === t.id
-            return (
-              <div key={t.id} onClick={() => hasAccess && setPrefForm({ ...prefForm, theme: t.id })}
-                style={{ padding: '12px 10px', borderRadius: 12, border: isActive ? `1px solid ${t.accent}` : '1px solid rgba(255,255,255,0.08)', background: isActive ? t.accentBg : 'rgba(255,255,255,0.02)', cursor: hasAccess ? 'pointer' : 'not-allowed', opacity: hasAccess ? 1 : 0.45, position: 'relative', transition: 'all 0.2s', textAlign: 'center' }}>
-                <div style={{ fontSize: 20, marginBottom: 6 }}>{t.emoji}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: isActive ? t.accentText : 'rgba(255,255,255,0.55)', fontFamily: FONT }}>{t.name}</div>
-                {!hasAccess && (
-                  <div style={{ position: 'absolute', top: 5, right: 5, fontSize: 9, padding: '1px 5px', borderRadius: 100, background: t.id === 'elite' ? 'rgba(245,158,11,0.15)' : 'rgba(124,58,237,0.15)', color: t.id === 'elite' ? '#fde68a' : '#c4b5fd', border: t.id === 'elite' ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(124,58,237,0.3)', fontFamily: FONT }}>
-                    {t.id === 'elite' ? 'ELITE' : 'PRO+'}
-                  </div>
-                )}
-                {isActive && (
-                  <div style={{ position: 'absolute', top: 6, left: 6, width: 7, height: 7, borderRadius: '50%', background: t.accent, boxShadow: `0 0 6px ${t.accent}` }}></div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        {prefForm.theme === 'elite' && (
-          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 12, color: '#fde68a', fontFamily: FONT }}>
-            👑 {lang === 'tr' ? 'BurnElite+ Liquid Glass — sadece Elite üyelerine özel.' : 'BurnElite+ Liquid Glass — exclusive to Elite members.'}
-          </div>
-        )}
       </div>
     </div>
     <button onClick={savePrefs} disabled={saving}
