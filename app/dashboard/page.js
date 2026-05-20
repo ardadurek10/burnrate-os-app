@@ -505,8 +505,6 @@ export default function Dashboard() {
         fetchCurrencyRate(cur)
       }
     }
-    
-    }
     window.addEventListener('currencyChange', handler)
     return () => {
       window.removeEventListener('currencyChange', handler)
