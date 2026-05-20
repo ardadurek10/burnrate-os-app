@@ -2333,7 +2333,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
   const [canceling, setCanceling] = useState(false)
 
   const [profileForm, setProfileForm] = useState({ name: '', profession: '', monthly_income: '' })
-  const [prefForm, setPrefForm] = useState({ currency: data[0].currency || 'TRY' })
+  const [prefForm, setPrefForm] = useState({ currency: 'TRY' })
   const [deleteConfirm, setDeleteConfirm] = useState('')
 
   useEffect(() => { fetchDbUser() }, [])
