@@ -2244,8 +2244,31 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO, investments=[]
   const [selectedMonth, setSelectedMonth] = React.useState(months[0].key)
   const [loading, setLoading] = React.useState(false)
   const [data, setData] = React.useState({ expenses:[], income:[], subs:[], investments:[] })
+  const [liveInvPrices, setLiveInvPrices] = React.useState({})
 
   React.useEffect(() => { loadMonthData(selectedMonth) }, [selectedMonth])
+
+  React.useEffect(()=>{
+    if(!investments||investments.length===0) return
+    async function fetchLivePrices(){
+      try {
+        const results = await Promise.all(
+          investments.filter(i=>i.type!=='fx').map(inv=>
+            fetch(`/api/stocks?symbol=${inv.symbol}`)
+              .then(r=>r.json())
+              .then(data=>({symbol:inv.symbol,price:parseFloat(data.price||0)}))
+              .catch(()=>({symbol:inv.symbol,price:0}))
+          )
+        )
+        const prices = {}
+        results.forEach(({symbol,price})=>{ if(price>0) prices[symbol]=price })
+        setLiveInvPrices(prices)
+      } catch(e){}
+    }
+    fetchLivePrices()
+    const interval = setInterval(fetchLivePrices, 10000)
+    return ()=>clearInterval(interval)
+  },[investments.length])
 
   async function loadMonthData(month) {
     setLoading(true)
@@ -2302,7 +2325,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO, investments=[]
               {lang==='tr'?'Yükleniyor...':'Loading...'}
             </div>
           ) : (
-            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={0} netBal={netBal} subs={[]} expenses={data.expenses} income={data.income} lang={lang} investments={investments} />
+            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={0} netBal={netBal} subs={[]} expenses={data.expenses} income={data.income} lang={lang} investments={investments} liveInvPrices={liveInvPrices} />
           )}
         </div>
       </div>
@@ -2311,7 +2334,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO, investments=[]
 }
 
 // ── MONTHLY SUMMARY ───────────────────────────────────────────────
-function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, investments=[], lang='en' }) {
+function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, investments=[], liveInvPrices={}, lang='en' }) {
   const now = new Date()
   const monthName = now.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
@@ -2332,7 +2355,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const subPct = pieTotal>0?Math.round(totalSubs/pieTotal*100):0
   const expDash = pieTotal>0?(totalExp/pieTotal)*276:0
   const subDash = pieTotal>0?(totalSubs/pieTotal)*276:0
-  const totalInvValue = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.currentPrice||inv.current_price||inv.buyPrice||inv.buy_price||0)),0)
+  const totalInvValue = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(liveInvPrices[inv.symbol]||inv.currentPrice||inv.current_price||inv.buyPrice||inv.buy_price||0)),0)
   const totalInvCost = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.buyPrice||inv.buy_price||0)),0)
   const invGain = totalInvValue - totalInvCost
   const invGainPct = totalInvCost>0?((invGain/totalInvCost)*100).toFixed(2):0
