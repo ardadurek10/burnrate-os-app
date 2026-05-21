@@ -268,7 +268,7 @@ const THEMES = {
   balance:       { accent:'#06b6d4', bg:'rgba(6,182,212,0.1)',   border:'rgba(6,182,212,0.3)',   text:'#67e8f9',  chart:['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b'] },
   goals:         { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
   ai:            { accent:'#8b5cf6', bg:'rgba(139,92,246,0.1)',  border:'rgba(139,92,246,0.3)',  text:'#ddd6fe',  chart:['#8b5cf6','#7c3aed','#06b6d4','#10b981','#f59e0b'] },
-  summary:       { accent:'#7c3aed', bg:'rgba(124,58,237,0.1)',  border:'rgba(124,58,237,0.3)',  text:'#c4b5fd',  chart:['#6ee7b7','#f97316','#ef4444','#7c3aed','#06b6d4'] },
+  summary:       { accent:'#14b8a6', bg:'rgba(20,184,166,0.1)',  border:'rgba(20,184,166,0.3)',  text:'#5eead4',  chart:['#14b8a6','#6ee7b7','#f97316','#ef4444','#7c3aed'] },
   debt:          { accent:'#f43f5e', bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.3)',   text:'#fda4af',  chart:['#f43f5e','#f97316','#fbbf24','#10b981','#06b6d4'] },
 }
 
@@ -2319,7 +2319,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
 // ── MONTHLY SUMMARY ───────────────────────────────────────────────
 function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, lang='en' }) {
   const now = new Date()
-  const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
+  const monthName = now.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
   const totalSpend = totalExp+totalSubs
   const topExpense = expenses.length>0?expenses.reduce((a,e)=>Number(e.amount)>Number(a.amount)?e:a,expenses[0]):{description:'—',amount:0}
@@ -2327,60 +2327,134 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const wastedOnDead = deadSubs.reduce((a,s)=>a+Number(s.cost),0)
   const score = sr>=30?'A':sr>=20?'B':sr>=10?'C':'D'
   const scoreColor = sr>=30?'#6ee7b7':sr>=20?'#fde68a':sr>=10?'#f97316':'#fca5a5'
-  const chartData = [{name:(lang==='tr')?'Gelir':'Income',value:totalIncome,fill:'#6ee7b7'},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp,fill:'#f97316'},{name:(lang==='tr')?'Abonelik':'Subs',value:totalSubs,fill:'#ef4444'},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal),fill:'#7c3aed'}]
+  const T = '#14b8a6'
+  const Tsoft = 'rgba(20,184,166,0.14)'
+  const Tdim = 'rgba(20,184,166,0.4)'
+  const cardStyle = {background:'rgba(20,184,166,0.04)',border:`1px solid ${Tsoft}`,borderRadius:'20px',padding:'22px',marginBottom:'14px',position:'relative',overflow:'hidden'}
+  const barData = [{name:lang==='tr'?'Gelir':'Income',val:totalIncome,color:'#6ee7b7'},{name:lang==='tr'?'Gider':'Expenses',val:totalExp,color:'#f97316'},{name:lang==='tr'?'Abonelik':'Subs',val:totalSubs,color:'#ef4444'},{name:lang==='tr'?'Tasarruf':'Saved',val:Math.max(0,netBal),color:'#7c3aed'}]
+  const maxBar = Math.max(...barData.map(d=>d.val),1)
+  const pieTotal = totalExp+totalSubs
+  const expPct = pieTotal>0?Math.round(totalExp/pieTotal*100):0
+  const subPct = pieTotal>0?Math.round(totalSubs/pieTotal*100):0
+  const expDash = pieTotal>0?(totalExp/pieTotal)*276:0
+  const subDash = pieTotal>0?(totalSubs/pieTotal)*276:0
 
   return (
-    <div className="page-pad" style={{padding:'36px'}}>
-      <div style={{marginBottom:'28px'}}>
-        <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{lang==='tr'?'📋 Aylık Özet':'📋 Monthly Summary'}</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'tam finansal raporunuz':'your complete financial report'}</p>
+    <div style={{padding:'28px',background:'transparent'}}>
+
+      {/* GRADE CARD */}
+      <div style={{background:'linear-gradient(135deg,rgba(20,184,166,0.08) 0%,rgba(6,182,212,0.04) 100%)',border:`1px solid rgba(20,184,166,0.2)`,borderRadius:'24px',padding:'28px 32px',marginBottom:'14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'24px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,rgba(20,184,166,0.3),transparent)'}}></div>
+        <div>
+          <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2.5px',textTransform:'uppercase',color:Tdim,marginBottom:'8px'}}>{lang==='tr'?'Aylık Finansal Puan':'Monthly Financial Grade'}</div>
+          <div style={{fontSize:'96px',fontWeight:800,lineHeight:1,letterSpacing:'-4px',color:scoreColor,fontFamily:MONO,textShadow:`0 0 60px ${scoreColor}44`}}>{score}</div>
+          <div style={{color:'rgba(232,244,240,0.45)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{lang==='tr'?(sr>=30?'🎉 Mükemmel!':sr>=20?'💪 İyi gidiyorsun!':sr>=10?'📈 Gelişme gerekli':'⚠️ Harcamalar azaltılmalı'):(sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending')}</div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+          {[
+            [lang==='tr'?'Net Bakiye':'Net Balance', `₺${Math.abs(netBal).toFixed(0)}`, netBal>=0?'#6ee7b7':'#fca5a5'],
+            [lang==='tr'?'Tasarruf Oranı':'Savings Rate', `${sr}%`, sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],
+            [lang==='tr'?'Toplam Gelir':'Total Income', `₺${totalIncome.toFixed(0)}`, '#6ee7b7'],
+            [lang==='tr'?'Toplam Harcama':'Total Spend', `₺${totalSpend.toFixed(0)}`, '#fca5a5'],
+          ].map(([l,v,c])=>(
+            <div key={l} style={{background:'rgba(255,255,255,0.03)',border:`1px solid rgba(20,184,166,0.12)`,borderRadius:'14px',padding:'14px 16px'}}>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:Tdim,marginBottom:'6px'}}>{l}</div>
+              <div style={{color:c,fontSize:'20px',fontWeight:700,letterSpacing:'-0.5px'}}>{v}</div>
+            </div>
+          ))}
+        </div>
       </div>
-      <Card accent={theme.accent} style={{padding:'28px',marginBottom:'20px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'24px'}}>
-          <div>
-            <div style={{...TIP,marginBottom:'10px'}}>{lang==='tr'?'Aylık Finansal Puan':'Monthly Financial Grade'}</div>
-            <div style={{fontSize:'80px',fontWeight:700,letterSpacing:'-4px',lineHeight:1,color:scoreColor,...VAL}}>{score}</div>
-            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',marginTop:'8px',fontFamily:FONT}}>{lang==='tr'?(sr>=30?'🎉 Mükemmel!':sr>=20?'💪 İyi gidiyorsun!':sr>=10?'📈 Gelişme gerekli':'⚠️ Harcamalar azaltılmalı'):(sr>=30?'🎉 Outstanding!':sr>=20?'💪 Good progress!':sr>=10?'📈 Room for improvement':'⚠️ Time to cut spending')}</div>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
-            {[[lang==='tr'?'Net Bakiye':'Net Balance',`₺${Math.abs(netBal).toFixed(0)}`,netBal>=0?'#6ee7b7':'#fca5a5'],[lang==='tr'?'Tasarruf Oranı':'Savings Rate',`${sr}%`,sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'],[lang==='tr'?'Toplam Gelir':'Total Income',`₺${totalIncome.toFixed(0)}`,'#6ee7b7'],[lang==='tr'?'Toplam Harcama':'Total Spend',`₺${totalSpend.toFixed(0)}`,'#fca5a5']].map(([l,v,c])=>(
-              <div key={l}><div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px',marginBottom:'4px'}}>{l}</div><div style={{color:c,fontSize:'22px',fontWeight:700,...VAL}}>{v}</div></div>
-            ))}
+
+      {/* CHARTS ROW */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
+        {/* BAR CHART */}
+        <div style={cardStyle}>
+          <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,${Tsoft},transparent)`}}></div>
+          <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:Tdim,marginBottom:'16px'}}>{lang==='tr'?'Para Akışı':'Money Flow'}</div>
+          <div style={{display:'flex',alignItems:'flex-end',gap:'8px',height:'120px'}}>
+            {barData.map(d=>{
+              const h = maxBar>0?Math.max((d.val/maxBar)*110,4):4
+              return (
+                <div key={d.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'6px',flex:1}}>
+                  <div style={{fontFamily:MONO,fontSize:'10px',fontWeight:600,color:d.color}}>₺{d.val>999?`${(d.val/1000).toFixed(1)}K`:d.val.toFixed(0)}</div>
+                  <div style={{width:'100%',borderRadius:'6px 6px 0 0',height:`${h}px`,background:`linear-gradient(180deg,${d.color},${d.color}88)`,boxShadow:`0 0 12px ${d.color}33`}}></div>
+                  <div style={{fontFamily:MONO,fontSize:'9px',color:'rgba(232,244,240,0.3)'}}>{d.name}</div>
+                </div>
+              )
+            })}
           </div>
         </div>
-      </Card>
-      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
-        <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Para Akışı':'Money Flow'}</div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} barSize={36}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
-              <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
-              <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
-              <Bar dataKey="value" radius={[8,8,0,0]}>{chartData.map((d,i)=><Cell key={i} fill={d.fill} strokeWidth={0}/>)}</Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-        <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'16px',fontFamily:FONT}}>{lang==='tr'?'Önemli Bulgular':'Key Insights'}</div>
-          <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-            {[
-              {icon:'💸',label:lang==='tr'?'En büyük harcama':'Biggest expense',value:`${topExpense.description} (₺${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
-              {icon:'💀',label:lang==='tr'?'Ölü aboneliklere harcanan':'Wasted on dead subs',value:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/${lang==='tr'?'ay':'mo'} — ${lang==='tr'?'iptal et!':'cancel them!'}`:(lang==='tr'?'Ölü abonelik yok 🎉':'No dead subscriptions 🎉'),color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
-              {icon:'📈',label:lang==='tr'?'Tasarruf performansı':'Savings performance',value:`${sr}% — ${sr>=30?(lang==='tr'?'mükemmel':'excellent'):sr>=15?(lang==='tr'?'iyi':'good'):(lang==='tr'?'gelişmeli':'needs work')}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
-              {icon:'🎯',label:lang==='tr'?'Sonraki ay hedefi':'Next month target',value:`${lang==='tr'?'Kaydet':'Save'} ₺${Math.max(Math.round(totalIncome*0.3),50)} (${lang==='tr'?'gelirin %30u':'30% of income'})`,color:theme.text},
-            ].map((item,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
-                <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'0.8px'}}>{item.label}</div>
-                  <div style={{color:item.color,fontSize:'13px',fontWeight:500,marginTop:'1px',fontFamily:FONT,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.value}</div>
-                </div>
+
+        {/* DONUT */}
+        <div style={cardStyle}>
+          <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,${Tsoft},transparent)`}}></div>
+          <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:Tdim,marginBottom:'16px'}}>{lang==='tr'?'Harcama Dağılımı':'Spending Breakdown'}</div>
+          <div style={{display:'flex',alignItems:'center',gap:'20px'}}>
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(20,184,166,0.08)" strokeWidth="16"/>
+              {pieTotal>0 && <>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#f97316" strokeWidth="16" strokeDasharray={`${expDash} ${276-expDash}`} strokeDashoffset="0" transform="rotate(-90 55 55)" strokeLinecap="round"/>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#ef4444" strokeWidth="16" strokeDasharray={`${subDash} ${276-subDash}`} strokeDashoffset={`-${expDash}`} transform="rotate(-90 55 55)" strokeLinecap="round"/>
+              </>}
+              <circle cx="55" cy="55" r="36" fill="#03080f"/>
+              <text x="55" y="51" textAnchor="middle" fill="rgba(232,244,240,0.35)" fontSize="9" fontFamily="DM Mono">{lang==='tr'?'toplam':'total'}</text>
+              <text x="55" y="65" textAnchor="middle" fill="#e8f4f0" fontSize="12" fontWeight="700" fontFamily="Plus Jakarta Sans">₺{pieTotal>999?`${(pieTotal/1000).toFixed(1)}K`:pieTotal.toFixed(0)}</text>
+            </svg>
+            <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px',fontSize:'12px',color:'rgba(232,244,240,0.5)'}}>
+                <div style={{width:'8px',height:'8px',borderRadius:'3px',background:'#f97316'}}></div>
+                {lang==='tr'?'Gider':'Expenses'} ({expPct}%)
               </div>
-            ))}
+              <div style={{display:'flex',alignItems:'center',gap:'8px',fontSize:'12px',color:'rgba(232,244,240,0.5)'}}>
+                <div style={{width:'8px',height:'8px',borderRadius:'3px',background:'#ef4444'}}></div>
+                {lang==='tr'?'Abonelik':'Subs'} ({subPct}%)
+              </div>
+            </div>
           </div>
-        </Card>
+        </div>
+      </div>
+
+      {/* YATIRIM */}
+      <div style={{...cardStyle}}>
+        <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,${Tsoft},transparent)`}}></div>
+        <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:Tdim,marginBottom:'18px'}}>📈 {lang==='tr'?'Yatırım Özeti':'Investment Summary'}</div>
+        <div style={{display:'flex',justifyContent:'space-around',alignItems:'center'}}>
+          {[
+            [lang==='tr'?'Portföy Değeri':'Portfolio Value','₺0','#6ee7b7',true],
+            [lang==='tr'?'Toplam Maliyet':'Total Cost','₺0','rgba(232,244,240,0.4)',false],
+            [lang==='tr'?'Kar / Zarar':'Gain / Loss','+₺0','#6ee7b7',true],
+          ].map(([l,v,c,big],i)=>(
+            <React.Fragment key={l}>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:Tdim,marginBottom:'8px'}}>{l}</div>
+                <div style={{fontSize:big?'26px':'20px',fontWeight:700,letterSpacing:'-0.5px',color:c}}>{v}</div>
+              </div>
+              {i<2 && <div style={{width:'1px',height:'40px',background:`rgba(20,184,166,0.15)`}}></div>}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* INSIGHTS */}
+      <div style={{...cardStyle,marginBottom:0}}>
+        <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,${Tsoft},transparent)`}}></div>
+        <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:Tdim,marginBottom:'14px'}}>{lang==='tr'?'Önemli Bulgular':'Key Insights'}</div>
+        {[
+          {icon:'💸',label:lang==='tr'?'En büyük harcama':'Biggest expense',val:`${topExpense.description} (₺${Number(topExpense.amount).toFixed(0)})`,color:'#fca5a5'},
+          {icon:'💀',label:lang==='tr'?'Ölü aboneliklere harcanan':'Wasted on dead subs',val:wastedOnDead>0?`₺${wastedOnDead.toFixed(0)}/${lang==='tr'?'ay':'mo'} — ${lang==='tr'?'iptal et!':'cancel them!'}`:(lang==='tr'?'Ölü abonelik yok 🎉':'No dead subs 🎉'),color:wastedOnDead>0?'#fca5a5':'#6ee7b7'},
+          {icon:'📈',label:lang==='tr'?'Tasarruf performansı':'Savings performance',val:`${sr}% — ${sr>=30?(lang==='tr'?'mükemmel':'excellent'):sr>=15?(lang==='tr'?'iyi':'good'):(lang==='tr'?'gelişmeli':'needs work')}`,color:sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'},
+          {icon:'🎯',label:lang==='tr'?'Sonraki ay hedefi':'Next month target',val:`${lang==='tr'?'Kaydet':'Save'} ₺${Math.max(Math.round(totalIncome*0.3),50)} (${lang==='tr'?'gelirin %30u':'30% of income'})`,color:T},
+        ].map((item,i)=>(
+          <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'11px 14px',borderRadius:'12px',background:'rgba(255,255,255,0.02)',border:`1px solid rgba(20,184,166,0.08)`,marginBottom:i<3?'8px':'0',transition:'background 0.15s',cursor:'default'}}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(20,184,166,0.06)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'}>
+            <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1px',textTransform:'uppercase',color:Tdim,marginBottom:'3px'}}>{item.label}</div>
+              <div style={{color:item.color,fontSize:'13px',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.val}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
