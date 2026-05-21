@@ -426,6 +426,7 @@ export default function Dashboard() {
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
   const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
+  const [selectedSummaryMonth, setSelectedSummaryMonth] = useState(null)
   const [monthlyGoalModal, setMonthlyGoalModal] = useState(false)
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [lang, setLang] = useState('tr')
@@ -600,8 +601,22 @@ return (
               <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
               <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
             </div>
+            <div style={{display:'flex',gap:'8px',padding:'16px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexWrap:'wrap'}}>
+              {Array.from({length:6},(_,i)=>{
+                const d = new Date(); d.setMonth(d.getMonth()-i);
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                const label = d.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'});
+                const isSelected = (selectedSummaryMonth||`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`) === key;
+                return (
+                  <button key={key} onClick={()=>setSelectedSummaryMonth(key)}
+                    style={{padding:'6px 16px',borderRadius:'100px',fontSize:'12px',fontWeight:isSelected?700:400,background:isSelected?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.04)',color:isSelected?'#c4b5fd':'rgba(255,255,255,0.4)',border:isSelected?'1px solid rgba(124,58,237,0.4)':'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
             <div style={{overflowY:'auto',flex:1,scrollbarWidth:'none',msOverflowStyle:'none'}}>
-              <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} />
+              <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} selectedMonth={selectedSummaryMonth} />
             </div>
           </div>
         </div>
