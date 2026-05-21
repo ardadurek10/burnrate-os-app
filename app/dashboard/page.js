@@ -595,31 +595,13 @@ return (
       )}
 
       {monthlySummaryModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlySummaryModal(false)}>
-          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'960px',width:'100%',maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
-              <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
-              <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
-            </div>
-            <div style={{display:'flex',gap:'8px',padding:'16px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexWrap:'wrap'}}>
-              {Array.from({length:6},(_,i)=>{
-                const d = new Date(); d.setMonth(d.getMonth()-i);
-                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                const label = d.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'});
-                const isSelected = (selectedSummaryMonth||`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`) === key;
-                return (
-                  <button key={key} onClick={()=>setSelectedSummaryMonth(key)}
-                    style={{padding:'6px 16px',borderRadius:'100px',fontSize:'12px',fontWeight:isSelected?700:400,background:isSelected?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.04)',color:isSelected?'#c4b5fd':'rgba(255,255,255,0.4)',border:isSelected?'1px solid rgba(124,58,237,0.4)':'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-            <div style={{overflowY:'auto',flex:1,scrollbarWidth:'none',msOverflowStyle:'none'}}>
-              <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} selectedMonth={selectedSummaryMonth} />
-            </div>
-          </div>
-        </div>
+        <MonthlySummaryModal
+          onClose={()=>setMonthlySummaryModal(false)}
+          userId={user.id}
+          lang={lang}
+          FONT={FONT}
+          MONO={MONO}
+        />
       )}
 
       {/* TRIAL BANNER */}
@@ -2247,6 +2229,84 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
           </div>
         </Card>
       )}
+    </div>
+  )
+}
+
+// ── MONTHLY SUMMARY MODAL ─────────────────────────────────────────
+function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
+  const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+
+  const now = new Date()
+  const months = Array.from({length:6},(_,i)=>{
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1)
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+      label: d.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
+    }
+  })
+
+  const [selectedMonth, setSelectedMonth] = React.useState(months[0].key)
+  const [loading, setLoading] = React.useState(false)
+  const [data, setData] = React.useState({ expenses:[], income:[], subs:[], investments:[] })
+
+  React.useEffect(() => { loadMonthData(selectedMonth) }, [selectedMonth])
+
+  async function loadMonthData(month) {
+    setLoading(true)
+    const [year, m] = month.split('-')
+    const start = `${year}-${m}-01`
+    const end = `${year}-${m}-31`
+    try {
+      const [exp, inc, sub] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&expense_date=gte.${start}&expense_date=lte.${end}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/income?user_id=eq.${userId}&income_date=gte.${start}&income_date=lte.${end}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
+      ])
+      setData({
+        expenses: Array.isArray(exp)?exp:[],
+        income: Array.isArray(inc)?inc:[],
+        subs: Array.isArray(sub)?sub:[],
+      })
+    } catch(e) {}
+    setLoading(false)
+  }
+
+  const totalIncome = data.income.reduce((a,i)=>a+Number(i.amount),0)
+  const totalExp = data.expenses.reduce((a,e)=>a+Number(e.amount),0)
+  const totalSubs = data.subs.reduce((a,s)=>a+Number(s.cost),0)
+  const netBal = totalIncome - totalExp - totalSubs
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'960px',width:'100%',maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
+          <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
+          <button onClick={onClose} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+        </div>
+        <div style={{display:'flex',gap:'8px',padding:'16px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexShrink:0,flexWrap:'wrap'}}>
+          {months.map(m=>{
+            const isSelected = selectedMonth === m.key
+            return (
+              <button key={m.key} onClick={()=>setSelectedMonth(m.key)}
+                style={{padding:'7px 18px',borderRadius:'100px',fontSize:'12px',fontWeight:isSelected?700:400,background:isSelected?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.04)',color:isSelected?'#c4b5fd':'rgba(255,255,255,0.35)',border:isSelected?'1px solid rgba(124,58,237,0.4)':'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT,transition:'all 0.15s'}}>
+                {m.label}
+              </button>
+            )
+          })}
+        </div>
+        <div style={{overflowY:'auto',flex:1,scrollbarWidth:'none',msOverflowStyle:'none'}}>
+          {loading ? (
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'300px',color:'rgba(255,255,255,0.3)',fontSize:'14px',fontFamily:FONT,gap:'12px'}}>
+              <div style={{width:'20px',height:'20px',borderRadius:'50%',border:'2px solid rgba(124,58,237,0.3)',borderTop:'2px solid #7c3aed',animation:'spin 0.8s linear infinite'}}></div>
+              {lang==='tr'?'Yükleniyor...':'Loading...'}
+            </div>
+          ) : (
+            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={data.subs} expenses={data.expenses} income={data.income} lang={lang} />
+          )}
+        </div>
+      </div>
     </div>
   )
 }
