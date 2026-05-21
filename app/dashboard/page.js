@@ -564,6 +564,7 @@ return (
         .sidebar nav::-webkit-scrollbar{display:none}
         .sidebar::-webkit-scrollbar{display:none}
         .page-wrap::-webkit-scrollbar{display:none}
+        .goal-modal::-webkit-scrollbar{display:none}
         .recharts-default-tooltip { background: #12121c !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; }
         .recharts-tooltip-label { color: rgba(255,255,255,0.5) !important; }
         .recharts-tooltip-item { color: #f5f5f7 !important; }
@@ -582,7 +583,7 @@ return (
 
       {monthlyGoalModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
-          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'560px',width:'100%',maxHeight:'85vh',overflowY:'auto',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
+          <div className="goal-modal" style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'560px',width:'100%',maxHeight:'85vh',overflowY:'auto',scrollbarWidth:'none',msOverflowStyle:'none',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',position:'sticky',top:0,background:'#0a0414',zIndex:1}}>
               <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}</div>
               <button onClick={()=>setMonthlyGoalModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
@@ -599,7 +600,7 @@ return (
               <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
               <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
             </div>
-            <div style={{overflowY:'auto',flex:1}}>
+            <div style={{overflowY:'auto',flex:1,scrollbarWidth:'none',msOverflowStyle:'none'}}>
               <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} />
             </div>
           </div>
