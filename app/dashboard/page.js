@@ -2275,8 +2275,8 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
 
   const totalIncome = data.income.reduce((a,i)=>a+Number(i.amount),0)
   const totalExp = data.expenses.reduce((a,e)=>a+Number(e.amount),0)
-  const totalSubs = data.subs.reduce((a,s)=>a+Number(s.cost),0)
-  const netBal = totalIncome - totalExp - totalSubs
+  const totalSubs = data.subs.filter(s=>s.status!=='dead').reduce((a,s)=>a+Number(s.cost),0)
+  const netBal = totalIncome - totalExp
 
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
