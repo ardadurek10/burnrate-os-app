@@ -580,6 +580,30 @@ return (
 
       {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
 
+      {monthlyGoalModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
+          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'560px',width:'100%',boxShadow:'0 0 80px rgba(124,58,237,0.15)',overflow:'hidden'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+              <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}</div>
+              <button onClick={()=>setMonthlyGoalModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+            </div>
+            <MonthlyGoalContent userId={user.id} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} lang={lang} FONT={FONT} MONO={MONO} onClose={()=>setMonthlyGoalModal(false)} />
+          </div>
+        </div>
+      )}
+
+      {monthlySummaryModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlySummaryModal(false)}>
+          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'900px',width:'100%',maxHeight:'85vh',overflowY:'auto',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',position:'sticky',top:0,background:'#0a0414',zIndex:1}}>
+              <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
+              <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+            </div>
+            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} />
+          </div>
+        </div>
+      )}
+
       {/* TRIAL BANNER */}
       {user?.is_trial && user?.trial_expires_at && (() => {
         const daysLeft = Math.ceil((new Date(user.trial_expires_at) - new Date()) / (1000*60*60*24))
@@ -819,11 +843,15 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </div>
         <div style={{display:'flex',gap:'10px'}}>
           <button onClick={onMonthlyGoal}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: theme.bg,color: theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'100px',fontSize:'13px',fontWeight:600,background:'rgba(244,63,94,0.1)',color:'#fda4af',border:'1px solid rgba(244,63,94,0.3)',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',boxShadow:'0 0 0 1px rgba(244,63,94,0.25)'}}
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.04)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(244,63,94,0.5), 0 8px 24px rgba(244,63,94,0.2)'}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 0 1px rgba(244,63,94,0.25)'}}>
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
           <button onClick={onMonthlySummary}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background: theme.bg,color: theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'100px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.1)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',boxShadow:'0 0 0 1px rgba(124,58,237,0.25)'}}
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.04)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(124,58,237,0.5), 0 8px 24px rgba(124,58,237,0.2)'}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 0 1px rgba(124,58,237,0.25)'}}>
             📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
         </div>
