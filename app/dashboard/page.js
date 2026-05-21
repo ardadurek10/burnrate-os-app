@@ -11,7 +11,7 @@ const THEMES_CONFIG = {
     emoji: '⚡',
     plan: 'starter',
     bg: '#0a0a0f',
-    bgGradient: 'linear-gradient(160deg, #07070f 0%, #0a0518 60%, #07070f 100%)',
+    bgGradient: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(109,40,217,0.28) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 85%, rgba(76,29,149,0.22) 0%, transparent 50%), linear-gradient(160deg, #06041a 0%, #03020a 40%, #05031a 70%, #03020a 100%)",
     accent: '#7c3aed',
     accentLight: '#a78bfa',
     accentBg: 'rgba(124,58,237,0.12)',
