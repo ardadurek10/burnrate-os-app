@@ -1060,7 +1060,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
               <tbody>
                 {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz abonelik yok':'No subscriptions yet'}</td></tr>
                 : subs.map(s=>(
-                  <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                  <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
                     <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>{currencySymbol}{(Number(s.cost)/currencyRate).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{getSubCatLabel(s.category)}</span></td>
@@ -1272,7 +1272,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
               {filtered.length===0
                 ?<tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz harcama yok':'No expenses yet'}</td></tr>
                 :filtered.map(e=>(
-                  <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                  <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
                     <td style={{padding:'12px 0',fontFamily:MONO,color:theme.text,fontSize:'13px'}}>-{currencySymbol}{(Number(e.amount)/currencyRate).toFixed(2)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${CAT_COLORS_MAP[e.category]||theme.accent}22`,color:CAT_COLORS_MAP[e.category]||theme.text,fontFamily:FONT}}>{getCL(e.category)}</span></td>
@@ -1579,7 +1579,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                     const isLive=!!prices[inv.symbol], changePos=change>=0
                     const isSelected=selectedStock?.symbol===inv.symbol
                     return (
-                      <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:isSelected?'rgba(255,255,255,0.03)':'transparent'}} onClick={()=>handleStockClick(inv)}>
+                      <tr key={inv.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:isSelected?'rgba(255,255,255,0.03)':'transparent',transition:'background 0.15s'}} onClick={()=>handleStockClick(inv)} onMouseEnter={e=>{e.currentTarget.style.background='rgba(16,185,129,0.06)'}} onMouseLeave={e=>{e.currentTarget.style.background=isSelected?'rgba(255,255,255,0.03)':'transparent'}}>
                         <td style={{padding:'12px 8px 12px 0'}}>
                           <div style={{...VAL,color:theme.text,fontWeight:700,fontSize:'14px'}}>{inv.symbol}</div>
                           <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,maxWidth:'100px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inv.name}</div>
@@ -2013,7 +2013,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           <tbody>
             {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz gelir girilmedi':'No income logged yet'}</td></tr>
             : income.map(i=>(
-              <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+              <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
                 <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{i.source}</td>
                 <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+{currencySymbol}{(Number(i.amount)/currencyRate).toFixed(2)}</td>
                 <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{i.income_date||'—'}</td>
