@@ -549,7 +549,7 @@ export default function Dashboard() {
   const invGain = totalInvValue - totalInvCost
 return (
     <div style={{
-      background: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(109,40,217,0.28) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 85%, rgba(76,29,149,0.22) 0%, transparent 50%), linear-gradient(160deg, #06041a 0%, #03020a 40%, #05031a 70%, #03020a 100%)",
+      background: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(109,40,217,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 85%, rgba(76,29,149,0.1) 0%, transparent 50%), linear-gradient(160deg, #04030e 0%, #020209 40%, #030214 70%, #020209 100%)",
       fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex',
       transition:'background 0.4s ease'
     }}>
