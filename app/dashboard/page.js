@@ -2180,7 +2180,37 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
             const isCompleted=completedDays.includes(day), isToday=day===today, isPast=day<=today, isSelected=selectedDay===day
             return (
               <button key={day} onClick={()=>isPast&&loadTasksForDay(day)}
-                style={{aspectRatio:'1',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:isCompleted?`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`:isSelected?theme.bg:isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',border:isSelected?`2px solid ${theme.accent}`:isCompleted?'none':isToday?`1px solid rgba(255,255,255,0.2)`:'1px solid rgba(255,255,255,0.06)',color:isCompleted?'#fff':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',cursor:isPast?'pointer':'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s',fontFamily:FONT,boxShadow:isCompleted?`0 4px 12px ${theme.accent}44`:'none',transform:isSelected?'scale(1.08)':'scale(1)'}}>
+                onMouseEnter={e=>{
+                  if(isPast&&!isCompleted&&!isSelected){
+                    e.currentTarget.style.transform='scale(1.12) translateY(-3px)'
+                    e.currentTarget.style.background='rgba(244,63,94,0.16)'
+                    e.currentTarget.style.boxShadow='0 0 0 1px rgba(244,63,94,0.45), 0 8px 24px rgba(244,63,94,0.2)'
+                    e.currentTarget.style.color='#fda4af'
+                  }
+                }}
+                onMouseLeave={e=>{
+                  if(isPast&&!isCompleted&&!isSelected){
+                    e.currentTarget.style.transform=''
+                    e.currentTarget.style.background=isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)'
+                    e.currentTarget.style.boxShadow='none'
+                    e.currentTarget.style.color=isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)'
+                  }
+                }}
+                style={{
+                  aspectRatio:'1',
+                  borderRadius:'14px',
+                  fontSize:'14px',
+                  fontWeight:700,
+                  background:isCompleted?`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`:isSelected?theme.bg:isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',
+                  border:isSelected?`2px solid ${theme.accent}`:isCompleted?'none':isToday?`1px solid rgba(255,255,255,0.25)`:'1px solid rgba(255,255,255,0.07)',
+                  color:isCompleted?'#fff':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',
+                  cursor:isPast?'pointer':'not-allowed',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',
+                  fontFamily:FONT,
+                  boxShadow:isCompleted?`0 4px 16px ${theme.accent}44`:isSelected?`0 0 0 2px ${theme.accent}`:'none',
+                  transform:isSelected?'scale(1.08)':'scale(1)'
+                }}>
                 {isCompleted?'✓':day}
               </button>
             )
