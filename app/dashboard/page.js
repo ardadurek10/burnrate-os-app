@@ -130,7 +130,7 @@ function canUseTheme(plan, themeId) {
 function getTheme(themeId) {
   return THEMES_CONFIG[themeId] || THEMES_CONFIG.default
 }
-const FONT = "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif"
+const FONT = "'Syne', -apple-system, sans-serif"
 const MONO = "'DM Mono',monospace"
 
 // ── LANGUAGE SYSTEM ──────────────────────────────────────────────
@@ -549,16 +549,17 @@ export default function Dashboard() {
   const invGain = totalInvValue - totalInvCost
 return (
     <div style={{
-      background: 'linear-gradient(160deg, #07070f 0%, #0a0518 60%, #07070f 100%)',
+      background: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(109,40,217,0.28) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 85%, rgba(76,29,149,0.22) 0%, transparent 50%), linear-gradient(160deg, #06041a 0%, #03020a 40%, #05031a 70%, #03020a 100%)",
       fontFamily:FONT, height:'100vh', overflow:'hidden', display:'flex',
       transition:'background 0.4s ease'
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes aurora{0%{transform:scaleX(1) scaleY(1);opacity:0.7}50%{transform:scaleX(1.05) scaleY(1.1);opacity:1}100%{transform:scaleX(0.95) scaleY(0.95);opacity:0.75}}
         .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
         .sidebar nav::-webkit-scrollbar{display:none}
         .sidebar::-webkit-scrollbar{display:none}
@@ -601,7 +602,7 @@ return (
       })()}
 
       {/* SIDEBAR */}
-      <div className="sidebar" style={{width:'224px',background:'rgba(255,255,255,0.015)',borderRight:'1px solid rgba(255,255,255,0.06)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px',overflowY:'hidden'}}>
+      <div className="sidebar" style={{width:'224px',background:'rgba(124,58,237,0.04)',borderRight:'1px solid rgba(124,58,237,0.15)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px',overflowY:'hidden'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
@@ -714,22 +715,44 @@ return (
 
 // ── SHARED ────────────────────────────────────────────────────────
 function Card({ children, style={}, accent=null }) {
-  const rgb = accent ? hexToRgb(accent) : null
-  const bg = rgb ? `rgba(${rgb},0.06)` : 'rgba(255,255,255,0.03)'
-  const border = rgb ? `rgba(${rgb},0.14)` : 'rgba(255,255,255,0.07)'
-  return <div style={{background:bg,border:`1px solid ${border}`,borderRadius:'16px',animation:'fadeIn 0.3s ease',...style}}>{children}</div>
+  const rgb = accent ? hexToRgb(accent) : '124,58,237'
+  return (
+    <div style={{
+      background: `rgba(${rgb},0.038)`,
+      borderRadius: '20px',
+      position: 'relative',
+      overflow: 'hidden',
+      boxShadow: `0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 24px rgba(0,0,0,0.55)`,
+      transition: 'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
+      animation: 'fadeIn 0.3s ease',
+      ...style
+    }}>{children}</div>
+  )
 }
 
 function StatCard({ label, value, sub, color, icon, accent=null }) {
+  const rgb = accent ? hexToRgb(accent) : '124,58,237'
   return (
-    <Card accent={accent} style={{padding:'20px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
-        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO,textTransform:'uppercase',letterSpacing:'1px'}}>{label}</div>
-        {icon && <span style={{fontSize:'18px',opacity:0.6}}>{icon}</span>}
+    <div style={{
+      background: `rgba(${rgb},0.038)`,
+      borderRadius: '20px',
+      padding: '22px',
+      position: 'relative',
+      overflow: 'hidden',
+      boxShadow: `0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), 0 4px 24px rgba(0,0,0,0.55)`,
+      transition: 'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
+      cursor: 'default'
+    }}
+    onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.008)'; e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.32), 0 0 0 3px rgba(${rgb},0.06), inset 0 1px 0 rgba(${rgb},0.18), 0 14px 44px rgba(${rgb},0.14), 0 3px 12px rgba(0,0,0,0.7)`}}
+    onMouseLeave={e=>{e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), 0 4px 24px rgba(0,0,0,0.55)`}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px'}}>
+        <div style={{fontFamily:MONO,fontSize:'9.5px',letterSpacing:'1.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.28)'}}>{label}</div>
+        {icon && <div style={{width:'31px',height:'31px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',background:`rgba(${rgb},0.1)`,border:`1px solid rgba(${rgb},0.2)`}}>{icon}</div>}
       </div>
-      <div style={{color:color||'#f5f5f7',fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',lineHeight:1,fontFamily:FONT}}>{value}</div>
-      {sub && <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',marginTop:'6px',fontFamily:FONT}}>{sub}</div>}
-    </Card>
+      <div style={{color:color||'#f5f5f7',fontSize:'28px',fontWeight:800,letterSpacing:'-1.2px',lineHeight:1,marginBottom:'8px',fontFamily:FONT}}>{value}</div>
+      {sub && <div style={{color:'rgba(255,255,255,0.32)',fontSize:'11.5px',fontFamily:FONT,display:'flex',alignItems:'center',gap:'5px'}}>{sub}</div>}
+      <div style={{position:'absolute',bottom:0,left:0,right:0,height:'2px',background:`linear-gradient(90deg,transparent,rgba(${rgb},0.6),transparent)`,opacity:0,transition:'opacity 0.22s, transform 0.3s cubic-bezier(.34,1.56,.64,1)',transform:'scaleX(0.3)'}} className="stat-bar"></div>
+    </div>
   )
 }
 
@@ -747,7 +770,12 @@ function PageHeader({ theme, title, subtitle, action }) {
 
 function AddBtn({ theme, label, onClick, disabled=false }) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:disabled?'rgba(255,255,255,0.05)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:disabled?'rgba(255,255,255,0.3)':'#fff',border:'none',cursor:disabled?'not-allowed':'pointer',whiteSpace:'nowrap',fontFamily:FONT,transition:'all 0.15s'}}>
+    <button onClick={onClick} disabled={disabled}
+      style={{display:'flex',alignItems:'center',gap:'8px',padding:'11px 22px',borderRadius:'14px',fontSize:'13px',fontWeight:700,background:disabled?'rgba(255,255,255,0.05)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:disabled?'rgba(255,255,255,0.3)':'#fff',border:'none',cursor:disabled?'not-allowed':'pointer',whiteSpace:'nowrap',fontFamily:FONT,transition:'transform 0.2s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s, filter 0.18s',boxShadow:disabled?'none':`0 4px 20px rgba(${hexToRgb(theme.accent)},0.38), inset 0 1px 0 rgba(255,255,255,0.15)`}}
+      onMouseEnter={e=>{if(!disabled){e.currentTarget.style.transform='translateY(-2.5px) scale(1.03)';e.currentTarget.style.filter='brightness(1.08)';e.currentTarget.style.boxShadow=`0 8px 34px rgba(${hexToRgb(theme.accent)},0.55)`}}}
+      onMouseLeave={e=>{if(!disabled){e.currentTarget.style.transform='';e.currentTarget.style.filter='';e.currentTarget.style.boxShadow=`0 4px 20px rgba(${hexToRgb(theme.accent)},0.38), inset 0 1px 0 rgba(255,255,255,0.15)`}}}
+      onMouseDown={e=>{if(!disabled){e.currentTarget.style.transform='translateY(0) scale(0.97)'}}}
+      onMouseUp={e=>{if(!disabled){e.currentTarget.style.transform='translateY(-2.5px) scale(1.03)'}}}>
       {label}
     </button>
   )
