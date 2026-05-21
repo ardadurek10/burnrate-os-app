@@ -602,7 +602,7 @@ return (
       })()}
 
       {/* SIDEBAR */}
-      <div className="sidebar" style={{width:'224px',background:'rgba(124,58,237,0.04)',borderRight:'1px solid rgba(124,58,237,0.15)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px',overflowY:'hidden'}}>
+      <div className="sidebar" style={{width:'224px',background:'rgba(124,58,237,0.06)',borderRight:'1px solid rgba(124,58,237,0.18)',backdropFilter:'blur(20px)',flexShrink:0,display:'flex',flexDirection:'column',padding:'28px 14px',paddingTop:user?.is_trial?'52px':'28px',overflowY:'hidden'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'28px',paddingLeft:'8px'}}>
           <div style={{flexShrink:0}}>{LOGO_SVG(32)}</div>
           <div>
@@ -641,7 +641,9 @@ return (
             const locked = !canAccess(userPlan, item.id)
             return (
               <button key={item.id} onClick={() => navigateTo(item.id)}
-                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:active?600:400,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:locked?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
+                onMouseEnter={e=>{if(!active){e.currentTarget.style.background='rgba(124,58,237,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.65)';e.currentTarget.style.transform='translateX(3px)'}}}
+                onMouseLeave={e=>{if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color=locked?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.38)';e.currentTarget.style.transform=''}}}
+                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'10px',fontSize:'13px',fontWeight:active?600:400,textAlign:'left',background:active?t.bg:'transparent',color:active?t.text:locked?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.38)',border:active?`1px solid ${t.border}`:'1px solid transparent',cursor:'pointer',transition:'all 0.18s cubic-bezier(.34,1.56,.64,1)',fontFamily:FONT}}>
                 <span style={{fontSize:'14px',opacity:locked?0.5:1}}>{item.icon}</span>
                 <span style={{flex:1}}>{item.label}</span>
                 {locked && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
