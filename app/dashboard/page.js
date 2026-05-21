@@ -2279,7 +2279,6 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
 
   const totalIncome = data.income.reduce((a,i)=>a+Number(i.amount),0)
   const totalExp = data.expenses.reduce((a,e)=>a+Number(e.amount),0)
-  const totalSubs = data.subs.filter(s=>s.status!=='dead').reduce((a,s)=>a+Number(s.cost),0)
   const netBal = totalIncome - totalExp
 
   return (
@@ -2307,7 +2306,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
               {lang==='tr'?'Yükleniyor...':'Loading...'}
             </div>
           ) : (
-            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={data.subs} expenses={data.expenses} income={data.income} lang={lang} />
+            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={0} netBal={netBal} subs={[]} expenses={data.expenses} income={data.income} lang={lang} />
           )}
         </div>
       </div>
