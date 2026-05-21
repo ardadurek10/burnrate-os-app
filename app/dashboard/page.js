@@ -2261,11 +2261,13 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
     const end = `${year}-${m}-${lastDay}`
     console.log('Loading month:', month, 'start:', start, 'end:', end)
     try {
-      const [exp, inc, sub] = await Promise.all([
+      const [expWithDate, expNoDate, inc, sub] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&expense_date=gte.${start}&expense_date=lte.${end}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&expense_date=is.null&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
         fetch(`${SUPABASE_URL}/rest/v1/income?user_id=eq.${userId}&income_date=gte.${start}&income_date=lte.${end}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
         fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
       ])
+      const exp = [...(Array.isArray(expWithDate)?expWithDate:[]), ...(Array.isArray(expNoDate)?expNoDate:[])]
       console.log('Expenses:', exp)
       console.log('Income:', inc)
       setData({
