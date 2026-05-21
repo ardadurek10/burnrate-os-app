@@ -595,13 +595,7 @@ return (
       )}
 
       {monthlySummaryModal && (
-        <MonthlySummaryModal
-          onClose={()=>setMonthlySummaryModal(false)}
-          userId={user.id}
-          lang={lang}
-          FONT={FONT}
-          MONO={MONO}
-        />
+        <MonthlySummaryModal onClose={()=>setMonthlySummaryModal(false)} userId={user.id} lang={lang} FONT={FONT} MONO={MONO} investments={investments} />
       )}
 
       {/* TRIAL BANNER */}
@@ -2234,7 +2228,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
 }
 
 // ── MONTHLY SUMMARY MODAL ─────────────────────────────────────────
-function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
+function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO, investments=[] }) {
   const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
 
@@ -2308,7 +2302,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
               {lang==='tr'?'Yükleniyor...':'Loading...'}
             </div>
           ) : (
-            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={0} netBal={netBal} subs={[]} expenses={data.expenses} income={data.income} lang={lang} />
+            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={0} netBal={netBal} subs={[]} expenses={data.expenses} income={data.income} lang={lang} investments={investments} />
           )}
         </div>
       </div>
@@ -2317,7 +2311,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
 }
 
 // ── MONTHLY SUMMARY ───────────────────────────────────────────────
-function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, lang='en' }) {
+function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, subs, expenses, income, investments=[], lang='en' }) {
   const now = new Date()
   const monthName = now.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
   const sr = totalIncome>0?Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100):0
@@ -2338,6 +2332,10 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const subPct = pieTotal>0?Math.round(totalSubs/pieTotal*100):0
   const expDash = pieTotal>0?(totalExp/pieTotal)*276:0
   const subDash = pieTotal>0?(totalSubs/pieTotal)*276:0
+  const totalInvValue = investments.reduce((a,inv)=>a+(inv.shares*(inv.currentPrice||inv.buy_price||0)),0)
+  const totalInvCost = investments.reduce((a,inv)=>a+(inv.shares*(inv.buyPrice||inv.buy_price||0)),0)
+  const invGain = totalInvValue - totalInvCost
+  const invGainPct = totalInvCost>0?((invGain/totalInvCost)*100).toFixed(2):0
 
   return (
     <div style={{padding:'28px',background:'transparent'}}>
@@ -2420,14 +2418,15 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
         <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:Tdim,marginBottom:'18px'}}>📈 {lang==='tr'?'Yatırım Özeti':'Investment Summary'}</div>
         <div style={{display:'flex',justifyContent:'space-around',alignItems:'center'}}>
           {[
-            [lang==='tr'?'Portföy Değeri':'Portfolio Value','₺0','#6ee7b7',true],
-            [lang==='tr'?'Toplam Maliyet':'Total Cost','₺0','rgba(232,244,240,0.4)',false],
-            [lang==='tr'?'Kar / Zarar':'Gain / Loss','+₺0','#6ee7b7',true],
+            [lang==='tr'?'Portföy Değeri':'Portfolio Value',`₺${totalInvValue.toFixed(0)}`,'#6ee7b7',true],
+            [lang==='tr'?'Toplam Maliyet':'Total Cost',`₺${totalInvCost.toFixed(0)}`,'rgba(232,244,240,0.4)',false],
+            [lang==='tr'?'Kar / Zarar':'Gain / Loss',`${invGain>=0?'+':''}₺${invGain.toFixed(0)}`,invGain>=0?'#6ee7b7':'#fca5a5',true],
           ].map(([l,v,c,big],i)=>(
             <React.Fragment key={l}>
               <div style={{textAlign:'center'}}>
                 <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:Tdim,marginBottom:'8px'}}>{l}</div>
                 <div style={{fontSize:big?'26px':'20px',fontWeight:700,letterSpacing:'-0.5px',color:c}}>{v}</div>
+                {i===2 && <div style={{fontFamily:MONO,fontSize:'10px',color:invGain>=0?'#6ee7b7':'#fca5a5',marginTop:'4px'}}>{invGainPct}%</div>}
               </div>
               {i<2 && <div style={{width:'1px',height:'40px',background:`rgba(20,184,166,0.15)`}}></div>}
             </React.Fragment>
