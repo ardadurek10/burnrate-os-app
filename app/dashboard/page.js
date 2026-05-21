@@ -717,16 +717,19 @@ return (
 function Card({ children, style={}, accent=null }) {
   const rgb = accent ? hexToRgb(accent) : '124,58,237'
   return (
-    <div style={{
-      background: `rgba(${rgb},0.038)`,
-      borderRadius: '20px',
-      position: 'relative',
-      overflow: 'hidden',
-      boxShadow: `0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 24px rgba(0,0,0,0.55)`,
-      transition: 'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
-      animation: 'fadeIn 0.3s ease',
-      ...style
-    }}>{children}</div>
+    <div
+      onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.006)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.32), 0 0 0 3px rgba(${rgb},0.06), inset 0 1px 0 rgba(${rgb},0.18), 0 14px 44px rgba(${rgb},0.14), 0 3px 12px rgba(0,0,0,0.7)`}}
+      onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 24px rgba(0,0,0,0.55)`}}
+      style={{
+        background:`rgba(${rgb},0.038)`,
+        borderRadius:'20px',
+        position:'relative',
+        overflow:'hidden',
+        boxShadow:`0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 24px rgba(0,0,0,0.55)`,
+        transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
+        animation:'fadeIn 0.3s ease',
+        ...style
+      }}>{children}</div>
   )
 }
 
