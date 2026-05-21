@@ -581,9 +581,9 @@ return (
       {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
 
       {monthlyGoalModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
-          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'560px',width:'100%',boxShadow:'0 0 80px rgba(124,58,237,0.15)',overflow:'hidden'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
+          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'560px',width:'100%',maxHeight:'85vh',overflowY:'auto',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',position:'sticky',top:0,background:'#0a0414',zIndex:1}}>
               <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}</div>
               <button onClick={()=>setMonthlyGoalModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
             </div>
@@ -593,13 +593,15 @@ return (
       )}
 
       {monthlySummaryModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlySummaryModal(false)}>
-          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'900px',width:'100%',maxHeight:'85vh',overflowY:'auto',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',position:'sticky',top:0,background:'#0a0414',zIndex:1}}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlySummaryModal(false)}>
+          <div style={{background:'#0a0414',border:'1px solid rgba(124,58,237,0.25)',borderRadius:'24px',maxWidth:'960px',width:'100%',maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 0 80px rgba(124,58,237,0.15)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 32px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
               <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}</div>
               <button onClick={()=>setMonthlySummaryModal(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
             </div>
-            <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} />
+            <div style={{overflowY:'auto',flex:1}}>
+              <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} />
+            </div>
           </div>
         </div>
       )}
