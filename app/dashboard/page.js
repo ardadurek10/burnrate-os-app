@@ -843,9 +843,9 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
           <button onClick={onMonthlySummary}
-            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'100px',fontSize:'13px',fontWeight:600,background:'rgba(124,58,237,0.1)',color:'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',boxShadow:'0 0 0 1px rgba(124,58,237,0.25)'}}
-            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.04)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(124,58,237,0.5), 0 8px 24px rgba(124,58,237,0.2)'}}
-            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 0 1px rgba(124,58,237,0.25)'}}>
+            style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'100px',fontSize:'13px',fontWeight:600,background:'rgba(20,184,166,0.1)',color:'#5eead4',border:'1px solid rgba(20,184,166,0.3)',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',boxShadow:'0 0 0 1px rgba(20,184,166,0.2)'}}
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.04)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(20,184,166,0.5), 0 8px 24px rgba(20,184,166,0.2)'}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 0 1px rgba(20,184,166,0.2)'}}>
             📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
         </div>
@@ -2332,8 +2332,8 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const subPct = pieTotal>0?Math.round(totalSubs/pieTotal*100):0
   const expDash = pieTotal>0?(totalExp/pieTotal)*276:0
   const subDash = pieTotal>0?(totalSubs/pieTotal)*276:0
-  const totalInvValue = investments.reduce((a,inv)=>a+(inv.shares*(inv.currentPrice||inv.buy_price||0)),0)
-  const totalInvCost = investments.reduce((a,inv)=>a+(inv.shares*(inv.buyPrice||inv.buy_price||0)),0)
+  const totalInvValue = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.currentPrice||inv.current_price||0)),0)
+  const totalInvCost = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.buyPrice||inv.buy_price||0)),0)
   const invGain = totalInvValue - totalInvCost
   const invGainPct = totalInvCost>0?((invGain/totalInvCost)*100).toFixed(2):0
 
