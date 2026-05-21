@@ -130,7 +130,7 @@ function canUseTheme(plan, themeId) {
 function getTheme(themeId) {
   return THEMES_CONFIG[themeId] || THEMES_CONFIG.default
 }
-const FONT = "'Syne', -apple-system, sans-serif"
+const FONT = "'Geist', -apple-system, BlinkMacSystemFont, sans-serif"
 const MONO = "'DM Mono',monospace"
 
 // ── LANGUAGE SYSTEM ──────────────────────────────────────────────
@@ -554,7 +554,7 @@ return (
       transition:'background 0.4s ease'
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
