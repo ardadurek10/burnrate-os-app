@@ -130,7 +130,7 @@ function canUseTheme(plan, themeId) {
 function getTheme(themeId) {
   return THEMES_CONFIG[themeId] || THEMES_CONFIG.default
 }
-const FONT = "'Geist', -apple-system, BlinkMacSystemFont, sans-serif"
+const FONT = "'Plus Jakarta Sans', -apple-system, sans-serif"
 const MONO = "'DM Mono',monospace"
 
 // ── LANGUAGE SYSTEM ──────────────────────────────────────────────
@@ -554,7 +554,7 @@ return (
       transition:'background 0.4s ease'
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -749,7 +749,7 @@ function StatCard({ label, value, sub, color, icon, accent=null }) {
         <div style={{fontFamily:MONO,fontSize:'9.5px',letterSpacing:'1.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.28)'}}>{label}</div>
         {icon && <div style={{width:'31px',height:'31px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',background:`rgba(${rgb},0.1)`,border:`1px solid rgba(${rgb},0.2)`}}>{icon}</div>}
       </div>
-      <div style={{color:color||'#f5f5f7',fontSize:'28px',fontWeight:800,letterSpacing:'-1.2px',lineHeight:1,marginBottom:'8px',fontFamily:FONT}}>{value}</div>
+      <div style={{color:color||'#f5f5f7',fontSize:'28px',fontWeight:800,letterSpacing:'-1.5px',lineHeight:1,marginBottom:'8px',fontFamily:FONT}}>{value}</div>
       {sub && <div style={{color:'rgba(255,255,255,0.32)',fontSize:'11.5px',fontFamily:FONT,display:'flex',alignItems:'center',gap:'5px'}}>{sub}</div>}
       <div style={{position:'absolute',bottom:0,left:0,right:0,height:'2px',background:`linear-gradient(90deg,transparent,rgba(${rgb},0.6),transparent)`,opacity:0,transition:'opacity 0.22s, transform 0.3s cubic-bezier(.34,1.56,.64,1)',transform:'scaleX(0.3)'}} className="stat-bar"></div>
     </div>
