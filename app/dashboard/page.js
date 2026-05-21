@@ -2332,7 +2332,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
   const subPct = pieTotal>0?Math.round(totalSubs/pieTotal*100):0
   const expDash = pieTotal>0?(totalExp/pieTotal)*276:0
   const subDash = pieTotal>0?(totalSubs/pieTotal)*276:0
-  const totalInvValue = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.currentPrice||inv.current_price||0)),0)
+  const totalInvValue = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.currentPrice||inv.current_price||inv.buyPrice||inv.buy_price||0)),0)
   const totalInvCost = investments.reduce((a,inv)=>a+(Number(inv.shares||0)*Number(inv.buyPrice||inv.buy_price||0)),0)
   const invGain = totalInvValue - totalInvCost
   const invGainPct = totalInvCost>0?((invGain/totalInvCost)*100).toFixed(2):0
