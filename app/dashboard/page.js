@@ -2257,19 +2257,23 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO }) {
     setLoading(true)
     const [year, m] = month.split('-')
     const start = `${year}-${m}-01`
-    const end = `${year}-${m}-31`
+    const lastDay = new Date(parseInt(year), parseInt(m), 0).getDate()
+    const end = `${year}-${m}-${lastDay}`
+    console.log('Loading month:', month, 'start:', start, 'end:', end)
     try {
       const [exp, inc, sub] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&expense_date=gte.${start}&expense_date=lte.${end}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
         fetch(`${SUPABASE_URL}/rest/v1/income?user_id=eq.${userId}&income_date=gte.${start}&income_date=lte.${end}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
         fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}).then(r=>r.json()),
       ])
+      console.log('Expenses:', exp)
+      console.log('Income:', inc)
       setData({
         expenses: Array.isArray(exp)?exp:[],
         income: Array.isArray(inc)?inc:[],
         subs: Array.isArray(sub)?sub:[],
       })
-    } catch(e) {}
+    } catch(e) { console.error(e) }
     setLoading(false)
   }
 
