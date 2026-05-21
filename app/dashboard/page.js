@@ -2266,7 +2266,7 @@ function MonthlySummaryModal({ onClose, userId, lang, FONT, MONO, investments=[]
       } catch(e){}
     }
     fetchLivePrices()
-    const interval = setInterval(fetchLivePrices, 10000)
+    const interval = setInterval(fetchLivePrices, 5000)
     return ()=>clearInterval(interval)
   },[investments.length])
 
