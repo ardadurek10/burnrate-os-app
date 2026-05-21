@@ -2031,9 +2031,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='', lang='en' }) {
   const now = new Date()
   const today = now.getDate()
-  const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
-  const DAYS_KEY = `burnrate_completed_days_${userId}`
-  const TASKS_KEY = `burnrate_completed_tasks_${userId}`
+  const monthName = now.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
   const [completedDays, setCompletedDays] = useState(() => { try { return JSON.parse(localStorage.getItem(`burnrate_completed_days_${userId}`)||'[]') } catch { return [] } })
   const [selectedDay, setSelectedDay] = useState(null)
   const [loadingTasks, setLoadingTasks] = useState(false)
@@ -2048,6 +2046,13 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
   const nextBadge = badges.find(b=>completedDays.length<b.days)
   const avgDailyExp = totalExp>0?totalExp/30:0
   const savedEstimate = Math.round(completedDays.length*avgDailyExp*0.15)
+  const completedCount = completedDays.length
+  const streakPct = Math.round(completedCount/Math.max(today,1)*100)
+
+  const R = '244,63,94'
+  const Rcolor = '#f43f5e'
+  const Rsoft = `rgba(${R},0.12)`
+  const Rdim = `rgba(${R},0.4)`
 
   async function loadTasksForDay(day) {
     setSelectedDay(day)
@@ -2095,65 +2100,87 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
   }
 
   const dayTasks = selectedDay ? (aiTasks[selectedDay]||DAILY_TASKS[(selectedDay-1)%DAILY_TASKS.length]) : []
-  const completedCount = completedDays.length
-  const streakPct = Math.round(completedCount/Math.max(today,1)*100)
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
 
-      {/* KUTLAMA ANİMASYONU */}
       {showCelebration && (
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',overflow:'hidden'}}>
-          <div style={{background:'linear-gradient(135deg,rgba(244,63,94,0.95),rgba(124,58,237,0.95))',borderRadius:'24px',padding:'36px 48px',textAlign:'center',animation:'fadeIn 0.3s ease',boxShadow:'0 0 80px rgba(244,63,94,0.4)'}}>
-            <div style={{fontSize:'52px',marginBottom:'12px'}}>🎉</div>
-            <div style={{color:'#fff',fontSize:'22px',fontWeight:700,fontFamily:FONT,marginBottom:'6px'}}>{lang==='tr'?`${celebrationDay}. Gün Tamamlandı!`:`Day ${celebrationDay} Complete!`}</div>
-            <div style={{color:'rgba(255,255,255,0.7)',fontSize:'14px',fontFamily:FONT}}>{streak>1?(lang==='tr'?`${streak} günlük seri! 🔥`:`${streak} day streak! 🔥`):(lang==='tr'?'Harika iş! Devam et 💪':'Great work! Keep going 💪')}</div>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+          <div style={{background:'linear-gradient(135deg,rgba(244,63,94,0.95),rgba(124,58,237,0.95))',borderRadius:'28px',padding:'40px 56px',textAlign:'center',animation:'fadeIn 0.3s ease',boxShadow:`0 0 100px rgba(244,63,94,0.5), 0 0 0 1px rgba(244,63,94,0.3)`}}>
+            <div style={{fontSize:'56px',marginBottom:'14px'}}>🎉</div>
+            <div style={{color:'#fff',fontSize:'24px',fontWeight:800,fontFamily:FONT,marginBottom:'8px',letterSpacing:'-0.5px'}}>{lang==='tr'?`${celebrationDay}. Gün Tamamlandı!`:`Day ${celebrationDay} Complete!`}</div>
+            <div style={{color:'rgba(255,255,255,0.7)',fontSize:'14px',fontFamily:FONT}}>{streak>1?(lang==='tr'?`${streak} günlük seri! 🔥`:`${streak} day streak! 🔥`):(lang==='tr'?'Harika iş! 💪':'Great work! 💪')}</div>
           </div>
         </div>
       )}
 
+      {/* HEADER */}
       <div style={{marginBottom:'28px'}}>
-        <h1 style={{color:theme.text,fontSize:'22px',fontWeight:700,letterSpacing:'-0.4px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{lang==='tr'?'🎯 30 Günlük Finansal Meydan Okuma':'🎯 30-Day Financial Challenge'}</h1>
-        <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} — {lang==='tr'?'bir gün seçin, AI görevlerinizi görün':'tap a day to see your AI tasks'}</p>
+        <h1 style={{color:'#fda4af',fontSize:'24px',fontWeight:800,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>🎯 {lang==='tr'?'30 Günlük Finansal Meydan Okuma':'30-Day Financial Challenge'}</h1>
+        <p style={{color:`rgba(${R},0.4)`,fontSize:'13px',margin:0,fontFamily:MONO,letterSpacing:'0.5px'}}>{monthName} — {lang==='tr'?'bir gün seç, AI görevlerini gör':'tap a day to see your AI tasks'}</p>
       </div>
 
-      {/* STREAK KARTI */}
-      <div style={{background:`linear-gradient(135deg,rgba(244,63,94,0.1),rgba(124,58,237,0.1))`,border:'1px solid rgba(244,63,94,0.25)',borderRadius:'16px',padding:'20px 24px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'16px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
-          <div style={{fontSize:'40px'}}>{streak>=21?'👑':streak>=14?'💎':streak>=7?'⚡':streak>=3?'🔥':streak>=1?'✨':'🎯'}</div>
+      {/* STREAK BANNER */}
+      <div style={{
+        background:`linear-gradient(135deg, rgba(${R},0.12) 0%, rgba(124,58,237,0.08) 100%)`,
+        border:`1px solid rgba(${R},0.25)`,
+        borderRadius:'24px',
+        padding:'24px 28px',
+        marginBottom:'14px',
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'space-between',
+        flexWrap:'wrap',
+        gap:'20px',
+        position:'relative',
+        overflow:'hidden',
+        boxShadow:`0 0 0 1px rgba(${R},0.1), inset 0 1px 0 rgba(${R},0.15), 0 8px 32px rgba(${R},0.08)`
+      }}>
+        <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.4),transparent)`}}></div>
+        <div style={{display:'flex',alignItems:'center',gap:'20px'}}>
+          <div style={{
+            width:'72px',height:'72px',borderRadius:'20px',
+            background:`linear-gradient(135deg,rgba(${R},0.2),rgba(${R},0.08))`,
+            border:`1px solid rgba(${R},0.3)`,
+            display:'flex',alignItems:'center',justifyContent:'center',
+            fontSize:'32px',
+            boxShadow:`0 0 24px rgba(${R},0.2)`
+          }}>
+            {streak>=21?'👑':streak>=14?'💎':streak>=7?'⚡':streak>=3?'🔥':streak>=1?'✨':'🎯'}
+          </div>
           <div>
-            <div style={{color:'#fda4af',fontSize:'11px',fontFamily:MONO,letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px'}}>{lang==='tr'?'Güncel Seri':'Current Streak'}</div>
-            <div style={{color:'#f1f0ff',fontSize:'28px',fontWeight:800,fontFamily:FONT,letterSpacing:'-1px'}}>{streak} {lang==='tr'?'gün':'days'}</div>
+            <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:Rdim,marginBottom:'6px'}}>{lang==='tr'?'Güncel Seri':'Current Streak'}</div>
+            <div style={{color:'#fff',fontSize:'36px',fontWeight:800,fontFamily:FONT,letterSpacing:'-1.5px',lineHeight:1}}>{streak} <span style={{fontSize:'18px',color:'rgba(255,255,255,0.5)',fontWeight:500}}>{lang==='tr'?'gün':'days'}</span></div>
           </div>
         </div>
-        <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
+        <div style={{display:'flex',gap:'16px',alignItems:'center'}}>
           {nextBadge && (
-            <div style={{textAlign:'center'}}>
-              <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO,marginBottom:'4px'}}>{lang==='tr'?'Sıradaki Rozet':'Next Badge'}</div>
-              <div style={{fontSize:'24px'}}>{nextBadge.icon}</div>
-              <div style={{color:nextBadge.color,fontSize:'11px',fontFamily:FONT,marginTop:'2px'}}>{nextBadge.days - completedDays.length} {lang==='tr'?'gün':'days'}</div>
+            <div style={{textAlign:'center',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'16px',padding:'14px 20px'}}>
+              <div style={{color:'rgba(255,255,255,0.25)',fontSize:'9px',fontFamily:MONO,letterSpacing:'1px',textTransform:'uppercase',marginBottom:'8px'}}>{lang==='tr'?'Sıradaki Rozet':'Next Badge'}</div>
+              <div style={{fontSize:'28px',marginBottom:'4px'}}>{nextBadge.icon}</div>
+              <div style={{color:nextBadge.color,fontSize:'12px',fontWeight:700}}>{nextBadge.days - completedDays.length} {lang==='tr'?'gün':'days'}</div>
             </div>
           )}
           {savedEstimate > 0 && (
-            <div style={{background:'rgba(16,185,129,0.1)',border:'1px solid rgba(16,185,129,0.25)',borderRadius:'12px',padding:'10px 16px',textAlign:'center'}}>
-              <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO,marginBottom:'4px'}}>{lang==='tr'?'Tahmini Tasarruf':'Est. Savings'}</div>
-              <div style={{color:'#6ee7b7',fontSize:'18px',fontWeight:700,fontFamily:MONO}}>+₺{savedEstimate}</div>
+            <div style={{textAlign:'center',background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'16px',padding:'14px 20px'}}>
+              <div style={{color:'rgba(16,185,129,0.5)',fontSize:'9px',fontFamily:MONO,letterSpacing:'1px',textTransform:'uppercase',marginBottom:'8px'}}>{lang==='tr'?'Tahmini Tasarruf':'Est. Savings'}</div>
+              <div style={{color:'#6ee7b7',fontSize:'22px',fontWeight:800,fontFamily:MONO,letterSpacing:'-0.5px'}}>+₺{savedEstimate}</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* ROZETLER */}
+      {/* EARNED BADGES */}
       {earnedBadges.length > 0 && (
-        <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'14px',padding:'16px 20px',marginBottom:'16px'}}>
-          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'10px',fontFamily:MONO,letterSpacing:'1px',textTransform:'uppercase',marginBottom:'12px'}}>{lang==='tr'?'Kazanılan Rozetler':'Earned Badges'}</div>
-          <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
+        <div style={{background:`rgba(${R},0.04)`,border:`1px solid rgba(${R},0.12)`,borderRadius:'18px',padding:'16px 20px',marginBottom:'14px'}}>
+          <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:Rdim,marginBottom:'12px'}}>{lang==='tr'?'Kazanılan Rozetler':'Earned Badges'}</div>
+          <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
             {earnedBadges.map((b,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 14px',borderRadius:'100px',background:`rgba(${b.color==='#10b981'?'16,185,129':b.color==='#f59e0b'?'245,158,11':b.color==='#06b6d4'?'6,182,212':b.color==='#8b5cf6'?'139,92,246':'245,158,11'},0.12)`,border:`1px solid ${b.color}44`}}>
-                <span style={{fontSize:'20px'}}>{b.icon}</span>
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 16px',borderRadius:'100px',background:`rgba(${hexToRgb(b.color)},0.1)`,border:`1px solid ${b.color}44`}}>
+                <span style={{fontSize:'18px'}}>{b.icon}</span>
                 <div>
-                  <div style={{color:b.color,fontSize:'12px',fontWeight:600,fontFamily:FONT}}>{b.label}</div>
-                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'10px',fontFamily:MONO}}>{b.days} {lang==='tr'?'gün':'days'}</div>
+                  <div style={{color:b.color,fontSize:'12px',fontWeight:700,fontFamily:FONT}}>{b.label}</div>
+                  <div style={{color:'rgba(255,255,255,0.25)',fontSize:'10px',fontFamily:MONO}}>{b.days} {lang==='tr'?'gün':'days'}</div>
                 </div>
               </div>
             ))}
@@ -2161,39 +2188,71 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
         </div>
       )}
 
-      <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
-        <StatCard accent={theme.accent} label={lang==='tr'?'Tamamlanan Gün':'Days Completed'} value={completedCount} sub={lang==='tr'?`${today} günden beri`:`of ${today} days so far`} color={theme.text} icon="✅" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Tamamlama Oranı':'Completion Rate'} value={`${streakPct}%`} sub={streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!'} color={streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5'} icon="🔥" />
-        <StatCard accent={theme.accent} label={lang==='tr'?'Kalan Gün':'Days Remaining'} value={30-today} sub={lang==='tr'?'ay sonuna kadar':'until end of month'} color="rgba(255,255,255,0.5)" icon="📅" />
+      {/* STAT CARDS */}
+      <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'16px'}}>
+        {[
+          {label:lang==='tr'?'Tamamlanan Gün':'Days Completed', val:completedCount, sub:lang==='tr'?`${today} günden beri`:`of ${today} days`, color:'#fda4af', icon:'✅'},
+          {label:lang==='tr'?'Tamamlama Oranı':'Completion Rate', val:`${streakPct}%`, sub:streakPct>=80?lang==='tr'?'Muhteşem!':'Outstanding!':streakPct>=50?lang==='tr'?'Devam et!':'Keep going!':lang==='tr'?'Yapabilirsin!':'You can do it!', color:streakPct>=80?'#6ee7b7':streakPct>=50?'#fde68a':'#fca5a5', icon:'🔥'},
+          {label:lang==='tr'?'Kalan Gün':'Days Remaining', val:30-today, sub:lang==='tr'?'ay sonuna kadar':'until month end', color:'rgba(255,255,255,0.4)', icon:'📅'},
+        ].map((s,i)=>(
+          <div key={i}
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.008)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.32), 0 14px 44px rgba(${R},0.1)`}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`}}
+            style={{background:`rgba(${R},0.04)`,borderRadius:'20px',padding:'22px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`,transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',cursor:'default'}}>
+            <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.2),transparent)`}}></div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px'}}>
+              <div style={{fontFamily:MONO,fontSize:'9.5px',letterSpacing:'1.8px',textTransform:'uppercase',color:Rdim}}>{s.label}</div>
+              <div style={{width:'31px',height:'31px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',background:Rsoft,border:`1px solid rgba(${R},0.2)`}}>{s.icon}</div>
+            </div>
+            <div style={{color:s.color,fontSize:'28px',fontWeight:800,letterSpacing:'-1.2px',lineHeight:1,marginBottom:'8px',fontFamily:FONT}}>{s.val}</div>
+            <div style={{color:`rgba(${R},0.4)`,fontSize:'11.5px',fontFamily:FONT}}>{s.sub}</div>
+          </div>
+        ))}
       </div>
-      <Card accent={theme.accent} style={{padding:'24px',marginBottom:'20px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Meydan okumaya başlamak için bir gün seçin':'Select a day to begin your challenge'}</div>
-          <div style={{background:theme.bg,border:`1px solid ${theme.border}`,borderRadius:'100px',padding:'5px 14px',fontSize:'12px',color:theme.text,fontWeight:600,fontFamily:FONT}}>{lang==='tr'?`${completedCount}/30 tamamlandı`:`${completedCount}/30 complete`}</div>
+
+      {/* CALENDAR */}
+      <div
+        onMouseEnter={e=>{e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.32), 0 14px 44px rgba(${R},0.1)`}}
+        onMouseLeave={e=>{e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`}}
+        style={{background:`rgba(${R},0.04)`,borderRadius:'20px',padding:'24px',marginBottom:'16px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`,transition:'box-shadow 0.22s ease'}}>
+        <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.25),transparent)`}}></div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+          <div style={{color:`rgba(${R},0.6)`,fontSize:'12px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Bir gün seç':'Select a day'}</div>
+          <div style={{background:Rsoft,border:`1px solid rgba(${R},0.3)`,borderRadius:'100px',padding:'5px 14px',fontSize:'11px',color:'#fda4af',fontWeight:700,fontFamily:MONO}}>{completedCount}/30</div>
         </div>
-        <div style={{marginBottom:'16px'}}>
-          <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'rgba(255,255,255,0.3)',fontFamily:MONO,marginBottom:'6px'}}><span>{lang==='tr'?'İlerleme':'Progress'}</span><span>{Math.round(completedCount/30*100)}%</span></div>
-          <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)'}}><div style={{height:'100%',borderRadius:'100px',width:`${Math.round(completedCount/30*100)}%`,background:`linear-gradient(90deg,${theme.accent},${theme.accent}88)`,transition:'width 0.5s ease'}}></div></div>
+        {/* PROGRESS */}
+        <div style={{marginBottom:'18px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'10px',color:`rgba(${R},0.4)`,fontFamily:MONO,marginBottom:'6px',letterSpacing:'0.5px'}}>
+            <span>{lang==='tr'?'İlerleme':'Progress'}</span>
+            <span>{Math.round(completedCount/30*100)}%</span>
+          </div>
+          <div style={{height:'6px',borderRadius:'100px',background:'rgba(255,255,255,0.06)',overflow:'hidden'}}>
+            <div style={{height:'100%',borderRadius:'100px',width:`${Math.round(completedCount/30*100)}%`,background:`linear-gradient(90deg,${Rcolor},rgba(${R},0.6))`,boxShadow:`0 0 10px rgba(${R},0.4)`,transition:'width 0.5s ease'}}></div>
+          </div>
         </div>
+        {/* DAY GRID */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'8px'}}>
           {Array.from({length:30},(_,i)=>i+1).map(day => {
-            const isCompleted=completedDays.includes(day), isToday=day===today, isPast=day<=today, isSelected=selectedDay===day
+            const isCompleted=completedDays.includes(day)
+            const isToday=day===today
+            const isPast=day<=today
+            const isSelected=selectedDay===day
             return (
               <button key={day} onClick={()=>isPast&&loadTasksForDay(day)}
                 onMouseEnter={e=>{
                   if(isPast&&!isCompleted&&!isSelected){
-                    e.currentTarget.style.transform='scale(1.12) translateY(-3px)'
-                    e.currentTarget.style.background='rgba(244,63,94,0.16)'
-                    e.currentTarget.style.boxShadow='0 0 0 1px rgba(244,63,94,0.45), 0 8px 24px rgba(244,63,94,0.2)'
+                    e.currentTarget.style.transform='scale(1.14) translateY(-4px)'
+                    e.currentTarget.style.background=`rgba(${R},0.18)`
+                    e.currentTarget.style.boxShadow=`0 0 0 1.5px rgba(${R},0.5), 0 10px 28px rgba(${R},0.25)`
                     e.currentTarget.style.color='#fda4af'
                   }
                 }}
                 onMouseLeave={e=>{
                   if(isPast&&!isCompleted&&!isSelected){
-                    e.currentTarget.style.transform=''
-                    e.currentTarget.style.background=isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)'
-                    e.currentTarget.style.boxShadow='none'
-                    e.currentTarget.style.color=isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)'
+                    e.currentTarget.style.transform=isSelected?'scale(1.08)':'scale(1)'
+                    e.currentTarget.style.background=isToday?`rgba(${R},0.1)`:`rgba(${R},0.04)`
+                    e.currentTarget.style.boxShadow=isToday?`0 0 0 1px rgba(${R},0.3)`:`0 0 0 1px rgba(${R},0.1)`
+                    e.currentTarget.style.color=isPast?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.18)'
                   }
                 }}
                 style={{
@@ -2201,14 +2260,13 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
                   borderRadius:'14px',
                   fontSize:'14px',
                   fontWeight:700,
-                  background:isCompleted?`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`:isSelected?theme.bg:isToday?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.03)',
-                  border:isSelected?`2px solid ${theme.accent}`:isCompleted?'none':isToday?`1px solid rgba(255,255,255,0.25)`:'1px solid rgba(255,255,255,0.07)',
-                  color:isCompleted?'#fff':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)',
+                  background:isCompleted?`linear-gradient(135deg,${Rcolor},rgba(${R},0.7))`:isSelected?`rgba(${R},0.2)`:isToday?`rgba(${R},0.1)`:`rgba(${R},0.04)`,
+                  boxShadow:isCompleted?`0 4px 16px rgba(${R},0.4), 0 0 0 1px rgba(${R},0.5)`:isSelected?`0 0 0 2px ${Rcolor}, 0 6px 20px rgba(${R},0.2)`:isToday?`0 0 0 1px rgba(${R},0.3)`:`0 0 0 1px rgba(${R},0.1)`,
+                  color:isCompleted?'#fff':isToday?'#fda4af':isPast?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.18)',
                   cursor:isPast?'pointer':'not-allowed',
                   display:'flex',alignItems:'center',justifyContent:'center',
                   transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',
                   fontFamily:FONT,
-                  boxShadow:isCompleted?`0 4px 16px ${theme.accent}44`:isSelected?`0 0 0 2px ${theme.accent}`:'none',
                   transform:isSelected?'scale(1.08)':'scale(1)'
                 }}>
                 {isCompleted?'✓':day}
@@ -2216,42 +2274,52 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
             )
           })}
         </div>
-      </Card>
+      </div>
+
+      {/* TASK PANEL */}
       {selectedDay && (
-        <Card accent={theme.accent} style={{padding:'24px',animation:'fadeIn 0.25s ease'}}>
+        <div
+          style={{background:`rgba(${R},0.04)`,borderRadius:'20px',padding:'24px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.2), inset 0 1px 0 rgba(${R},0.12), 0 8px 32px rgba(${R},0.08)`,animation:'fadeIn 0.25s ease'}}>
+          <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.3),transparent)`}}></div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
             <div>
-              <div style={{color:theme.text,fontSize:'18px',fontWeight:700,fontFamily:FONT}}>{lang==='tr'?`${selectedDay}. Gün Görevleri`:`Day ${selectedDay} Tasks`}</div>
-              <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',marginTop:'2px',fontFamily:FONT}}>{lang==='tr'?'Yapay zeka tarafından · 3 görevi tamamla':'AI-generated · Complete all 3 tasks'}</div>
+              <div style={{color:'#fda4af',fontSize:'18px',fontWeight:800,fontFamily:FONT,letterSpacing:'-0.3px'}}>{lang==='tr'?`${selectedDay}. Gün Görevleri`:`Day ${selectedDay} Tasks`}</div>
+              <div style={{color:`rgba(${R},0.4)`,fontSize:'11px',marginTop:'3px',fontFamily:MONO,letterSpacing:'0.5px'}}>{lang==='tr'?'yapay zeka tarafından · 3 görevi tamamla':'AI-generated · complete all 3 tasks'}</div>
             </div>
-            <button onClick={()=>setSelectedDay(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer',lineHeight:1}}>×</button>
+            <button onClick={()=>setSelectedDay(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer',lineHeight:1,transition:'color 0.15s'}}
+              onMouseEnter={e=>e.currentTarget.style.color='#fda4af'}
+              onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}>×</button>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'24px'}}>
             {loadingTasks ? (
-              <div style={{display:'flex',gap:'10px',alignItems:'center',padding:'20px',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT}}>
-                <div style={{width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${theme.accent}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite',flexShrink:0}}></div>
-                {lang==='tr'?'Yapay zeka görevlerinizi oluşturuyor...':'AI is generating your personalized tasks...'}
+              <div style={{display:'flex',gap:'12px',alignItems:'center',padding:'24px',color:`rgba(${R},0.5)`,fontSize:'13px',fontFamily:FONT}}>
+                <div style={{width:'18px',height:'18px',borderRadius:'50%',border:`2px solid rgba(${R},0.3)`,borderTop:`2px solid ${Rcolor}`,animation:'spin 0.8s linear infinite',flexShrink:0}}></div>
+                {lang==='tr'?'Yapay zeka görevlerin hazırlanıyor...':'AI is crafting your tasks...'}
               </div>
             ) : dayTasks.map((task,idx) => {
               const done = completedTasks[`${selectedDay}-${idx}`]
               return (
                 <div key={idx} onClick={()=>toggleTask(selectedDay,idx)}
-                  style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px',borderRadius:'12px',background:done?theme.bg:'rgba(255,255,255,0.03)',border:done?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
-                  <div style={{width:'24px',height:'24px',borderRadius:'8px',flexShrink:0,background:done?theme.accent:'transparent',border:done?'none':`1.5px solid rgba(255,255,255,0.2)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700}}>{done?'✓':''}</div>
-                  <span style={{fontSize:'14px',color:done?theme.text:'rgba(255,255,255,0.8)',fontWeight:done?600:400,fontFamily:FONT,flex:1,lineHeight:'1.4'}}>{task}</span>
-                  {done && <span style={{fontSize:'11px',color:theme.text,fontFamily:MONO,opacity:0.7}}>{lang==='tr'?'tamam':'done'}</span>}
+                  onMouseEnter={e=>{if(!done)e.currentTarget.style.background=`rgba(${R},0.08)`}}
+                  onMouseLeave={e=>{if(!done)e.currentTarget.style.background=done?`rgba(${R},0.1)`:'rgba(255,255,255,0.02)'}}
+                  style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px',borderRadius:'14px',background:done?`rgba(${R},0.1)`:'rgba(255,255,255,0.02)',border:done?`1px solid rgba(${R},0.3)`:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',transition:'all 0.15s'}}>
+                  <div style={{width:'26px',height:'26px',borderRadius:'9px',flexShrink:0,background:done?Rcolor:'transparent',border:done?'none':`1.5px solid rgba(${R},0.3)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff',fontWeight:700,transition:'all 0.15s'}}>{done?'✓':''}</div>
+                  <span style={{fontSize:'14px',color:done?'#fda4af':'rgba(255,255,255,0.75)',fontWeight:done?600:400,fontFamily:FONT,flex:1,lineHeight:'1.4'}}>{task}</span>
+                  {done && <span style={{fontSize:'10px',color:`rgba(${R},0.5)`,fontFamily:MONO,letterSpacing:'1px'}}>{lang==='tr'?'TAMAM':'DONE'}</span>}
                 </div>
               )
             })}
           </div>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:FONT}}>{lang==='tr'?`${dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length}/${dayTasks.length} görev tamamlandı`:`${dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length} of ${dayTasks.length} tasks completed`}</div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',borderTop:`1px solid rgba(${R},0.12)`}}>
+            <div style={{fontSize:'12px',color:`rgba(${R},0.4)`,fontFamily:MONO}}>{dayTasks.filter((_,idx)=>completedTasks[`${selectedDay}-${idx}`]).length}/{dayTasks.length} {lang==='tr'?'tamamlandı':'completed'}</div>
             <button onClick={()=>completeDay(selectedDay)}
-              style={{padding:'12px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT}}>
+              onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.03)';e.currentTarget.style.filter='brightness(1.1)'}}
+              onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.filter=''}}
+              style={{padding:'12px 28px',borderRadius:'14px',fontSize:'14px',fontWeight:700,background:completedDays.includes(selectedDay)?'rgba(16,185,129,0.15)':`linear-gradient(135deg,${Rcolor},rgba(${R},0.7))`,color:completedDays.includes(selectedDay)?'#6ee7b7':'#fff',border:completedDays.includes(selectedDay)?'1px solid rgba(16,185,129,0.3)':'none',cursor:'pointer',fontFamily:FONT,transition:'transform 0.2s cubic-bezier(.34,1.56,.64,1), filter 0.18s',boxShadow:completedDays.includes(selectedDay)?'none':`0 4px 20px rgba(${R},0.35), inset 0 1px 0 rgba(255,255,255,0.15)`}}>
               {completedDays.includes(selectedDay)?lang==='tr'?'✓ Gün Tamamlandı!':'✓ Day Completed!':lang==='tr'?'🎯 Günü Tamamla →':'🎯 Complete Day →'}
             </button>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   )
