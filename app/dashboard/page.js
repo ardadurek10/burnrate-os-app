@@ -718,14 +718,14 @@ function Card({ children, style={}, accent=null }) {
   const rgb = accent ? hexToRgb(accent) : '124,58,237'
   return (
     <div
-      onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.006)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.32), 0 0 0 3px rgba(${rgb},0.06), inset 0 1px 0 rgba(${rgb},0.18), 0 14px 44px rgba(${rgb},0.14), 0 3px 12px rgba(0,0,0,0.7)`}}
-      onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 24px rgba(0,0,0,0.55)`}}
+      onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.006)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.4), 0 0 0 4px rgba(${rgb},0.08), inset 0 1px 0 rgba(${rgb},0.22), 0 20px 60px rgba(0,0,0,0.7), 0 8px 24px rgba(${rgb},0.18)`}}
+      onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`}}
       style={{
-        background:`rgba(${rgb},0.038)`,
+        background:`rgba(${rgb},0.07)`,
         borderRadius:'20px',
         position:'relative',
         overflow:'hidden',
-        boxShadow:`0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 24px rgba(0,0,0,0.55)`,
+        boxShadow:`0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`,
         transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
         animation:'fadeIn 0.3s ease',
         ...style
@@ -737,17 +737,17 @@ function StatCard({ label, value, sub, color, icon, accent=null }) {
   const rgb = accent ? hexToRgb(accent) : '124,58,237'
   return (
     <div style={{
-      background: `rgba(${rgb},0.038)`,
+      background: `rgba(${rgb},0.07)`,
       borderRadius: '20px',
       padding: '22px',
       position: 'relative',
       overflow: 'hidden',
-      boxShadow: `0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), 0 4px 24px rgba(0,0,0,0.55)`,
+      boxShadow: `0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`,
       transition: 'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
       cursor: 'default'
     }}
-    onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.008)'; e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.32), 0 0 0 3px rgba(${rgb},0.06), inset 0 1px 0 rgba(${rgb},0.18), 0 14px 44px rgba(${rgb},0.14), 0 3px 12px rgba(0,0,0,0.7)`}}
-    onMouseLeave={e=>{e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.15), inset 0 1px 0 rgba(${rgb},0.12), 0 4px 24px rgba(0,0,0,0.55)`}}>
+    onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.008)'; e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.4), 0 0 0 4px rgba(${rgb},0.08), inset 0 1px 0 rgba(${rgb},0.22), 0 20px 60px rgba(0,0,0,0.7), 0 8px 24px rgba(${rgb},0.18)`}}
+    onMouseLeave={e=>{e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px'}}>
         <div style={{fontFamily:MONO,fontSize:'9.5px',letterSpacing:'1.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.28)'}}>{label}</div>
         {icon && <div style={{width:'31px',height:'31px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',background:`rgba(${rgb},0.1)`,border:`1px solid rgba(${rgb},0.2)`}}>{icon}</div>}
