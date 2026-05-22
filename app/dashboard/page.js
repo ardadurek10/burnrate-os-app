@@ -274,9 +274,18 @@ const THEMES = {
 
 const TIP = {fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)'}
 const VAL = {fontFamily:MONO}
-const tooltipStyle = {background:'#12121c',border:'1px solid rgba(255,255,255,0.12)',borderRadius:'12px',color:'#f5f5f7',fontSize:'12px',fontFamily:FONT}
+const tooltipStyle = {background:'#0a0414',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'14px',color:'#f5f5f7',fontSize:'12px',fontFamily:FONT,boxShadow:'0 8px 32px rgba(0,0,0,0.6)'}
 const tooltipItemStyle = {color:'#f5f5f7'}
 const tooltipLabelStyle = {color:'rgba(255,255,255,0.5)',marginBottom:'4px'}
+const CAT_COLORS_MAP = {
+  kira:'#06b6d4',mobilya:'#8b5cf6',tadilat:'#64748b',temizlik:'#67e8f9',
+  market:'#10b981',restoran:'#f59e0b',food:'#f97316',
+  akaryakit:'#eab308',transport:'#f59e0b',taksi:'#fbbf24',
+  hastane:'#ec4899',ilac:'#f43f5e',spor:'#10b981',
+  dugun:'#a78bfa',seyahat:'#06b6d4',eglence:'#8b5cf6',hediye:'#f43f5e',
+  giyim:'#a78bfa',guzellik:'#ec4899',egitim:'#3b82f6',business:'#10b981',
+  abonelik:'#7c3aed',bagis:'#6ee7b7',impulse:'#ef4444',other:'#8b5cf6',
+}
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1,3),16)
@@ -837,7 +846,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
   const monthName = now.toLocaleString('en-US',{month:'long',year:'numeric'})
   const daysLeft = new Date(now.getFullYear(),now.getMonth()+1,0).getDate() - now.getDate()
   const pieData = [{name:(lang==='tr')?'Abonelikler':'Subscriptions',value:totalSubs},{name:(lang==='tr')?'Gider':'Expenses',value:totalExp},{name:(lang==='tr')?'Tasarruf':'Saved',value:Math.max(0,netBal)}].filter(d=>d.value>0)
-  const barData = expenses.slice(-6).map((e,i)=>({name:e.description?.slice(0,8)||`#${i+1}`,amount:Number(e.amount)}))
+  const barData = expenses.slice(-6).map((e,i)=>({name:e.description?.slice(0,8)||`#${i+1}`,amount:Number(e.amount),category:e.category||'other'}))
 
   return (
     <div className="page-pad" style={{padding:'36px'}}>
@@ -902,12 +911,12 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={barData} barSize={16}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,158,11,0.06)" />
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false} />
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false} />
                 <Tooltip formatter={v=>`₺${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 <Bar dataKey="amount" radius={[6,6,0,0]}>
-                  {barData.map((_,i) => <Cell key={i} fill={THEMES.spending.chart[i%5]} />)}
+                  {barData.map((item,i) => <Cell key={i} fill={CAT_COLORS_MAP[item.category]||THEMES.spending.chart[i%5]} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -1132,15 +1141,6 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
     {v:'impulse',  tr:'Ani Alım',             en:'Impulse Buy',          g_tr:'Diğer',            g_en:'Other'},
     {v:'other',    tr:'Diğer',               en:'Other',                g_tr:'Diğer',            g_en:'Other'},
   ]
-  const CAT_COLORS_MAP = {
-    kira:'#06b6d4',mobilya:'#8b5cf6',tadilat:'#64748b',temizlik:'#67e8f9',
-    market:'#10b981',restoran:'#f59e0b',food:'#f97316',
-    akaryakit:'#eab308',transport:'#f59e0b',taksi:'#fbbf24',
-    hastane:'#ec4899',ilac:'#f43f5e',spor:'#10b981',
-    dugun:'#a78bfa',seyahat:'#06b6d4',eglence:'#8b5cf6',hediye:'#f43f5e',
-    giyim:'#a78bfa',guzellik:'#ec4899',egitim:'#3b82f6',business:'#10b981',
-    abonelik:'#7c3aed',bagis:'#6ee7b7',impulse:'#ef4444',other:'#8b5cf6',
-  }
   const getCL = (val) => { const cat=CATS.find(c=>c.v===val); return cat?((lang==='tr')?cat.tr:cat.en):val }
   const getCG = (val) => { const cat=CATS.find(c=>c.v===val); return cat?((lang==='tr')?cat.g_tr:cat.g_en):((lang==='tr')?'Diğer':'Other') }
 
@@ -1229,7 +1229,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={areaData}>
                 <defs><linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={theme.accent} stopOpacity={0.35}/><stop offset="95%" stopColor={theme.accent} stopOpacity={0}/></linearGradient></defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,158,11,0.06)"/>
                 <XAxis dataKey="day" tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <Tooltip formatter={v=>`₺${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
@@ -1991,7 +1991,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           {incomeData.length>0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={incomeData} barSize={24}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(6,182,212,0.06)"/>
                 <XAxis dataKey="name" tick={{fill:'rgba(255,255,255,0.3)',fontSize:11,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:'rgba(255,255,255,0.3)',fontSize:10,fontFamily:FONT}} axisLine={false} tickLine={false}/>
                 <Tooltip formatter={v=>`₺${v}`} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle}/>
