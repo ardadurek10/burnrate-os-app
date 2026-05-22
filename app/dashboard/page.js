@@ -2122,8 +2122,8 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
 
       {/* STREAK BANNER */}
       <div style={{
-        background:`linear-gradient(135deg, rgba(${R},0.12) 0%, rgba(124,58,237,0.08) 100%)`,
-        border:`1px solid rgba(${R},0.25)`,
+        background:"linear-gradient(135deg, rgba(244,63,94,0.18) 0%, rgba(124,58,237,0.12) 100%)",
+        border:"1px solid rgba(244,63,94,0.4)",
         borderRadius:'24px',
         padding:'24px 28px',
         marginBottom:'14px',
@@ -2134,23 +2134,23 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
         gap:'20px',
         position:'relative',
         overflow:'hidden',
-        boxShadow:`0 0 0 1px rgba(${R},0.1), inset 0 1px 0 rgba(${R},0.15), 0 8px 32px rgba(${R},0.08)`
+        boxShadow:"0 0 0 1px rgba(244,63,94,0.15), inset 0 1px 0 rgba(244,63,94,0.2), 0 20px 60px rgba(244,63,94,0.12)"
       }}>
         <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.4),transparent)`}}></div>
         <div style={{display:'flex',alignItems:'center',gap:'20px'}}>
           <div style={{
             width:'72px',height:'72px',borderRadius:'20px',
-            background:`linear-gradient(135deg,rgba(${R},0.2),rgba(${R},0.08))`,
-            border:`1px solid rgba(${R},0.3)`,
+            background:"linear-gradient(135deg, rgba(244,63,94,0.3), rgba(244,63,94,0.12))",
+            border:"1px solid rgba(244,63,94,0.5)",
             display:'flex',alignItems:'center',justifyContent:'center',
             fontSize:'32px',
-            boxShadow:`0 0 24px rgba(${R},0.2)`
+            boxShadow:"0 0 30px rgba(244,63,94,0.3)"
           }}>
             {streak>=21?'👑':streak>=14?'💎':streak>=7?'⚡':streak>=3?'🔥':streak>=1?'✨':'🎯'}
           </div>
           <div>
             <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:Rdim,marginBottom:'6px'}}>{lang==='tr'?'Güncel Seri':'Current Streak'}</div>
-            <div style={{color:'#fff',fontSize:'36px',fontWeight:800,fontFamily:FONT,letterSpacing:'-1.5px',lineHeight:1}}>{streak} <span style={{fontSize:'18px',color:'rgba(255,255,255,0.5)',fontWeight:500}}>{lang==='tr'?'gün':'days'}</span></div>
+            <div style={{color:'#fff',fontSize:'48px',fontWeight:800,fontFamily:FONT,letterSpacing:'-1.5px',lineHeight:1}}>{streak} <span style={{fontSize:'18px',color:'rgba(255,255,255,0.5)',fontWeight:500}}>{lang==='tr'?'gün':'days'}</span></div>
           </div>
         </div>
         <div style={{display:'flex',gap:'16px',alignItems:'center'}}>
@@ -2198,7 +2198,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
           <div key={i}
             onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.008)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.32), 0 14px 44px rgba(${R},0.1)`}}
             onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`}}
-            style={{background:`rgba(${R},0.04)`,borderRadius:'20px',padding:'22px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`,transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',cursor:'default'}}>
+            style={{background:'rgba(244,63,94,0.07)',border:'1px solid rgba(244,63,94,0.2)',borderRadius:'20px',padding:'22px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`,transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',cursor:'default'}}>
             <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.2),transparent)`}}></div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px'}}>
               <div style={{fontFamily:MONO,fontSize:'9.5px',letterSpacing:'1.8px',textTransform:'uppercase',color:Rdim}}>{s.label}</div>
@@ -2214,7 +2214,7 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
       <div
         onMouseEnter={e=>{e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.32), 0 14px 44px rgba(${R},0.1)`}}
         onMouseLeave={e=>{e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`}}
-        style={{background:`rgba(${R},0.04)`,borderRadius:'20px',padding:'24px',marginBottom:'16px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`,transition:'box-shadow 0.22s ease'}}>
+        style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(244,63,94,0.2)',borderRadius:'20px',padding:'24px',marginBottom:'16px',position:'relative',overflow:'hidden',boxShadow:`0 0 0 1px rgba(${R},0.15), inset 0 1px 0 rgba(${R},0.12), 0 4px 24px rgba(0,0,0,0.55)`,transition:'box-shadow 0.22s ease'}}>
         <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${R},0.25),transparent)`}}></div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
           <div style={{color:`rgba(${R},0.6)`,fontSize:'12px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Bir gün seç':'Select a day'}</div>
@@ -2250,9 +2250,9 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
                 onMouseLeave={e=>{
                   if(isPast&&!isCompleted&&!isSelected){
                     e.currentTarget.style.transform=isSelected?'scale(1.08)':'scale(1)'
-                    e.currentTarget.style.background=isToday?`rgba(${R},0.1)`:`rgba(${R},0.04)`
-                    e.currentTarget.style.boxShadow=isToday?`0 0 0 1px rgba(${R},0.3)`:`0 0 0 1px rgba(${R},0.1)`
-                    e.currentTarget.style.color=isPast?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.18)'
+                    e.currentTarget.style.background=isToday?'rgba(244,63,94,0.2)':'rgba(255,255,255,0.06)'
+                    e.currentTarget.style.boxShadow=isToday?'0 0 0 1.5px rgba(244,63,94,0.6)':'0 0 0 1px rgba(255,255,255,0.1)'
+                    e.currentTarget.style.color=isToday?'#fda4af':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.15)'
                   }
                 }}
                 style={{
@@ -2260,9 +2260,9 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
                   borderRadius:'14px',
                   fontSize:'14px',
                   fontWeight:700,
-                  background:isCompleted?`linear-gradient(135deg,${Rcolor},rgba(${R},0.7))`:isSelected?`rgba(${R},0.2)`:isToday?`rgba(${R},0.1)`:`rgba(${R},0.04)`,
-                  boxShadow:isCompleted?`0 4px 16px rgba(${R},0.4), 0 0 0 1px rgba(${R},0.5)`:isSelected?`0 0 0 2px ${Rcolor}, 0 6px 20px rgba(${R},0.2)`:isToday?`0 0 0 1px rgba(${R},0.3)`:`0 0 0 1px rgba(${R},0.1)`,
-                  color:isCompleted?'#fff':isToday?'#fda4af':isPast?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.18)',
+                  background:isCompleted?'linear-gradient(135deg,#f43f5e,#be123c)':isSelected?'rgba(244,63,94,0.2)':isToday?'rgba(244,63,94,0.2)':isPast?'rgba(255,255,255,0.06)':'rgba(255,255,255,0.02)',
+                  boxShadow:isCompleted?'0 4px 20px rgba(244,63,94,0.5), 0 0 0 1px rgba(244,63,94,0.6)':isSelected?`0 0 0 2px ${Rcolor}, 0 6px 20px rgba(${R},0.2)`:isToday?'0 0 0 1.5px rgba(244,63,94,0.6)':isPast?'0 0 0 1px rgba(255,255,255,0.1)':'none',
+                  color:isCompleted?'#fff':isToday?'#fda4af':isPast?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.15)',
                   cursor:isPast?'pointer':'not-allowed',
                   display:'flex',alignItems:'center',justifyContent:'center',
                   transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',
