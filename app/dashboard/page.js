@@ -1039,7 +1039,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                 <span style={{color:'rgba(255,255,255,0.3)',fontSize:'10px'}}>{subCatOpen?'▲':'▼'}</span>
               </div>
               {subCatOpen&&(
-                <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#13131f',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:300,boxShadow:'0 12px 40px rgba(0,0,0,0.7)',maxHeight:'260px',overflowY:'auto'}}>
+                <div style={{maxHeight:'200px',overflowY:'auto',scrollbarWidth:'none',msOverflowStyle:'none',background:'#0a0414',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'14px',marginTop:'6px',boxShadow:'0 4px 20px rgba(0,0,0,0.5)'}}>
                   <div style={{padding:'8px 10px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                     <input autoFocus value={subCatSearch} onChange={e=>setSubCatSearch(e.target.value)}
                       placeholder={(lang==='tr')?'Ara...':'Search...'}
