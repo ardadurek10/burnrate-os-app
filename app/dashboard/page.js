@@ -2606,6 +2606,13 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
   }, [])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [copiedId, setCopiedId] = useState(null)
+  const messagesEndRef = React.useRef(null)
+  const [showScrollBtn, setShowScrollBtn] = useState(false)
+
+  useEffect(()=>{
+    if(messagesEndRef.current) messagesEndRef.current.scrollIntoView({behavior:'smooth'})
+  },[messages])
 
   const suggestions = lang==='tr'?["Hangi abonelikleri iptal etmeliyim?","Tasarruf oranımı nasıl artırabilirim?","Yatırım tavsiyesi ver","Para sızıntım nerede?"]:["Which subscriptions should I cancel?","How can I improve my savings rate?","Give me investment advice","Where am I leaking money?"]
 
@@ -2637,7 +2644,17 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
               <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
             </div>
           </div>
-          <button onClick={()=>{const init=[{role:'ai',text:lang==='tr'?'Sohbet temizlendi. Size nasıl yardımcı olabilirim?':'Chat cleared. How can I help you?'}];setMessages(init);try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(init))}catch{}}} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'🗑️ Temizle':'🗑️ Clear'}</button>
+          <div style={{display:'flex',gap:'8px'}}>
+            <button onClick={()=>{
+              const text = messages.map(m=>`${m.role==='user'?'Sen':'AI'}: ${m.text}`).join('\n\n')
+              const blob = new Blob([text],{type:'text/plain'})
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href=url; a.download=`burnrate-ai-${new Date().toLocaleDateString('tr-TR').replace(/\./g,'-')}.txt`
+              a.click(); URL.revokeObjectURL(url)
+            }} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(139,92,246,0.6)',background:'transparent',border:'1px solid rgba(139,92,246,0.15)',cursor:'pointer',fontFamily:FONT}}>📥 Dışa Aktar</button>
+            <button onClick={()=>{const init=[{role:'ai',text:lang==='tr'?'Sohbet temizlendi. Size nasıl yardımcı olabilirim?':'Chat cleared. How can I help you?'}];setMessages(init);try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(init))}catch{}}} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'🗑️ Temizle':'🗑️ Clear'}</button>
+          </div>
         </div>
       </div>
       <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
@@ -2650,22 +2667,40 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
         ))}
       </div>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0,background:'rgba(139,92,246,0.04)',borderRadius:'20px',boxShadow:'0 0 0 1px rgba(139,92,246,0.15), inset 0 1px 0 rgba(139,92,246,0.1), 0 4px 24px rgba(0,0,0,0.55)'}}>
-        <div style={{flex:1,overflowY:'auto',padding:'20px',display:'flex',flexDirection:'column',gap:'14px',minHeight:0}}>
+        <div onScroll={e=>{const el=e.currentTarget;setShowScrollBtn(el.scrollHeight-el.scrollTop-el.clientHeight>100)}} style={{flex:1,overflowY:'auto',padding:'20px',display:'flex',flexDirection:'column',gap:'14px',minHeight:0}}>
           {messages.map((m,i)=>(
-            <div key={i} style={{display:'flex',gap:'10px',flexDirection:m.role==='user'?'row-reverse':'row'}}>
-              <div style={{width:'30px',height:'30px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',flexShrink:0,background:m.role==='user'?`linear-gradient(135deg,${theme.accent},${theme.accent}88)`:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>{m.role==='user'?'👤':'🤖'}</div>
-              <div style={{maxWidth:'520px',padding:'11px 15px',fontSize:'13px',lineHeight:'1.65',color:'#f5f5f7',fontFamily:FONT,background:m.role==='user'?'linear-gradient(135deg,rgba(139,92,246,0.25),rgba(109,40,217,0.2))':'rgba(139,92,246,0.07)',border:m.role==='user'?'1px solid rgba(139,92,246,0.3)':'1px solid rgba(139,92,246,0.15)',borderRadius:m.role==='user'?'16px 16px 4px 16px':'16px 16px 16px 4px'}}>{m.text}</div>
+            <div key={i} style={{display:'flex',gap:'10px',flexDirection:m.role==='user'?'row-reverse':'row',position:'relative'}}
+              onMouseEnter={e=>e.currentTarget.querySelector('.copy-btn')&&(e.currentTarget.querySelector('.copy-btn').style.opacity='1')}
+              onMouseLeave={e=>e.currentTarget.querySelector('.copy-btn')&&(e.currentTarget.querySelector('.copy-btn').style.opacity='0')}>
+              <div style={{width:'32px',height:'32px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',flexShrink:0,background:m.role==='user'?'linear-gradient(135deg,#8b5cf6,#6d28d9)':'rgba(139,92,246,0.12)',border:m.role==='user'?'none':'1px solid rgba(139,92,246,0.2)',boxShadow:m.role==='user'?'0 4px 12px rgba(139,92,246,0.3)':'none'}}>{m.role==='user'?'👤':'🤖'}</div>
+              <div style={{maxWidth:'520px',position:'relative'}}>
+                <div style={{padding:'12px 16px',borderRadius:m.role==='user'?'16px 16px 4px 16px':'16px 16px 16px 4px',fontSize:'13px',lineHeight:'1.7',color:'#f5f5f7',background:m.role==='user'?'linear-gradient(135deg,rgba(139,92,246,0.25),rgba(109,40,217,0.2))':'rgba(139,92,246,0.07)',border:m.role==='user'?'1px solid rgba(139,92,246,0.3)':'1px solid rgba(139,92,246,0.15)',fontFamily:FONT}}>{m.text}</div>
+                <div style={{fontSize:'10px',color:'rgba(139,92,246,0.35)',marginTop:'4px',fontFamily:MONO,textAlign:m.role==='user'?'right':'left',letterSpacing:'0.5px'}}>{new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</div>
+                {m.role==='ai' && <button className="copy-btn" onClick={()=>{navigator.clipboard.writeText(m.text);setCopiedId(i);setTimeout(()=>setCopiedId(null),2000)}}
+                  style={{position:'absolute',top:'8px',right:'-36px',width:'28px',height:'28px',borderRadius:'8px',background:'rgba(139,92,246,0.15)',border:'1px solid rgba(139,92,246,0.25)',color:'#ddd6fe',fontSize:'12px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',opacity:0,transition:'opacity 0.15s',fontFamily:FONT}}>
+                  {copiedId===i?'✓':'⎘'}
+                </button>}
+              </div>
             </div>
           ))}
           {loading && (
             <div style={{display:'flex',gap:'10px'}}>
-              <div style={{width:'30px',height:'30px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',flexShrink:0,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>🤖</div>
-              <div style={{padding:'11px 15px',borderRadius:'14px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'5px',alignItems:'center'}}>
-                {[0,1,2].map(i=><div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:`${theme.accent}99`,animation:`pulse 1.2s infinite ${i*0.2}s`}}></div>)}
+              <div style={{width:'32px',height:'32px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',flexShrink:0,background:'rgba(139,92,246,0.12)',border:'1px solid rgba(139,92,246,0.2)'}}>🤖</div>
+              <div style={{padding:'12px 18px',borderRadius:'16px 16px 16px 4px',background:'rgba(139,92,246,0.07)',border:'1px solid rgba(139,92,246,0.15)',display:'flex',gap:'5px',alignItems:'center'}}>
+                {[0,1,2].map(i=><div key={i} style={{width:'7px',height:'7px',borderRadius:'50%',background:`rgba(139,92,246,${0.4+i*0.2})`,animation:`pulse 1.4s infinite ${i*0.2}s`}}></div>)}
               </div>
             </div>
           )}
+          <div ref={messagesEndRef}></div>
         </div>
+        {showScrollBtn && (
+          <div style={{display:'flex',justifyContent:'center',marginBottom:'8px'}}>
+            <button onClick={()=>messagesEndRef.current?.scrollIntoView({behavior:'smooth'})}
+              style={{padding:'6px 16px',borderRadius:'100px',background:'rgba(139,92,246,0.2)',border:'1px solid rgba(139,92,246,0.35)',color:'#ddd6fe',fontSize:'12px',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'6px'}}>
+              ↓ En alta git
+            </button>
+          </div>
+        )}
         <div style={{padding:'14px 20px',borderTop:'1px solid rgba(139,92,246,0.15)',display:'flex',gap:'10px',alignItems:'center'}}>
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder={lang==='tr'?'Finanslarınız hakkında her şeyi sorun...':'Ask anything about your finances...'}
             style={{flex:1,padding:'13px 18px',borderRadius:'14px',background:'rgba(139,92,246,0.06)',border:'1px solid rgba(139,92,246,0.2)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,transition:'border 0.18s, box-shadow 0.18s'}}
