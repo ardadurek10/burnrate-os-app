@@ -1015,7 +1015,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
-            <InputField label={lang==='tr'?'Hizmet Adı':'Service Name'} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={lang==='tr'?'Shopify, Claude Pro...':'Shopify, Claude Pro...'} />
+            <InputField label={lang==='tr'?'Hizmet Adı':'Service Name'} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={lang==='tr'?'Netflix, Spotify, ChatGPT...':'Netflix, Spotify, ChatGPT...'} />
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'8px'}}>{lang==='tr'?'Fatura Dönemi':'Billing Period'}</div><div style={{display:'flex',background:'rgba(255,255,255,0.04)',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.09)',overflow:'hidden'}}>{['monthly','yearly'].map(p=>(<button key={p} onClick={()=>setForm({...form,billing_period:p})} style={{flex:1,padding:'10px',fontSize:'13px',fontFamily:FONT,fontWeight:form.billing_period===p?600:400,color:form.billing_period===p?'#fff':'rgba(255,255,255,0.35)',background:form.billing_period===p?'rgba(239,68,68,0.4)':'transparent',border:'none',cursor:'pointer',transition:'all 0.2s'}}>{p==='monthly'?(lang==='tr'?'📅 Aylık':'📅 Monthly'):(lang==='tr'?'📆 Yıllık (÷12)':'📆 Yearly (÷12)')}</button>))}</div>{form.billing_period==='yearly'&&form.cost&&<div style={{marginTop:'6px',fontSize:'11px',color:'rgba(245,158,11,0.8)',fontFamily:FONT}}>≈ ₺{(parseFloat(form.cost)/12).toFixed(2)}/{lang==='tr'?'ay':'mo'}</div>}</div>
             <div>
               <div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>
@@ -1024,7 +1024,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
               <div style={{position:'relative'}}>
                 <span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span>
                 <input type="number" min="0" step="0.01" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})}
-                  placeholder={form.billing_period==='yearly'?"349.00":"29.00"}
+                  placeholder="0.00"
                   style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:MONO}} />
               </div>
               {form.billing_period==='yearly'&&form.cost&&(
@@ -1179,7 +1179,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
       {adding&&(
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
-            <InputField label={(lang==='tr')?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Kına gecesi masrafı..." />
+            <InputField label={(lang==='tr')?'Açıklama':'Description'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder={lang==='tr'?'Akaryakıt, market, restoran...':'Fuel, groceries, restaurant...'} />
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Miktar (₺)':'Amount (₺)'}</div><div style={{position:'relative'}}><span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span><input type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00" style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:MONO}} /></div></div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{(lang==='tr')?'Tarih':'Date'}</div><input type="date" value={form.expense_date} onChange={e=>setForm({...form,expense_date:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
             <div style={{position:'relative'}}>
@@ -1534,7 +1534,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
               <div style={{marginBottom:'14px'}}>
                 <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Hisse / Kripto Ara':'Search Stock or Crypto'}</div>
                 <div style={{position:'relative'}}>
-                  <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'Apple, Bitcoin, THYAO.IS...':'Apple, Bitcoin, Tesla...'}
+                  <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'AAPL, THYAO, BTC, ETH...':'AAPL, THYAO, BTC, ETH...'}
                     style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
                   {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Aranıyor...':'Fiyat alınıyor...'}</div>}
                   {searchResults.length > 0 && (
@@ -1559,8 +1559,8 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                   <div><div style={{...TIP,marginBottom:'6px'}}>Sembol</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:theme.text,fontSize:'13px',fontWeight:700,...VAL}}>{form.symbol}</div></div>
                   <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Canlı Fiyat (₺)':'Live Price (₺)'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:fetchingPrice?'rgba(255,255,255,0.02)':'rgba(16,185,129,0.08)',border:`1px solid ${fetchingPrice?'rgba(255,255,255,0.09)':'rgba(16,185,129,0.2)'}`,color:'#6ee7b7',fontSize:'13px',fontWeight:700,...VAL}}>{fetchingPrice?'Yükleniyor...':form.currentPrice?`₺${form.currentPrice}`:'—'}</div></div>
                   <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tür':'Type'}</div><div style={{padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontFamily:FONT}}>{form.type}</div></div>
-                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Adet / Lot':'Shares'}</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="10" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
-                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Alış Fiyatı (₺)':'Buy Price (₺)'}</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="150.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Adet / Lot':'Shares'}</div><input type="number" value={form.shares} onChange={e=>setForm({...form,shares:e.target.value})} placeholder="1" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
+                  <div><div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Alış Fiyatı (₺)':'Buy Price (₺)'}</div><input type="number" value={form.buyPrice} onChange={e=>setForm({...form,buyPrice:e.target.value})} placeholder="0.00" style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} /></div>
                 </div>
               )}
               <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
@@ -3437,7 +3437,7 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
               <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tutar (₺) *':'Amount (₺) *'}</div>
               <div style={{position:'relative'}}>
                 <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontFamily:MONO}}>₺</span>
-                <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="1000"
+                <input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00"
                   style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:MONO,boxSizing:'border-box'}} />
               </div>
             </div>
@@ -3468,7 +3468,7 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
           <div style={{marginBottom:'14px'}}>
             <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Ne Borcu?':'Description'}</div>
             <input value={form.description} onChange={e=>setForm({...form,description:e.target.value})}
-              placeholder={lang==='tr'?'Kira, araba tamiri, iş ödemesi...':'Rent, car repair, business payment...'}
+              placeholder={lang==='tr'?'Konut kredisi, taşıt kredisi...':'Mortgage, car loan, credit card...'}
               style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}} />
           </div>
           <div style={{marginBottom:'20px'}}>
