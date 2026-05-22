@@ -1312,6 +1312,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [fetchingPrice, setFetchingPrice] = useState(false)
+  const searchRef = React.useRef(null)
   const [selectedStock, setSelectedStock] = useState(null)
   const [chartData, setChartData] = useState([])
   const [chartPeriod, setChartPeriod] = useState('1m')
@@ -1532,15 +1533,15 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
             <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
               <div style={{marginBottom:'14px'}}>
                 <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Hisse / Kripto Ara':'Search Stock or Crypto'}</div>
-                <div style={{position:'relative'}}>
+                <div ref={searchRef} style={{position:'relative'}}>
                   <input value={searchQuery} onChange={e=>searchStocks(e.target.value)} placeholder={lang==='tr'?'AAPL, THYAO, BTC, ETH...':'AAPL, THYAO, BTC, ETH...'}
                     style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
                   {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Aranıyor...':'Fiyat alınıyor...'}</div>}
                   {searchResults.length > 0 && (
-                    <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
+                    <div style={{position:'fixed',top:searchRef.current?searchRef.current.getBoundingClientRect().bottom+4:0,left:searchRef.current?searchRef.current.getBoundingClientRect().left:0,width:searchRef.current?searchRef.current.getBoundingClientRect().width:'100%',background:'#0a0414',border:'1px solid rgba(16,185,129,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:9999,boxShadow:'0 8px 32px rgba(0,0,0,0.6)'}}>
                       {searchResults.map((s,i) => (
                         <div key={i} onClick={()=>selectStock(s)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
-                          onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
+                          onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
                           onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                           <div>
                             <div style={{color:'#f5f5f7',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{s.symbol}</div>
