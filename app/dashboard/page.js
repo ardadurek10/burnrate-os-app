@@ -2642,15 +2642,19 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
       </div>
       <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
         {suggestions.map((s,i)=>(
-          <button key={i} onClick={()=>send(s)} style={{fontSize:'12px',padding:'6px 14px',borderRadius:'100px',background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT,fontWeight:500}}>{s}</button>
+          <button key={i} onClick={()=>send(s)}
+            style={{fontSize:'12px',padding:'8px 16px',borderRadius:'100px',background:'rgba(139,92,246,0.08)',color:'#ddd6fe',border:'1px solid rgba(139,92,246,0.25)',cursor:'pointer',fontFamily:FONT,fontWeight:500,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)'}}
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.background='rgba(139,92,246,0.18)';e.currentTarget.style.boxShadow='0 6px 20px rgba(139,92,246,0.2)'}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.background='rgba(139,92,246,0.08)';e.currentTarget.style.boxShadow=''}}
+          >{s}</button>
         ))}
       </div>
-      <Card accent={theme.accent} style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0,background:'rgba(139,92,246,0.04)',borderRadius:'20px',boxShadow:'0 0 0 1px rgba(139,92,246,0.15), inset 0 1px 0 rgba(139,92,246,0.1), 0 4px 24px rgba(0,0,0,0.55)'}}>
         <div style={{flex:1,overflowY:'auto',padding:'20px',display:'flex',flexDirection:'column',gap:'14px',minHeight:0}}>
           {messages.map((m,i)=>(
             <div key={i} style={{display:'flex',gap:'10px',flexDirection:m.role==='user'?'row-reverse':'row'}}>
               <div style={{width:'30px',height:'30px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',flexShrink:0,background:m.role==='user'?`linear-gradient(135deg,${theme.accent},${theme.accent}88)`:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>{m.role==='user'?'👤':'🤖'}</div>
-              <div style={{maxWidth:'520px',padding:'11px 15px',borderRadius:'14px',fontSize:'13px',lineHeight:'1.65',color:'#f5f5f7',background:m.role==='user'?theme.bg:'rgba(255,255,255,0.03)',border:m.role==='user'?`1px solid ${theme.border}`:'1px solid rgba(255,255,255,0.06)',fontFamily:FONT}}>{m.text}</div>
+              <div style={{maxWidth:'520px',padding:'11px 15px',fontSize:'13px',lineHeight:'1.65',color:'#f5f5f7',fontFamily:FONT,background:m.role==='user'?'linear-gradient(135deg,rgba(139,92,246,0.25),rgba(109,40,217,0.2))':'rgba(139,92,246,0.07)',border:m.role==='user'?'1px solid rgba(139,92,246,0.3)':'1px solid rgba(139,92,246,0.15)',borderRadius:m.role==='user'?'16px 16px 4px 16px':'16px 16px 16px 4px'}}>{m.text}</div>
             </div>
           ))}
           {loading && (
@@ -2662,13 +2666,17 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
             </div>
           )}
         </div>
-        <div style={{padding:'14px 20px',borderTop:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'10px',alignItems:'center'}}>
+        <div style={{padding:'14px 20px',borderTop:'1px solid rgba(139,92,246,0.15)',display:'flex',gap:'10px',alignItems:'center'}}>
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder={lang==='tr'?'Finanslarınız hakkında her şeyi sorun...':'Ask anything about your finances...'}
-            style={{flex:1,padding:'11px 15px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT}} />
+            style={{flex:1,padding:'13px 18px',borderRadius:'14px',background:'rgba(139,92,246,0.06)',border:'1px solid rgba(139,92,246,0.2)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,transition:'border 0.18s, box-shadow 0.18s'}}
+            onFocus={e=>{e.currentTarget.style.border='1px solid rgba(139,92,246,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(139,92,246,0.1)'}}
+            onBlur={e=>{e.currentTarget.style.border='1px solid rgba(139,92,246,0.2)';e.currentTarget.style.boxShadow=''}} />
           <button onClick={()=>send()} disabled={loading||!input.trim()}
-            style={{width:'42px',height:'42px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0}}>↑</button>
+            style={{width:'44px',height:'44px',borderRadius:'13px',background:'linear-gradient(135deg,#8b5cf6,#6d28d9)',color:'#fff',border:'none',cursor:'pointer',fontSize:'16px',opacity:loading||!input.trim()?0.4:1,flexShrink:0,boxShadow:'0 4px 16px rgba(139,92,246,0.4)',transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)'}}
+            onMouseEnter={e=>{if(!loading&&input.trim()){e.currentTarget.style.transform='translateY(-2px) scale(1.05)';e.currentTarget.style.boxShadow='0 8px 24px rgba(139,92,246,0.5)'}}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 16px rgba(139,92,246,0.4)'}}>↑</button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
