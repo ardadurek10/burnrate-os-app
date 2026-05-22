@@ -1945,6 +1945,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
+  const [sourceOpen, setSourceOpen] = useState(false)
 
   async function addIncome() {
     if (!form.source||!form.amount) return
@@ -1975,7 +1976,37 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
-            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><select value={form.source} onChange={e=>setForm({...form,source:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(30,30,50,0.9)',border:'1px solid rgba(255,255,255,0.09)',color:form.source?'#f5f5f7':'rgba(255,255,255,0.3)',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,cursor:'pointer',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.3)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 14px center'}}><option value="" disabled>{lang==='tr'?'Kaynak seçin...':'Select source...'}</option><option value={lang==='tr'?'Maaş':'Salary'}>{lang==='tr'?'💼 Maaş':'💼 Salary'}</option><option value={lang==='tr'?'Freelance':'Freelance'}>{lang==='tr'?'💻 Freelance':'💻 Freelance'}</option><option value={lang==='tr'?'Ürün Satışı':'Product Sale'}>{lang==='tr'?'📦 Ürün Satışı':'📦 Product Sale'}</option><option value={lang==='tr'?'Kira Geliri':'Rental Income'}>{lang==='tr'?'🏠 Kira Geliri':'🏠 Rental Income'}</option><option value={lang==='tr'?'Yatırım Getirisi':'Investment Return'}>{lang==='tr'?'📈 Yatırım Getirisi':'📈 Investment Return'}</option><option value={lang==='tr'?'Temettü':'Dividend'}>{lang==='tr'?'💰 Temettü':'💰 Dividend'}</option><option value={lang==='tr'?'Proje Ödemesi':'Project Payment'}>{lang==='tr'?'🎯 Proje Ödemesi':'🎯 Project Payment'}</option><option value={lang==='tr'?'İkramiye':'Bonus'}>{lang==='tr'?'🎁 İkramiye':'🎁 Bonus'}</option><option value={lang==='tr'?'Diğer':'Other'}>{lang==='tr'?'📌 Diğer':'📌 Other'}</option></select></div>
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><div style={{position:'relative'}}>
+  <div onClick={()=>setSourceOpen(!sourceOpen)}
+    style={{padding:'11px 16px',borderRadius:'12px',background:'rgba(6,182,212,0.06)',border:`1px solid ${sourceOpen?'rgba(6,182,212,0.5)':'rgba(6,182,212,0.2)'}`,color:form.source?'#f5f5f7':'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',fontFamily:FONT,transition:'border 0.18s',boxShadow:sourceOpen?'0 0 0 3px rgba(6,182,212,0.1)':'none'}}>
+    <span>{form.source||'Kaynak seçin...'}</span>
+    <span style={{fontSize:'10px',color:'rgba(6,182,212,0.5)',transform:sourceOpen?'rotate(180deg)':'',transition:'transform 0.2s'}}>▼</span>
+  </div>
+  {sourceOpen && (
+    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0a0414',border:'1px solid rgba(6,182,212,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(6,182,212,0.1)'}}>
+      {[
+        {icon:'💰',label:'Maaş'},
+        {icon:'💻',label:'Freelance'},
+        {icon:'🛍️',label:'Ürün Satışı'},
+        {icon:'🏠',label:'Kira Geliri'},
+        {icon:'📈',label:'Yatırım Getirisi'},
+        {icon:'💎',label:'Temettü'},
+        {icon:'🤝',label:'Proje Ödemesi'},
+        {icon:'🎁',label:'İkramiye'},
+        {icon:'✨',label:'Diğer'},
+      ].map((opt,i)=>(
+        <div key={i} onClick={()=>{setForm({...form,source:opt.label});setSourceOpen(false)}}
+          onMouseEnter={e=>e.currentTarget.style.background='rgba(6,182,212,0.1)'}
+          onMouseLeave={e=>e.currentTarget.style.background=form.source===opt.label?'rgba(6,182,212,0.12)':'transparent'}
+          style={{padding:'11px 16px',display:'flex',alignItems:'center',gap:'10px',cursor:'pointer',background:form.source===opt.label?'rgba(6,182,212,0.12)':'transparent',borderBottom:i<8?'1px solid rgba(255,255,255,0.04)':'none',transition:'background 0.12s'}}>
+          <span style={{fontSize:'16px'}}>{opt.icon}</span>
+          <span style={{color:form.source===opt.label?'#67e8f9':'rgba(255,255,255,0.7)',fontSize:'13px',fontFamily:FONT,fontWeight:form.source===opt.label?600:400}}>{opt.label}</span>
+          {form.source===opt.label && <span style={{marginLeft:'auto',color:'#67e8f9',fontSize:'12px'}}>✓</span>}
+        </div>
+      ))}
+    </div>
+  )}
+</div></div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Miktar (₺)':'Amount (₺)'}</div><div style={{position:'relative'}}><span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:MONO}}>₺</span><input type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="0.00" style={{width:'100%',padding:'10px 14px 10px 28px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:MONO}} /></div></div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Tarih':'Date'}</div><input type="date" value={form.income_date} onChange={e=>setForm({...form,income_date:e.target.value})} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
           </div>
