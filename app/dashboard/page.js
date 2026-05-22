@@ -1031,7 +1031,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
               )}
             </div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Son Kullanım Tarihi':'Last Used Date'}</div><input type="date" value={form.last_used_date||new Date().toISOString().split('T')[0]} onChange={e=>{const days=Math.floor((new Date()-new Date(e.target.value))/(1000*60*60*24));setForm({...form,last_used_date:e.target.value,days_since_used:days<0?0:days})}} max={new Date().toISOString().split('T')[0]} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
-            <div style={{position:'relative'}}>
+            <div style={{position:'relative',zIndex:50}}>
               <div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
               <div onClick={()=>{setSubCatSearch('');setSubCatOpen(true)}}
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:`1px solid ${subCatOpen?'rgba(239,68,68,0.4)':'rgba(255,255,255,0.09)'}`,color:'#f5f5f7',fontSize:'13px',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'8px',justifyContent:'space-between',transition:'border 0.2s'}}>
@@ -1039,7 +1039,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                 <span style={{color:'rgba(255,255,255,0.3)',fontSize:'10px'}}>{subCatOpen?'▲':'▼'}</span>
               </div>
               {subCatOpen&&(
-                <div style={{position:'absolute',top:'100%',left:0,right:0,marginTop:'4px',background:'#13131f',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',overflow:'hidden',zIndex:300,boxShadow:'0 12px 40px rgba(0,0,0,0.7)',maxHeight:'200px',overflowY:'auto',scrollbarWidth:'none'}}>
+                <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:100,background:'#0a0414',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'14px',marginTop:'4px',maxHeight:'220px',overflowY:'auto',scrollbarWidth:'none',boxShadow:'0 8px 32px rgba(0,0,0,0.7)'}}>
                   <div style={{padding:'8px 10px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                     <input autoFocus value={subCatSearch} onChange={e=>setSubCatSearch(e.target.value)}
                       placeholder={(lang==='tr')?'Ara...':'Search...'}
