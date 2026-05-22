@@ -754,7 +754,7 @@ return (
 
 
 // ── SHARED ────────────────────────────────────────────────────────
-function Card({ children, style={}, accent=null }) {
+function Card({ children, style={}, accent=null, noOverflow=false }) {
   const rgb = accent ? hexToRgb(accent) : '124,58,237'
   return (
     <div
@@ -764,7 +764,7 @@ function Card({ children, style={}, accent=null }) {
         background:`rgba(${rgb},0.07)`,
         borderRadius:'20px',
         position:'relative',
-        overflow:'hidden',
+        overflow: noOverflow ? 'visible' : 'hidden',
         boxShadow:`0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`,
         transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
         animation:'fadeIn 0.3s ease',
@@ -1974,7 +1974,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
         </div>
       </Card>
       {adding && (
-        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px',overflow:'visible'}}>
+        <Card accent={theme.accent} noOverflow style={{padding:'22px',marginBottom:'18px'}}>
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px',overflow:'visible'}}>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><div style={{position:'relative',overflow:'visible'}}>
   <div onClick={()=>setSourceOpen(!sourceOpen)}
