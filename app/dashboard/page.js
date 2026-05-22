@@ -1192,7 +1192,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
                 style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}}
               />
               {catOpen&&(
-                <div style={{background:'#0a0414',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'14px',overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.4)',marginTop:'6px'}}>
+                <div style={{background:'#0a0414',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'14px',marginTop:'6px',boxShadow:'0 4px 20px rgba(0,0,0,0.5)',maxHeight:'280px',overflowY:'auto',scrollbarWidth:'none',msOverflowStyle:'none'}}>
                   {filtCats.map((cat,i)=>(
                     <div key={i}
                       onMouseDown={()=>{setForm({...form,category:cat.v});setCatSearch('');setCatOpen(false)}}
