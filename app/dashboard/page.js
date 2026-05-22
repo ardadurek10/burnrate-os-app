@@ -1975,7 +1975,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
       </Card>
       {adding && (
         <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
-          <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px'}}>
+          <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px',overflow:'visible'}}>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><div style={{position:'relative'}}>
   <div onClick={()=>setSourceOpen(!sourceOpen)}
     style={{padding:'11px 16px',borderRadius:'12px',background:'rgba(6,182,212,0.06)',border:`1px solid ${sourceOpen?'rgba(6,182,212,0.5)':'rgba(6,182,212,0.2)'}`,color:form.source?'#f5f5f7':'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',fontFamily:FONT,transition:'border 0.18s',boxShadow:sourceOpen?'0 0 0 3px rgba(6,182,212,0.1)':'none'}}>
@@ -1983,7 +1983,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
     <span style={{fontSize:'10px',color:'rgba(6,182,212,0.5)',transform:sourceOpen?'rotate(180deg)':'',transition:'transform 0.2s'}}>▼</span>
   </div>
   {sourceOpen && (
-    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0a0414',border:'1px solid rgba(6,182,212,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(6,182,212,0.1)',maxHeight:'none',overflowY:'visible'}}>
+    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0a0414',border:'1px solid rgba(6,182,212,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:9999,boxShadow:'0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(6,182,212,0.1)',maxHeight:'none',overflowY:'visible'}}>
       {[
         {icon:'💰',label:'Maaş'},
         {icon:'💻',label:'Freelance'},
