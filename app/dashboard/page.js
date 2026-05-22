@@ -1974,9 +1974,9 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
         </div>
       </Card>
       {adding && (
-        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
+        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px',overflow:'visible'}}>
           <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'14px',overflow:'visible'}}>
-            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><div style={{position:'relative'}}>
+            <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Kaynak':'Source'}</div><div style={{position:'relative',overflow:'visible'}}>
   <div onClick={()=>setSourceOpen(!sourceOpen)}
     style={{padding:'11px 16px',borderRadius:'12px',background:'rgba(6,182,212,0.06)',border:`1px solid ${sourceOpen?'rgba(6,182,212,0.5)':'rgba(6,182,212,0.2)'}`,color:form.source?'#f5f5f7':'rgba(255,255,255,0.3)',fontSize:'13px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',fontFamily:FONT,transition:'border 0.18s',boxShadow:sourceOpen?'0 0 0 3px rgba(6,182,212,0.1)':'none'}}>
     <span>{form.source||'Kaynak seçin...'}</span>
