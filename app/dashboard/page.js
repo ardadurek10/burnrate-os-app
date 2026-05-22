@@ -1032,38 +1032,24 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
               )}
             </div>
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'6px'}}>{lang==='tr'?'Son Kullanım Tarihi':'Last Used Date'}</div><input type="date" value={form.last_used_date||new Date().toISOString().split('T')[0]} onChange={e=>{const days=Math.floor((new Date()-new Date(e.target.value))/(1000*60*60*24));setForm({...form,last_used_date:e.target.value,days_since_used:days<0?0:days})}} max={new Date().toISOString().split('T')[0]} style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',boxSizing:'border-box',fontFamily:FONT,colorScheme:'dark'}} /></div>
-            <div style={{position:'relative',zIndex:50}}>
+            <div>
               <div style={{...TIP,marginBottom:'6px'}}>{(lang==='tr')?'Kategori':'Category'}</div>
-              <div onClick={()=>{setSubCatSearch('');setSubCatOpen(true)}}
-                style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:`1px solid ${subCatOpen?'rgba(239,68,68,0.4)':'rgba(255,255,255,0.09)'}`,color:'#f5f5f7',fontSize:'13px',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'8px',justifyContent:'space-between',transition:'border 0.2s'}}>
-                <span>{SUB_CATS.find(c=>c.v===form.category)?.icon} {getSubCatLabel(form.category)}</span>
-                <span style={{color:'rgba(255,255,255,0.3)',fontSize:'10px'}}>{subCatOpen?'▲':'▼'}</span>
-              </div>
-              {subCatOpen&&(
-                <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:100,background:'#0a0414',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'14px',marginTop:'4px',maxHeight:'220px',overflowY:'auto',scrollbarWidth:'none',boxShadow:'0 8px 32px rgba(0,0,0,0.7)'}}>
-                  <div style={{padding:'8px 10px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                    <input autoFocus value={subCatSearch} onChange={e=>setSubCatSearch(e.target.value)}
-                      placeholder={(lang==='tr')?'Ara...':'Search...'}
-                      style={{width:'100%',padding:'7px 10px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',color:'#f5f5f7',fontSize:'12px',outline:'none',fontFamily:FONT,boxSizing:'border-box'}}
-                    />
-                  </div>
-                  {filtSubCats.map((cat,i)=>(
-                    <div key={i}
-                      onMouseDown={()=>{setForm({...form,category:cat.v});setSubCatSearch('');setSubCatOpen(false)}}
-                      style={{padding:'10px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',gap:'10px',background:form.category===cat.v?'rgba(239,68,68,0.08)':'transparent'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}
-                      onMouseLeave={e=>e.currentTarget.style.background=form.category===cat.v?'rgba(239,68,68,0.08)':'transparent'}>
-                      <span style={{fontSize:'16px'}}>{cat.icon}</span>
-                      <div style={{flex:1}}>
-                        <div style={{color:'#f5f5f7',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?cat.tr:cat.en}</div>
-                        <div style={{color:'rgba(255,255,255,0.28)',fontSize:'10px',fontFamily:MONO}}>{(lang==='tr')?cat.g_tr:cat.g_en}</div>
-                      </div>
-                      {form.category===cat.v&&<span style={{color:'#ef4444',fontSize:'12px'}}>✓</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {subCatOpen&&<div style={{position:'fixed',inset:0,zIndex:299}} onClick={()=>setSubCatOpen(false)}/>}
+              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+                style={{width:'100%',padding:'11px 16px',borderRadius:'12px',background:'#0d0820',border:'1px solid rgba(239,68,68,0.2)',color:form.category?'#f5f5f7':'rgba(255,255,255,0.35)',fontSize:'13px',cursor:'pointer',fontFamily:FONT,outline:'none',appearance:'none',WebkitAppearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ef4444' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 14px center',boxSizing:'border-box'}}>
+                <option value="">Kategori seçin...</option>
+                <option value="saas">⚙️ SaaS / Araçlar</option>
+                <option value="ai">🤖 Yapay Zeka</option>
+                <option value="marketing">📣 Pazarlama</option>
+                <option value="streaming">🎬 Eğlence</option>
+                <option value="music">🎵 Müzik</option>
+                <option value="gaming">🎮 Oyun</option>
+                <option value="education">📚 Eğitim</option>
+                <option value="fitness">💊 Sağlık</option>
+                <option value="finance">💳 Finans</option>
+                <option value="storage">☁️ Bulut Depolama</option>
+                <option value="dev">💻 Geliştirme</option>
+                <option value="other_sub">✨ Diğer</option>
+              </select>
             </div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:'10px'}}>
