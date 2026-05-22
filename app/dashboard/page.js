@@ -764,6 +764,7 @@ function Card({ children, style={}, accent=null, noOverflow=false }) {
         background:`rgba(${rgb},0.07)`,
         borderRadius:'20px',
         position:'relative',
+        overflow:'hidden',
         boxShadow:`0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`,
         transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
         animation:'fadeIn 0.3s ease',
@@ -1012,8 +1013,8 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
         <StatCard accent={theme.accent} label={lang==='tr'?'Tutmaya Değer':'Worth Keeping'} value={subs.filter(s=>s.status==='keep').length} color="#6ee7b7" icon="✅" />
       </div>
       {adding && (
-        <Card accent={theme.accent} style={{padding:'22px',marginBottom:'18px'}}>
-          <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px'}}>
+        <div style={{background:`rgba(239,68,68,0.038)`,borderRadius:'20px',position:'relative',boxShadow:`0 0 0 1px rgba(239,68,68,0.15), inset 0 1px 0 rgba(239,68,68,0.12), 0 4px 24px rgba(0,0,0,0.55)`,padding:'22px',marginBottom:'18px'}}>
+          <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'14px',overflow:'visible'}}>
             <InputField label={lang==='tr'?'Hizmet Adı':'Service Name'} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={lang==='tr'?'Netflix, Spotify, ChatGPT...':'Netflix, Spotify, ChatGPT...'} />
             <div><div style={{fontFamily:MONO,fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:'8px'}}>{lang==='tr'?'Fatura Dönemi':'Billing Period'}</div><div style={{display:'flex',background:'rgba(255,255,255,0.04)',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.09)',overflow:'hidden'}}>{['monthly','yearly'].map(p=>(<button key={p} onClick={()=>setForm({...form,billing_period:p})} style={{flex:1,padding:'10px',fontSize:'13px',fontFamily:FONT,fontWeight:form.billing_period===p?600:400,color:form.billing_period===p?'#fff':'rgba(255,255,255,0.35)',background:form.billing_period===p?'rgba(239,68,68,0.4)':'transparent',border:'none',cursor:'pointer',transition:'all 0.2s'}}>{p==='monthly'?(lang==='tr'?'📅 Aylık':'📅 Monthly'):(lang==='tr'?'📆 Yıllık (÷12)':'📆 Yearly (÷12)')}</button>))}</div>{form.billing_period==='yearly'&&form.cost&&<div style={{marginTop:'6px',fontSize:'11px',color:'rgba(245,158,11,0.8)',fontFamily:FONT}}>≈ ₺{(parseFloat(form.cost)/12).toFixed(2)}/{lang==='tr'?'ay':'mo'}</div>}</div>
             <div>
@@ -1069,7 +1070,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
             <button onClick={()=>setAdding(false)} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
             <button onClick={addSub} style={{padding:'9px 18px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
           </div>
-        </Card>
+        </div>
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
