@@ -3110,45 +3110,75 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
         const sr=totalInc>0?Math.round(((totalInc-totalExp-totalSub)/totalInc)*100):0
         const now=new Date()
         const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>BurnRate OS — Finansal Rapor</title><style>
-          *{margin:0;padding:0;box-sizing:border-box}
-          body{font-family:'Segoe UI',sans-serif;background:#0a0a0f;color:#f1f0ff;padding:40px}
-          .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid rgba(124,58,237,0.3)}
-          .logo{font-size:24px;font-weight:800;color:#c4b5fd}
-          .date{font-size:12px;color:rgba(255,255,255,0.4);font-family:monospace}
-          .section{margin-bottom:32px}
-          .section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(124,58,237,0.6);margin-bottom:16px;font-family:monospace}
-          .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
-          .summary-card{background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:16px}
-          .summary-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px;font-family:monospace}
-          .summary-val{font-size:22px;font-weight:700;letter-spacing:-0.5px}
-          table{width:100%;border-collapse:collapse;margin-top:8px}
-          th{text-align:left;padding:8px 12px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);font-family:monospace;border-bottom:1px solid rgba(255,255,255,0.08)}
-          td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.8)}
-          tr:hover td{background:rgba(124,58,237,0.04)}
-          .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:16px}
-          .green{color:#6ee7b7}.red{color:#fca5a5}.yellow{color:#fde68a}.purple{color:#c4b5fd}
-          .badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-family:monospace}
-          .badge-g{background:rgba(16,185,129,0.15);color:#6ee7b7}
-          .badge-r{background:rgba(239,68,68,0.15);color:#fca5a5}
-          .badge-y{background:rgba(245,158,11,0.15);color:#fde68a}
-          .footer{margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;font-size:11px;color:rgba(255,255,255,0.2);font-family:monospace}
-        </style></head><body>
-          <div class="header">
-            <div class="logo">⚡ BurnRate OS</div>
-            <div class="date">${now.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'})} — ${dbUser?.name||user.email}</div>
-          </div>
-          <div class="summary-grid">
-            <div class="summary-card"><div class="summary-label">Toplam Gelir</div><div class="summary-val green">₺${totalInc.toLocaleString('tr-TR')}</div></div>
-            <div class="summary-card"><div class="summary-label">Toplam Gider</div><div class="summary-val red">₺${totalExp.toLocaleString('tr-TR')}</div></div>
-            <div class="summary-card"><div class="summary-label">Net Bakiye</div><div class="summary-val ${netBal>=0?'green':'red'}">${netBal>=0?'+':''}₺${netBal.toLocaleString('tr-TR')}</div></div>
-            <div class="summary-card"><div class="summary-label">Tasarruf Oranı</div><div class="summary-val ${sr>=30?'green':sr>=15?'yellow':'red'}">%${sr}</div></div>
-          </div>
-          <div class="section"><div class="section-title">💸 Harcamalar (${exp.length} kayıt)</div><div class="card"><table><thead><tr><th>Açıklama</th><th>Miktar</th><th>Kategori</th><th>Tarih</th></tr></thead><tbody>${exp.map(e=>`<tr><td>${e.description||'—'}</td><td class="red">-₺${Number(e.amount).toLocaleString('tr-TR')}</td><td>${e.category||'—'}</td><td>${e.expense_date||'—'}</td></tr>`).join('')}</tbody></table></div></div>
-          <div class="section"><div class="section-title">💰 Gelirler (${inc.length} kayıt)</div><div class="card"><table><thead><tr><th>Kaynak</th><th>Miktar</th><th>Tarih</th></tr></thead><tbody>${inc.map(i=>`<tr><td>${i.source||'—'}</td><td class="green">+₺${Number(i.amount).toLocaleString('tr-TR')}</td><td>${i.income_date||'—'}</td></tr>`).join('')}</tbody></table></div></div>
-          <div class="section"><div class="section-title">⚔️ Abonelikler (${sub.length} kayıt)</div><div class="card"><table><thead><tr><th>Hizmet</th><th>Aylık Maliyet</th><th>Kategori</th><th>Durum</th></tr></thead><tbody>${sub.map(s=>`<tr><td>${s.name||'—'}</td><td>₺${Number(s.cost).toLocaleString('tr-TR')}</td><td>${s.category||'—'}</td><td><span class="badge ${s.status==='dead'?'badge-r':s.status==='warn'?'badge-y':'badge-g'}">${s.status==='dead'?'ÖLÜ':s.status==='warn'?'UYARI':'TUTUN'}</span></td></tr>`).join('')}</tbody></table></div></div>
-          <div class="section"><div class="section-title">📈 Yatırımlar (${inv.length} kayıt)</div><div class="card"><table><thead><tr><th>Sembol</th><th>İsim</th><th>Adet</th><th>Alış Fiyatı</th><th>Toplam Maliyet</th></tr></thead><tbody>${inv.map(i=>`<tr><td class="purple">${i.symbol||'—'}</td><td>${i.name||'—'}</td><td>${i.shares||0}</td><td>₺${Number(i.buy_price).toLocaleString('tr-TR')}</td><td>₺${(Number(i.shares)*Number(i.buy_price)).toLocaleString('tr-TR')}</td></tr>`).join('')}</tbody></table></div></div>
-          <div class="footer">BurnRate OS — Finansal Rapor · ${now.toLocaleDateString('tr-TR')} · app.burnrate-os.com</div>
-        </body></html>`
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',sans-serif;background:#ffffff;color:#1a1a2e;padding:40px;max-width:900px;margin:0 auto}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid #7c3aed}
+  .logo{font-size:22px;font-weight:800;color:#7c3aed;letter-spacing:-0.5px}
+  .logo span{color:#1a1a2e}
+  .date{font-size:12px;color:#888;font-family:monospace}
+  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+  .summary-card{border-radius:12px;padding:16px;border:1px solid #e5e7eb}
+  .summary-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:monospace}
+  .summary-val{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+  .section{margin-bottom:28px}
+  .section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7c3aed;margin-bottom:12px;font-family:monospace;font-weight:600}
+  .card{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;font-family:monospace;background:#f9fafb;border-bottom:1px solid #e5e7eb}
+  td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f3f4f6;color:#374151}
+  tr:last-child td{border-bottom:none}
+  tr:nth-child(even) td{background:#fafafa}
+  .green{color:#059669;font-weight:600}
+  .red{color:#dc2626;font-weight:600}
+  .yellow{color:#d97706;font-weight:600}
+  .purple{color:#7c3aed;font-weight:600}
+  .badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:10px;font-family:monospace;font-weight:600}
+  .badge-g{background:#d1fae5;color:#059669}
+  .badge-r{background:#fee2e2;color:#dc2626}
+  .badge-y{background:#fef3c7;color:#d97706}
+  .divider{height:1px;background:#e5e7eb;margin:24px 0}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#aaa;font-family:monospace}
+  @media print{body{padding:20px}button{display:none}}
+</style></head><body>
+  <div class="header">
+    <div class="logo">⚡ BurnRate <span>OS</span></div>
+    <div class="date">
+      <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:2px">${dbUser?.name||user.email}</div>
+      ${now.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'})}
+    </div>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card" style="border-color:#d1fae5;background:#f0fdf4"><div class="summary-label">Toplam Gelir</div><div class="summary-val green">₺${totalInc.toLocaleString('tr-TR')}</div></div>
+    <div class="summary-card" style="border-color:#fee2e2;background:#fff5f5"><div class="summary-label">Toplam Gider</div><div class="summary-val red">₺${totalExp.toLocaleString('tr-TR')}</div></div>
+    <div class="summary-card" style="border-color:${netBal>=0?'#d1fae5':'#fee2e2'};background:${netBal>=0?'#f0fdf4':'#fff5f5'}"><div class="summary-label">Net Bakiye</div><div class="summary-val ${netBal>=0?'green':'red'}">${netBal>=0?'+':''}₺${netBal.toLocaleString('tr-TR')}</div></div>
+    <div class="summary-card" style="border-color:#ede9fe;background:#faf5ff"><div class="summary-label">Tasarruf Oranı</div><div class="summary-val purple">%${sr}</div></div>
+  </div>
+  <div class="section">
+    <div class="section-title">💸 Harcamalar (${exp.length} kayıt)</div>
+    <div class="card"><table><thead><tr><th>Açıklama</th><th>Miktar</th><th>Kategori</th><th>Tarih</th></tr></thead><tbody>
+    ${exp.length>0?exp.map(e=>`<tr><td>${e.description||'—'}</td><td class="red">-₺${Number(e.amount).toLocaleString('tr-TR')}</td><td>${e.category||'—'}</td><td style="font-family:monospace;font-size:12px">${e.expense_date||'—'}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px">Harcama yok</td></tr>'}
+    </tbody></table></div>
+  </div>
+  <div class="section">
+    <div class="section-title">💰 Gelirler (${inc.length} kayıt)</div>
+    <div class="card"><table><thead><tr><th>Kaynak</th><th>Miktar</th><th>Tarih</th></tr></thead><tbody>
+    ${inc.length>0?inc.map(i=>`<tr><td>${i.source||'—'}</td><td class="green">+₺${Number(i.amount).toLocaleString('tr-TR')}</td><td style="font-family:monospace;font-size:12px">${i.income_date||'—'}</td></tr>`).join(''):'<tr><td colspan="3" style="text-align:center;color:#aaa;padding:20px">Gelir yok</td></tr>'}
+    </tbody></table></div>
+  </div>
+  <div class="section">
+    <div class="section-title">⚔️ Abonelikler (${sub.length} kayıt)</div>
+    <div class="card"><table><thead><tr><th>Hizmet</th><th>Aylık Maliyet</th><th>Kategori</th><th>Durum</th></tr></thead><tbody>
+    ${sub.length>0?sub.map(s=>`<tr><td style="font-weight:500">${s.name||'—'}</td><td>₺${Number(s.cost).toLocaleString('tr-TR')}</td><td>${s.category||'—'}</td><td><span class="badge ${s.status==='dead'?'badge-r':s.status==='warn'?'badge-y':'badge-g'}">${s.status==='dead'?'ÖLÜ':s.status==='warn'?'UYARI':'AKTİF'}</span></td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px">Abonelik yok</td></tr>'}
+    </tbody></table></div>
+  </div>
+  <div class="section">
+    <div class="section-title">📈 Yatırımlar (${inv.length} kayıt)</div>
+    <div class="card"><table><thead><tr><th>Sembol</th><th>İsim</th><th>Adet</th><th>Alış Fiyatı</th><th>Toplam Maliyet</th></tr></thead><tbody>
+    ${inv.length>0?inv.map(i=>`<tr><td class="purple">${i.symbol||'—'}</td><td>${i.name||'—'}</td><td>${i.shares||0}</td><td>₺${Number(i.buy_price).toLocaleString('tr-TR')}</td><td style="font-weight:600">₺${(Number(i.shares)*Number(i.buy_price)).toLocaleString('tr-TR')}</td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px">Yatırım yok</td></tr>'}
+    </tbody></table></div>
+  </div>
+  <div class="footer">BurnRate OS · Finansal Rapor · ${now.toLocaleDateString('tr-TR')} · app.burnrate-os.com</div>
+</body></html>`
         const win=window.open('','_blank')
         win.document.write(html)
         win.document.close()
