@@ -1983,7 +1983,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
     <span style={{fontSize:'10px',color:'rgba(6,182,212,0.5)',transform:sourceOpen?'rotate(180deg)':'',transition:'transform 0.2s'}}>▼</span>
   </div>
   {sourceOpen && (
-    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0a0414',border:'1px solid rgba(6,182,212,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(6,182,212,0.1)'}}>
+    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0a0414',border:'1px solid rgba(6,182,212,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:100,boxShadow:'0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(6,182,212,0.1)',maxHeight:'320px',overflowY:'auto',scrollbarWidth:'none'}}>
       {[
         {icon:'💰',label:'Maaş'},
         {icon:'💻',label:'Freelance'},
