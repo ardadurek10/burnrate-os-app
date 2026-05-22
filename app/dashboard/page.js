@@ -888,7 +888,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <Tooltip formatter={(v,name)=>[`₺${v.toFixed(2)}`,name]} contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz veri yok':'No data yet'}</div>}
+          ) : <div style={{height:'180px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>📊</span>Henüz veri yok</div>}
           <div style={{display:'flex',gap:'14px',justifyContent:'center',marginTop:'8px'}}>
             {pieData.map((d,i) => (
               <div key={i} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:FONT}}>
@@ -911,13 +911,13 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'180px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz harcama yok':'No expenses yet'}</div>}
+          ) : <div style={{height:'180px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>📊</span>Henüz veri yok</div>}
         </Card>
       </div>
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'⚔️ En Büyük Abonelikler':'⚔️ Top Subscriptions'}</div>
-          {subs.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz abonelik yok':'No subscriptions yet'}</div> :
+          {subs.length===0 ? <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'24px 0',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>⚔️</span>Henüz abonelik yok</div> :
             subs.slice(0,4).map(s => (
               <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                 <div>
@@ -933,7 +933,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'💸 Son Harcamalar':'💸 Recent Spending'}</div>
-          {expenses.length===0 ? <div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz harcama yok':'No expenses yet'}</div> :
+          {expenses.length===0 ? <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'24px 0',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>💸</span>Henüz harcama yok</div> :
             expenses.slice(0,4).map(e => (
               <div key={e.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                 <div>
@@ -1069,7 +1069,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:'500px'}}>
               <thead><tr><TH>{lang==='tr'?'Hizmet':'Service'}</TH><TH>{lang==='tr'?'Maliyet/ay':'Cost/mo'}</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>{lang==='tr'?'Son Kullanım':'Last Used'}</TH><TH>Status</TH><TH></TH></tr></thead>
               <tbody>
-                {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz abonelik yok':'No subscriptions yet'}</td></tr>
+                {subs.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',padding:'60px 20px'}}><div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}><div style={{fontSize:'36px',opacity:0.6}}>⚔️</div><div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontWeight:500,fontFamily:FONT}}>Henüz abonelik yok</div><div style={{color:'rgba(255,255,255,0.18)',fontSize:'12px',fontFamily:FONT}}>İlk aboneliğini eklemek için + butonuna tıkla</div></div></td></tr>
                 : subs.map(s=>(
                   <tr key={s.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{s.name}</td>
@@ -1236,7 +1236,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
                 <Area type="monotone" dataKey="amount" stroke={theme.accent} strokeWidth={2.5} fill="url(#spendGrad)"/>
               </AreaChart>
             </ResponsiveContainer>
-          ):<div style={{height:'160px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz veri yok':'No data yet'}</div>}
+          ):<div style={{height:'160px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>📊</span>Henüz veri yok</div>}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{(lang==='tr')?'Kategoriye Göre':'By Category'}</div>
@@ -1256,7 +1256,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
               </div>
             )
           })}
-          {expenses.length===0&&<div style={{color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz veri yok':'No data yet'}</div>}
+          {expenses.length===0&&<div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'24px 0',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>📊</span>Henüz veri yok</div>}
         </Card>
       </div>
       <Card accent={theme.accent} style={{padding:'22px'}}>
@@ -1281,7 +1281,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
             </tr></thead>
             <tbody>
               {filtered.length===0
-                ?<tr><td colSpan={5} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{(lang==='tr')?'Henüz harcama yok':'No expenses yet'}</td></tr>
+                ?<tr><td colSpan={5} style={{textAlign:'center',padding:'60px 20px'}}><div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}><div style={{fontSize:'36px',opacity:0.6}}>💸</div><div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontWeight:500,fontFamily:FONT}}>Henüz harcama yok</div><div style={{color:'rgba(255,255,255,0.18)',fontSize:'12px',fontFamily:FONT}}>İlk harcamanı eklemek için + butonuna tıkla</div></div></td></tr>
                 :filtered.map(e=>(
                   <tr key={e.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
                     <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{e.description}</td>
@@ -1581,7 +1581,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                 </tr></thead>
                 <tbody>
                   {stockInvestments.length===0 ? (
-                    <tr><td colSpan={8} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz pozisyon yok. Hisse veya kripto ekleyin.':'No positions yet.'}</td></tr>
+                    <tr><td colSpan={8} style={{textAlign:'center',padding:'60px 20px'}}><div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}><div style={{fontSize:'36px',opacity:0.6}}>📈</div><div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontWeight:500,fontFamily:FONT}}>Henüz pozisyon yok</div><div style={{color:'rgba(255,255,255,0.18)',fontSize:'12px',fontFamily:FONT}}>Hisse veya kripto eklemek için + butonuna tıkla</div></div></td></tr>
                   ) : stockInvestments.map((inv,i)=>{
                     const livePrice=prices[inv.symbol]||inv.currentPrice
                     const change=changes[inv.symbol]||0
@@ -1998,7 +1998,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
                 <Bar dataKey="amount" radius={[6,6,0,0]}>{incomeData.map((_,i)=><Cell key={i} fill={theme.chart[i%5]} strokeWidth={0}/>)}</Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz gelir girilmedi':'No income logged yet'}</div>}
+          ) : <div style={{height:'200px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>📊</span>Henüz veri yok</div>}
         </Card>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'20px',fontFamily:FONT}}>{lang==='tr'?'Tasarruf Hedefi':'Savings Goal'}</div>
@@ -2022,7 +2022,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
         <table style={{width:'100%',borderCollapse:'collapse'}}>
           <thead><tr><TH>{lang==='tr'?'Kaynak':'Source'}</TH><TH>{lang==='tr'?'Miktar':'Amount'}</TH><TH>{lang==='tr'?'Tarih':'Date'}</TH><TH></TH></tr></thead>
           <tbody>
-            {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Henüz gelir girilmedi':'No income logged yet'}</td></tr>
+            {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'60px 20px'}}><div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}><div style={{fontSize:'36px',opacity:0.6}}>💰</div><div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontWeight:500,fontFamily:FONT}}>Henüz gelir girilmedi</div><div style={{color:'rgba(255,255,255,0.18)',fontSize:'12px',fontFamily:FONT}}>İlk gelirini eklemek için + butonuna tıkla</div></div></td></tr>
             : income.map(i=>(
               <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
                 <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{i.source}</td>
