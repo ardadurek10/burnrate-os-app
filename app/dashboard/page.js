@@ -764,7 +764,6 @@ function Card({ children, style={}, accent=null, noOverflow=false }) {
         background:`rgba(${rgb},0.07)`,
         borderRadius:'20px',
         position:'relative',
-        overflow: noOverflow ? 'visible' : 'hidden',
         boxShadow:`0 0 0 1px rgba(${rgb},0.22), inset 0 1px 0 rgba(${rgb},0.15), inset 0 -1px 0 rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)`,
         transition:'transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease',
         animation:'fadeIn 0.3s ease',
