@@ -1538,7 +1538,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                     style={{width:'100%',padding:'12px 16px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:`1px solid ${theme.border}`,color:'#f5f5f7',fontSize:'14px',outline:'none',boxSizing:'border-box',fontFamily:FONT}} />
                   {(searching||fetchingPrice) && <div style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:FONT}}>{searching?'Aranıyor...':'Fiyat alınıyor...'}</div>}
                   {searchResults.length > 0 && (
-                    <div style={{position:'fixed',top:searchRef.current?searchRef.current.getBoundingClientRect().bottom+4:0,left:searchRef.current?searchRef.current.getBoundingClientRect().left:0,width:searchRef.current?searchRef.current.getBoundingClientRect().width:'100%',background:'#0a0414',border:'1px solid rgba(16,185,129,0.25)',borderRadius:'14px',overflow:'hidden',zIndex:9999,boxShadow:'0 8px 32px rgba(0,0,0,0.6)'}}>
+                    <div style={{background:'#0a0414',border:'1px solid rgba(16,185,129,0.25)',borderRadius:'14px',overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.4)',marginTop:'6px'}}>
                       {searchResults.map((s,i) => (
                         <div key={i} onClick={()=>selectStock(s)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.05)'}}
                           onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
