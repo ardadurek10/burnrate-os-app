@@ -529,10 +529,21 @@ export default function Dashboard() {
   ]
 
   if (!user) return (
-    <div style={{minHeight:'100vh',background:'#0a0a0f',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:FONT}}>
-      <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Loading...</div>
+  <div style={{minHeight:'100vh',background:'radial-gradient(ellipse 80% 60% at 15% 10%, rgba(109,40,217,0.28) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 85%, rgba(76,29,149,0.22) 0%, transparent 50%), linear-gradient(160deg, #06041a 0%, #03020a 40%, #05031a 70%, #03020a 100%)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:FONT}}>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'24px'}}>
+      <div style={{position:'relative',width:'64px',height:'64px'}}>
+        <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'2px solid rgba(124,58,237,0.15)'}}></div>
+        <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'2px solid transparent',borderTopColor:'#7c3aed',animation:'spin 1s linear infinite'}}></div>
+        <div style={{position:'absolute',inset:'8px',borderRadius:'50%',border:'2px solid transparent',borderTopColor:'rgba(124,58,237,0.5)',animation:'spin 0.7s linear infinite reverse'}}></div>
+        <div style={{position:'absolute',inset:'16px',borderRadius:'50%',background:'rgba(124,58,237,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>⚡</div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'6px'}}>
+        <div style={{color:'#c4b5fd',fontSize:'15px',fontWeight:600,letterSpacing:'-0.3px'}}>BurnRate OS</div>
+        <div style={{color:'rgba(167,139,250,0.4)',fontSize:'11px',fontFamily:MONO,letterSpacing:'2px',textTransform:'uppercase'}}>yükleniyor...</div>
+      </div>
     </div>
-  )
+  </div>
+)
 
   const DYNAMIC_THEME = THEMES.dashboard
 
