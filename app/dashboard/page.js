@@ -2644,17 +2644,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
               <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
             </div>
           </div>
-          <div style={{display:'flex',gap:'8px'}}>
-            <button onClick={()=>{
-              const text = messages.map(m=>`${m.role==='user'?'Sen':'AI'}: ${m.text}`).join('\n\n')
-              const blob = new Blob([text],{type:'text/plain'})
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href=url; a.download=`burnrate-ai-${new Date().toLocaleDateString('tr-TR').replace(/\./g,'-')}.txt`
-              a.click(); URL.revokeObjectURL(url)
-            }} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(139,92,246,0.6)',background:'transparent',border:'1px solid rgba(139,92,246,0.15)',cursor:'pointer',fontFamily:FONT}}>📥 Dışa Aktar</button>
-            <button onClick={()=>{const init=[{role:'ai',text:lang==='tr'?'Sohbet temizlendi. Size nasıl yardımcı olabilirim?':'Chat cleared. How can I help you?'}];setMessages(init);try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(init))}catch{}}} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'🗑️ Temizle':'🗑️ Clear'}</button>
-          </div>
+          <button onClick={()=>{const init=[{role:'ai',text:lang==='tr'?'Sohbet temizlendi. Size nasıl yardımcı olabilirim?':'Chat cleared. How can I help you?'}];setMessages(init);try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(init))}catch{}}} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'🗑️ Temizle':'🗑️ Clear'}</button>
         </div>
       </div>
       <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
