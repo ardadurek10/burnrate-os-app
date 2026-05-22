@@ -1846,7 +1846,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                 <div>
                   <div style={{...TIP,marginBottom:'6px'}}>{lang==='tr'?'Tür':'Type'}</div>
                   <select value={fxForm.type} onChange={e=>setFxForm({...fxForm,type:e.target.value})}
-                    style={{width:'100%',padding:'10px 14px',borderRadius:'10px',background:'rgba(30,30,50,0.9)',border:'1px solid rgba(255,255,255,0.09)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,cursor:'pointer'}}>
+                    style={{width:'100%',padding:'11px 16px',borderRadius:'12px',background:'#0d0820',border:'1px solid rgba(16,185,129,0.2)',color:'#f5f5f7',fontSize:'13px',outline:'none',fontFamily:FONT,cursor:'pointer',appearance:'none',WebkitAppearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236ee7b7' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 14px center',boxSizing:'border-box'}}>
                     {FX_ITEMS.map(fx=>(
                       <option key={fx.symbol} value={fx.symbol}>{fx.icon} {fx.label}</option>
                     ))}
