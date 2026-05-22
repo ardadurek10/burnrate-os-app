@@ -2818,6 +2818,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     { id: 'plan',     icon: '💳', label: lang === 'tr' ? 'Plan & Abonelik' : 'Plan & Billing' },
     { id: 'prefs',    icon: '🌍', label: lang === 'tr' ? 'Tercihler' : 'Preferences' },
     { id: 'security', icon: '🔒', label: lang === 'tr' ? 'Güvenlik' : 'Security' },
+    { id: 'export', icon: '📥', label: lang === 'tr' ? 'Rapor İndir' : 'Export Report' },
     { id: 'danger', icon: '🗑️', label: lang === 'tr' ? 'Veri & Hesap' : 'Data & Account' },
   ]
 
@@ -3082,6 +3083,85 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
               </div>
             </Card>
           )}
+
+          {activeSection === 'export' && (
+  <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+    <Card accent={theme.accent} style={{padding:24}}>
+      <div style={{color:'rgba(255,255,255,0.6)',fontSize:13,fontWeight:600,marginBottom:16,fontFamily:FONT}}>
+        📥 {lang==='tr'?'Finansal Rapor İndir':'Download Financial Report'}
+      </div>
+      <div style={{color:'rgba(255,255,255,0.4)',fontSize:13,marginBottom:20,fontFamily:FONT,lineHeight:1.6}}>
+        {lang==='tr'?'Tüm finansal verilerinizi (harcamalar, gelirler, abonelikler, yatırımlar) PDF formatında indirin.':'Download all your financial data (expenses, income, subscriptions, investments) as a PDF report.'}
+      </div>
+      <button onClick={async()=>{
+        const SUPABASE_URL='https://cgfcdtjyhphppucnldor.supabase.co'
+        const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+        const headers={'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
+        const [exp,inc,sub,inv]=await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${user.id}&select=*&order=expense_date.desc`,{headers}).then(r=>r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/income?user_id=eq.${user.id}&select=*&order=income_date.desc`,{headers}).then(r=>r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${user.id}&select=*`,{headers}).then(r=>r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/investments?user_id=eq.${user.id}&select=*`,{headers}).then(r=>r.json()),
+        ])
+        const totalInc=inc.reduce((a,i)=>a+Number(i.amount),0)
+        const totalExp=exp.reduce((a,e)=>a+Number(e.amount),0)
+        const totalSub=sub.reduce((a,s)=>a+Number(s.cost),0)
+        const netBal=totalInc-totalExp-totalSub
+        const sr=totalInc>0?Math.round(((totalInc-totalExp-totalSub)/totalInc)*100):0
+        const now=new Date()
+        const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>BurnRate OS — Finansal Rapor</title><style>
+          *{margin:0;padding:0;box-sizing:border-box}
+          body{font-family:'Segoe UI',sans-serif;background:#0a0a0f;color:#f1f0ff;padding:40px}
+          .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid rgba(124,58,237,0.3)}
+          .logo{font-size:24px;font-weight:800;color:#c4b5fd}
+          .date{font-size:12px;color:rgba(255,255,255,0.4);font-family:monospace}
+          .section{margin-bottom:32px}
+          .section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(124,58,237,0.6);margin-bottom:16px;font-family:monospace}
+          .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+          .summary-card{background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:16px}
+          .summary-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px;font-family:monospace}
+          .summary-val{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+          table{width:100%;border-collapse:collapse;margin-top:8px}
+          th{text-align:left;padding:8px 12px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);font-family:monospace;border-bottom:1px solid rgba(255,255,255,0.08)}
+          td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.8)}
+          tr:hover td{background:rgba(124,58,237,0.04)}
+          .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:16px}
+          .green{color:#6ee7b7}.red{color:#fca5a5}.yellow{color:#fde68a}.purple{color:#c4b5fd}
+          .badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-family:monospace}
+          .badge-g{background:rgba(16,185,129,0.15);color:#6ee7b7}
+          .badge-r{background:rgba(239,68,68,0.15);color:#fca5a5}
+          .badge-y{background:rgba(245,158,11,0.15);color:#fde68a}
+          .footer{margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;font-size:11px;color:rgba(255,255,255,0.2);font-family:monospace}
+        </style></head><body>
+          <div class="header">
+            <div class="logo">⚡ BurnRate OS</div>
+            <div class="date">${now.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'})} — ${dbUser?.name||user.email}</div>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-card"><div class="summary-label">Toplam Gelir</div><div class="summary-val green">₺${totalInc.toLocaleString('tr-TR')}</div></div>
+            <div class="summary-card"><div class="summary-label">Toplam Gider</div><div class="summary-val red">₺${totalExp.toLocaleString('tr-TR')}</div></div>
+            <div class="summary-card"><div class="summary-label">Net Bakiye</div><div class="summary-val ${netBal>=0?'green':'red'}">${netBal>=0?'+':''}₺${netBal.toLocaleString('tr-TR')}</div></div>
+            <div class="summary-card"><div class="summary-label">Tasarruf Oranı</div><div class="summary-val ${sr>=30?'green':sr>=15?'yellow':'red'}">%${sr}</div></div>
+          </div>
+          <div class="section"><div class="section-title">💸 Harcamalar (${exp.length} kayıt)</div><div class="card"><table><thead><tr><th>Açıklama</th><th>Miktar</th><th>Kategori</th><th>Tarih</th></tr></thead><tbody>${exp.map(e=>`<tr><td>${e.description||'—'}</td><td class="red">-₺${Number(e.amount).toLocaleString('tr-TR')}</td><td>${e.category||'—'}</td><td>${e.expense_date||'—'}</td></tr>`).join('')}</tbody></table></div></div>
+          <div class="section"><div class="section-title">💰 Gelirler (${inc.length} kayıt)</div><div class="card"><table><thead><tr><th>Kaynak</th><th>Miktar</th><th>Tarih</th></tr></thead><tbody>${inc.map(i=>`<tr><td>${i.source||'—'}</td><td class="green">+₺${Number(i.amount).toLocaleString('tr-TR')}</td><td>${i.income_date||'—'}</td></tr>`).join('')}</tbody></table></div></div>
+          <div class="section"><div class="section-title">⚔️ Abonelikler (${sub.length} kayıt)</div><div class="card"><table><thead><tr><th>Hizmet</th><th>Aylık Maliyet</th><th>Kategori</th><th>Durum</th></tr></thead><tbody>${sub.map(s=>`<tr><td>${s.name||'—'}</td><td>₺${Number(s.cost).toLocaleString('tr-TR')}</td><td>${s.category||'—'}</td><td><span class="badge ${s.status==='dead'?'badge-r':s.status==='warn'?'badge-y':'badge-g'}">${s.status==='dead'?'ÖLÜ':s.status==='warn'?'UYARI':'TUTUN'}</span></td></tr>`).join('')}</tbody></table></div></div>
+          <div class="section"><div class="section-title">📈 Yatırımlar (${inv.length} kayıt)</div><div class="card"><table><thead><tr><th>Sembol</th><th>İsim</th><th>Adet</th><th>Alış Fiyatı</th><th>Toplam Maliyet</th></tr></thead><tbody>${inv.map(i=>`<tr><td class="purple">${i.symbol||'—'}</td><td>${i.name||'—'}</td><td>${i.shares||0}</td><td>₺${Number(i.buy_price).toLocaleString('tr-TR')}</td><td>₺${(Number(i.shares)*Number(i.buy_price)).toLocaleString('tr-TR')}</td></tr>`).join('')}</tbody></table></div></div>
+          <div class="footer">BurnRate OS — Finansal Rapor · ${now.toLocaleDateString('tr-TR')} · app.burnrate-os.com</div>
+        </body></html>`
+        const win=window.open('','_blank')
+        win.document.write(html)
+        win.document.close()
+        setTimeout(()=>win.print(),500)
+      }}
+        style={{padding:'12px 24px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(124,58,237,0.35)',transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)'}}
+        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(124,58,237,0.5)'}}
+        onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 20px rgba(124,58,237,0.35)'}}>
+        📥 {lang==='tr'?'PDF Raporu İndir':'Download PDF Report'}
+      </button>
+    </Card>
+  </div>
+)}
 
           {/* HESAP YÖNETİMİ */}
 {activeSection === 'danger' && (
