@@ -433,6 +433,9 @@ export default function Dashboard() {
   const [income, setIncome] = useState([])
   const [investments, setInvestments] = useState([])
   const [debts, setDebts] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
   const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
@@ -493,6 +496,91 @@ export default function Dashboard() {
     setInvestments(Array.isArray(inv) ? inv.map(i=>({...i,shares:Number(i.shares),buyPrice:Number(i.buy_price),currentPrice:Number(i.current_price)||0,symbol:i.symbol,name:i.name,type:i.type})) : [])
     setDebts(Array.isArray(d) ? d : [])
   }
+
+  useEffect(()=>{
+    if(!user) return
+    const notifs = []
+    const now = new Date()
+
+    if(dbUser?.monthly_income_goal > 0 && totalExp > dbUser.monthly_income_goal * 0.8) {
+      notifs.push({
+        id:'limit-warn',
+        type:'warning',
+        icon:'🔴',
+        title: lang==='tr'?'Harcama Limiti Uyarısı':'Spending Limit Warning',
+        body: lang==='tr'?`Aylık limitinin %${Math.round(totalExp/dbUser.monthly_income_goal*100)}'ini harcadın`:`You've spent ${Math.round(totalExp/dbUser.monthly_income_goal*100)}% of your monthly limit`,
+        time: new Date(),
+        read: false
+      })
+    }
+
+    const deadSubs = subs.filter(s=>s.status==='dead')
+    if(deadSubs.length > 0) {
+      notifs.push({
+        id:'dead-subs',
+        type:'warning',
+        icon:'💀',
+        title: lang==='tr'?'Ölü Abonelik Tespit Edildi':'Dead Subscription Detected',
+        body: lang==='tr'?`${deadSubs.length} abonelik kullanılmıyor ama ödeniyor`:`${deadSubs.length} subscription unused but still paying`,
+        time: new Date(),
+        read: false
+      })
+    }
+
+    subs.forEach(s => {
+      if(s.last_used) {
+        const lastUsed = new Date(s.last_used)
+        const daysSince = Math.floor((now - lastUsed) / (1000*60*60*24))
+        if(daysSince >= 25 && daysSince <= 32) {
+          notifs.push({
+            id:`renew-${s.id}`,
+            type:'info',
+            icon:'🔄',
+            title: lang==='tr'?`${s.name} Yenileniyor`:`${s.name} Renewing Soon`,
+            body: lang==='tr'?`Yakında yenilenecek: ₺${s.cost}/ay`:`Renewing soon: ₺${s.cost}/mo`,
+            time: new Date(),
+            read: false
+          })
+        }
+      }
+    })
+
+    investments.forEach(inv => {
+      if(inv.currentPrice && inv.buy_price) {
+        const gain = ((inv.currentPrice - inv.buy_price) / inv.buy_price) * 100
+        if(Math.abs(gain) >= 10) {
+          notifs.push({
+            id:`inv-${inv.id}`,
+            type: gain > 0 ? 'success' : 'warning',
+            icon: gain > 0 ? '📈' : '📉',
+            title: lang==='tr'?`${inv.symbol} ${gain>0?'Yükseldi':'Düştü'}`:`${inv.symbol} ${gain>0?'Up':'Down'}`,
+            body: `${gain>0?'+':''}${gain.toFixed(1)}% ${lang==='tr'?'değişim':'change'}`,
+            time: new Date(),
+            read: false
+          })
+        }
+      }
+    })
+
+    const completedDays = JSON.parse(localStorage.getItem(`burnrate_completed_days_${user.id}`)||'[]')
+    const today = now.getDate()
+    if(!completedDays.includes(today) && now.getHours() >= 18) {
+      notifs.push({
+        id:'challenge-reminder',
+        type:'info',
+        icon:'🎯',
+        title: lang==='tr'?'Meydan Okuma Hatırlatması':'Challenge Reminder',
+        body: lang==='tr'?`Bugün (${today}. gün) görevini tamamlamadın!`:`You haven't completed today's (Day ${today}) challenge!`,
+        time: new Date(),
+        read: false
+      })
+    }
+
+    const readIds = JSON.parse(localStorage.getItem(`burnrate_read_notifs_${user?.id}`)||'[]')
+    const finalNotifs = notifs.map(n=>({...n, read: readIds.includes(n.id)}))
+    setNotifications(finalNotifs)
+    setUnreadCount(finalNotifs.filter(n=>!n.read).length)
+  }, [user, subs.length, investments.length, totalExp, dbUser])
 
   async function fetchCurrencyRate(cur) {
     try {
@@ -584,6 +672,7 @@ return (
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes aurora{0%{transform:scaleX(1) scaleY(1);opacity:0.7}50%{transform:scaleX(1.05) scaleY(1.1);opacity:1}100%{transform:scaleX(0.95) scaleY(0.95);opacity:0.75}}
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .recharts-tooltip-wrapper * { color: #f5f5f7 !important; }
         .sidebar nav::-webkit-scrollbar{display:none}
         .sidebar::-webkit-scrollbar{display:none}
@@ -604,6 +693,62 @@ return (
       `}</style>
 
       {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
+
+      {notifOpen && (
+        <div style={{position:'fixed',inset:0,zIndex:1000}} onClick={()=>setNotifOpen(false)}>
+          <div style={{position:'absolute',top:0,right:0,bottom:0,width:'380px',background:'#0a0414',borderLeft:'1px solid rgba(124,58,237,0.2)',boxShadow:'-8px 0 48px rgba(0,0,0,0.7)',display:'flex',flexDirection:'column',animation:'slideIn 0.25s ease'}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'24px 20px 16px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+              <div>
+                <div style={{color:'#f1f0ff',fontSize:'16px',fontWeight:700,fontFamily:FONT}}>🔔 {lang==='tr'?'Bildirimler':'Notifications'}</div>
+                <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:MONO,marginTop:'2px'}}>{unreadCount} {lang==='tr'?'okunmamış':'unread'}</div>
+              </div>
+              <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                {unreadCount > 0 && (
+                  <button onClick={()=>{
+                    const ids = notifications.map(n=>n.id)
+                    localStorage.setItem(`burnrate_read_notifs_${user?.id}`, JSON.stringify(ids))
+                    setNotifications(prev=>prev.map(n=>({...n,read:true})))
+                    setUnreadCount(0)
+                  }} style={{fontSize:'11px',color:'rgba(124,58,237,0.7)',background:'rgba(124,58,237,0.1)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'8px',padding:'5px 10px',cursor:'pointer',fontFamily:FONT}}>
+                    {lang==='tr'?'Tümünü Oku':'Mark All Read'}
+                  </button>
+                )}
+                <button onClick={()=>setNotifOpen(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer',lineHeight:1}}>×</button>
+              </div>
+            </div>
+            <div style={{flex:1,overflowY:'auto',scrollbarWidth:'none',padding:'12px'}}>
+              {notifications.length === 0 ? (
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'200px',gap:'12px'}}>
+                  <div style={{fontSize:'36px',opacity:0.4}}>🔕</div>
+                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Bildirim yok':'No notifications'}</div>
+                </div>
+              ) : notifications.map((n,i) => (
+                <div key={n.id} onClick={()=>{
+                  const readIds = JSON.parse(localStorage.getItem(`burnrate_read_notifs_${user?.id}`)||'[]')
+                  if(!readIds.includes(n.id)){
+                    const updated = [...readIds, n.id]
+                    localStorage.setItem(`burnrate_read_notifs_${user?.id}`, JSON.stringify(updated))
+                    setNotifications(prev=>prev.map(p=>p.id===n.id?{...p,read:true}:p))
+                    setUnreadCount(prev=>Math.max(0,prev-1))
+                  }
+                }}
+                onMouseEnter={e=>e.currentTarget.style.background='rgba(124,58,237,0.06)'}
+                onMouseLeave={e=>e.currentTarget.style.background=n.read?'transparent':'rgba(124,58,237,0.03)'}
+                style={{display:'flex',gap:'12px',padding:'14px 12px',borderRadius:'14px',background:n.read?'transparent':'rgba(124,58,237,0.03)',border:`1px solid ${n.read?'rgba(255,255,255,0.04)':'rgba(124,58,237,0.12)'}`,marginBottom:'8px',cursor:'pointer',transition:'background 0.15s',position:'relative'}}>
+                  <div style={{width:'38px',height:'38px',borderRadius:'12px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',background:n.type==='success'?'rgba(16,185,129,0.12)':n.type==='warning'?'rgba(239,68,68,0.12)':'rgba(124,58,237,0.12)',flexShrink:0}}>{n.icon}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px'}}>
+                      <div style={{color:n.read?'rgba(255,255,255,0.6)':'#f1f0ff',fontSize:'13px',fontWeight:n.read?400:600,fontFamily:FONT,lineHeight:'1.3'}}>{n.title}</div>
+                      {!n.read && <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#7c3aed',flexShrink:0,marginTop:'4px',boxShadow:'0 0 6px rgba(124,58,237,0.6)'}}></div>}
+                    </div>
+                    <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT,marginTop:'3px',lineHeight:'1.4'}}>{n.body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {monthlyGoalModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
@@ -694,6 +839,18 @@ return (
         </nav>
 
         <div style={{height:'1px',background:'rgba(255,255,255,0.06)',margin:'8px 0'}}></div>
+
+        <div style={{marginBottom:'4px'}}>
+          <button onClick={()=>setNotifOpen(true)} style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'12px',background:'transparent',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.5)',fontFamily:FONT,fontSize:'13px',fontWeight:500,marginBottom:'4px',position:'relative',transition:'all 0.18s'}}
+            onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.8)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='rgba(255,255,255,0.5)'}}>
+            <span style={{fontSize:'16px'}}>🔔</span>
+            <span>{lang==='tr'?'Bildirimler':'Notifications'}</span>
+            {unreadCount > 0 && (
+              <span style={{marginLeft:'auto',background:'#ef4444',color:'#fff',borderRadius:'100px',fontSize:'10px',fontWeight:700,padding:'2px 7px',fontFamily:MONO,minWidth:'20px',textAlign:'center',boxShadow:'0 0 8px rgba(239,68,68,0.5)'}}>{unreadCount}</span>
+            )}
+          </button>
+        </div>
 
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
