@@ -347,6 +347,7 @@ textarea.extra::placeholder{color:var(--t3)}
 
         <div class="plat-hint" id="platHint"></div>
         <div id="visualBox"></div>
+        <button onclick="downloadPNG()" id="downloadBtn" style="display:none;margin-top:12px;width:100%;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;font-family:sans-serif;font-size:13px;font-weight:700;cursor:pointer;">📥 PNG İndir</button>
       </div>
 
     </div>
@@ -496,6 +497,7 @@ function showOutput(data){
     visualDiv.innerHTML = buildVisual(data.content, st.topic, st.platform)
     visualDiv.style.display = 'block'
   }
+  document.getElementById('downloadBtn').style.display = 'block'
 }
 
 function buildVisual(content, topic, platform){
@@ -518,24 +520,67 @@ function buildVisual(content, topic, platform){
   if(line.trim()) lines.push(line.trim())
   lines = lines.slice(0, 5)
   const lsvg = lines.map((l,i) => `<text x="340" y="${210+i*30}" text-anchor="middle" fill="rgba(238,242,255,0.88)" font-family="sans-serif" font-size="14" font-weight="400">${l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</text>`).join('')
+
+  // Grid lines (vertical + horizontal, subtle)
+  const gridV = [136,204,272,340,408,476,544].map(x =>
+    `<line x1="${x}" y1="0" x2="${x}" y2="420" stroke="${v.ac}" stroke-opacity="0.04" stroke-width="1"/>`).join('')
+  const gridH = [84,168,252,336].map(y =>
+    `<line x1="0" y1="${y}" x2="680" y2="${y}" stroke="${v.ac}" stroke-opacity="0.04" stroke-width="1"/>`).join('')
+
+  // Corner accents
+  const corners = `
+<line x1="0" y1="0" x2="28" y2="0" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="0" y1="0" x2="0" y2="28" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="680" y1="0" x2="652" y2="0" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="680" y1="0" x2="680" y2="28" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="0" y1="420" x2="28" y2="420" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="0" y1="420" x2="0" y2="392" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="680" y1="420" x2="652" y2="420" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
+<line x1="680" y1="420" x2="680" y2="392" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>`
+
   return `<svg width="100%" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
 <defs>
 <radialGradient id="rg1" cx="20%" cy="20%"><stop offset="0%" stop-color="${v.bg1}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
 <radialGradient id="rg2" cx="80%" cy="80%"><stop offset="0%" stop-color="${v.bg2}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+<linearGradient id="acline" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="transparent"/><stop offset="30%" stop-color="${v.ac}" stop-opacity="0.5"/><stop offset="70%" stop-color="${v.ac}" stop-opacity="0.5"/><stop offset="100%" stop-color="transparent"/></linearGradient>
 </defs>
 <rect width="680" height="420" fill="#04040f"/>
 <rect width="680" height="420" fill="url(#rg1)"/>
 <rect width="680" height="420" fill="url(#rg2)"/>
-<line x1="80" y1="1" x2="600" y2="1" stroke="${v.ac}" stroke-opacity="0.4" stroke-width="1"/>
-<text x="340" y="60" text-anchor="middle" fill="${v.ac}" fill-opacity="0.55" font-family="monospace" font-size="11" letter-spacing="3">BURNRATE OS</text>
-<rect x="264" y="76" width="152" height="24" rx="12" fill="${v.ac}" fill-opacity="0.1"/>
-<rect x="264" y="76" width="152" height="24" rx="12" fill="none" stroke="${v.ac}" stroke-opacity="0.3" stroke-width="1"/>
-<text x="340" y="93" text-anchor="middle" fill="${v.ac}" font-family="monospace" font-size="9" letter-spacing="2">${v.tag}</text>
-<text x="340" y="166" text-anchor="middle" font-size="38">${v.emoji}</text>
+${gridV}${gridH}
+<line x1="0" y1="405" x2="680" y2="405" stroke="url(#acline)" stroke-width="1"/>
+<text x="340" y="58" text-anchor="middle" fill="${v.ac}" fill-opacity="0.5" font-family="monospace" font-size="10" letter-spacing="4">BURNRATE OS</text>
+<rect x="262" y="72" width="156" height="24" rx="12" fill="${v.ac}" fill-opacity="0.1"/>
+<rect x="262" y="72" width="156" height="24" rx="12" fill="none" stroke="${v.ac}" stroke-opacity="0.35" stroke-width="1"/>
+<text x="340" y="89" text-anchor="middle" fill="${v.ac}" font-family="monospace" font-size="9" letter-spacing="2.5">${v.tag}</text>
+<text x="340" y="162" text-anchor="middle" font-size="36">${v.emoji}</text>
 ${lsvg}
-<text x="340" y="400" text-anchor="middle" fill="${v.ac}" fill-opacity="0.3" font-family="monospace" font-size="10" letter-spacing="1">app.burnrate-os.com</text>
-<rect x="0.5" y="0.5" width="679" height="419" fill="none" stroke="${v.ac}" stroke-opacity="0.12" stroke-width="1"/>
+<text x="340" y="398" text-anchor="middle" fill="${v.ac}" fill-opacity="0.28" font-family="monospace" font-size="9" letter-spacing="1.5">app.burnrate-os.com</text>
+<rect x="0.5" y="0.5" width="679" height="419" fill="none" stroke="${v.ac}" stroke-opacity="0.1" stroke-width="1"/>
+${corners}
 </svg>`
+}
+
+function downloadPNG(){
+  const svg = document.querySelector('#visualBox svg')
+  if(!svg) return
+  const svgData = new XMLSerializer().serializeToString(svg)
+  const canvas = document.createElement('canvas')
+  canvas.width = 1360
+  canvas.height = 840
+  const ctx = canvas.getContext('2d')
+  const img = new Image()
+  const blob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'})
+  const url = URL.createObjectURL(blob)
+  img.onload = function(){
+    ctx.drawImage(img, 0, 0, 1360, 840)
+    URL.revokeObjectURL(url)
+    const a = document.createElement('a')
+    a.download = 'burnrate-social-' + Date.now() + '.png'
+    a.href = canvas.toDataURL('image/png')
+    a.click()
+  }
+  img.src = url
 }
 
 // Copy button
