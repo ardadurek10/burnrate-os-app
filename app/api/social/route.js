@@ -1,18 +1,26 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { NextResponse } from 'next/server'
 
 const client = new Anthropic()
 
 export async function OPTIONS() {
-  return new Response(null, {
+  return new NextResponse(null, {
+    status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-    }
+    },
   })
 }
 
 export async function POST(req) {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  }
+
   try {
     const { platform, topic, tone, extra } = await req.json()
 
@@ -52,7 +60,7 @@ export async function POST(req) {
 ${platformInstructions[platform]}
 Konu: ${topicLabels[topic] || topic}
 Ton: ${toneLabels[tone]}
-${extra ? `Ekstra: ${extra}` : ''}
+${extra ? 'Ekstra: ' + extra : ''}
 
 SADECE JSON formatında yanıt ver, başka hiçbir şey yazma:
 {"content":"post metni","hashtags":["tag1","tag2","tag3","tag4","tag5"]}`
@@ -62,12 +70,8 @@ SADECE JSON formatında yanıt ver, başka hiçbir şey yazma:
     const text = message.content[0].text
     const parsed = JSON.parse(text.replace(/\`\`\`json|\`\`\`/g, '').trim())
 
-    const response = Response.json(parsed)
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    return response
+    return NextResponse.json(parsed, { headers })
   } catch (error) {
-    const response = Response.json({ error: error.message }, { status: 500 })
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    return response
+    return NextResponse.json({ error: error.message }, { status: 500, headers })
   }
 }
