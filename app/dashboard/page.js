@@ -3381,25 +3381,36 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
           </p>
         </div>
         <button onClick={()=>{setAdding(!adding);setSelected(null)}}
-          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:`linear-gradient(135deg,${theme.accent},${theme.accent}cc)`,color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>
+          onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(236,72,153,0.45)'}}
+          onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='0 4px 20px rgba(236,72,153,0.35)'}}
+          style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:700,background:'linear-gradient(135deg,#ec4899,#be185d)',color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT,transition:'transform 0.2s,box-shadow 0.2s',boxShadow:'0 4px 20px rgba(236,72,153,0.35)'}}>
           + {lang==='tr'?'Borç Ekle':'Add Debt'}
         </button>
       </div>
 
       {/* Özet kartlar */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
-        <div style={{background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'16px',padding:'20px'}}>
-          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Alacak':'Total Receivable'}</div>
+        <div style={{background:'rgba(16,185,129,0.07)',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'16px',padding:'20px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+            <span style={{fontSize:'18px'}}>🤝</span>
+            <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Alacak':'Total Receivable'}</div>
+          </div>
           <div style={{color:'#6ee7b7',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{currencySymbol}{(totalReceivable/currencyRate).toFixed(0)}</div>
           <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{receivables.filter(d=>d.status!=='paid').length} {lang==='tr'?'bekleyen':'pending'}</div>
         </div>
-        <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'16px',padding:'20px'}}>
-          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Verecek':'Total Payable'}</div>
+        <div style={{background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'16px',padding:'20px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+            <span style={{fontSize:'18px'}}>💸</span>
+            <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Toplam Verecek':'Total Payable'}</div>
+          </div>
           <div style={{color:'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{currencySymbol}{(totalPayable/currencyRate).toFixed(0)}</div>
           <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{payables.filter(d=>d.status!=='paid').length} {lang==='tr'?'bekleyen':'pending'}</div>
         </div>
-        <div style={{background:netStatus>=0?'rgba(124,58,237,0.08)':'rgba(239,68,68,0.08)',border:`1px solid ${netStatus>=0?'rgba(124,58,237,0.2)':'rgba(239,68,68,0.2)'}`,borderRadius:'16px',padding:'20px'}}>
-          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Net Durum':'Net Status'}</div>
+        <div style={{background:'rgba(124,58,237,0.07)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'16px',padding:'20px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+            <span style={{fontSize:'18px'}}>⚖️</span>
+            <div style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',fontFamily:FONT,textTransform:'uppercase',letterSpacing:'0.08em'}}>{lang==='tr'?'Net Durum':'Net Status'}</div>
+          </div>
           <div style={{color:netStatus>=0?'#c4b5fd':'#fca5a5',fontSize:'26px',fontWeight:800,fontFamily:FONT}}>{netStatus>=0?'+':''}{currencySymbol}{(Math.abs(netStatus)/currencyRate).toFixed(0)}</div>
           <div style={{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:FONT,marginTop:'4px'}}>{netStatus>=0?(lang==='tr'?'Net alacaklısınız':'Net receivable'):(lang==='tr'?'Net borçlusunuz':'Net payable')}</div>
         </div>
@@ -3488,13 +3499,13 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
       )}
 
       {/* Sekmeler */}
-      <div style={{display:'flex',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',padding:'4px',marginBottom:'20px',width:'fit-content'}}>
+      <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
         {[
-          {v:'receivable', icon:'💚', label:lang==='tr'?'Alacaklar':'Receivables', count:receivables.length},
-          {v:'payable',    icon:'🔴', label:lang==='tr'?'Verecekler':'Payables',    count:payables.length},
+          {v:'receivable', icon:'🤝', label:lang==='tr'?'Alacaklar':'Receivables', count:receivables.length, activeBg:'rgba(16,185,129,0.15)', activeBorder:'rgba(16,185,129,0.4)', activeColor:'#6ee7b7'},
+          {v:'payable',    icon:'💸', label:lang==='tr'?'Verecekler':'Payables',    count:payables.length,   activeBg:'rgba(239,68,68,0.15)',  activeBorder:'rgba(239,68,68,0.4)',  activeColor:'#fca5a5'},
         ].map(t=>(
           <button key={t.v} onClick={()=>setTab(t.v)}
-            style={{padding:'9px 20px',borderRadius:'9px',fontSize:'13px',fontWeight:tab===t.v?600:400,background:tab===t.v?theme.bg:'transparent',color:tab===t.v?theme.text:'rgba(255,255,255,0.4)',border:tab===t.v?`1px solid ${theme.border}`:'1px solid transparent',cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'7px'}}>
+            style={{padding:'8px 20px',borderRadius:'100px',fontSize:'13px',fontWeight:tab===t.v?700:500,background:tab===t.v?t.activeBg:'rgba(255,255,255,0.04)',color:tab===t.v?t.activeColor:'rgba(255,255,255,0.4)',border:`1px solid ${tab===t.v?t.activeBorder:'rgba(255,255,255,0.08)'}`,cursor:'pointer',fontFamily:FONT,display:'flex',alignItems:'center',gap:'7px',transition:'all 0.18s'}}>
             {t.icon} {t.label}
             <span style={{background:'rgba(255,255,255,0.08)',borderRadius:'100px',padding:'1px 8px',fontSize:'11px',fontFamily:MONO}}>{t.count}</span>
           </button>
@@ -3506,15 +3517,10 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
         {loading ? (
           <div style={{textAlign:'center',padding:'48px',color:'rgba(255,255,255,0.25)',fontFamily:FONT,fontSize:'13px'}}>{lang==='tr'?'Yükleniyor...':'Loading...'}</div>
         ) : currentList.length === 0 ? (
-          <div style={{textAlign:'center',padding:'48px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'16px'}}>
-            <div style={{fontSize:'36px',marginBottom:'12px'}}>{tab==='receivable'?'💚':'🔴'}</div>
-            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontFamily:FONT,marginBottom:'16px'}}>
-              {tab==='receivable'?(lang==='tr'?'Henüz alacak kaydı yok':'No receivables yet'):(lang==='tr'?'Henüz verecek kaydı yok':'No payables yet')}
-            </div>
-            <button onClick={()=>setAdding(true)}
-              style={{padding:'10px 20px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:theme.bg,color:theme.text,border:`1px solid ${theme.border}`,cursor:'pointer',fontFamily:FONT}}>
-              + {lang==='tr'?'İlk Kaydı Ekle':'Add First Entry'}
-            </button>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 20px',gap:'16px'}}>
+            <div style={{fontSize:'48px',opacity:0.6}}>{tab==='receivable'?'🤝':'💸'}</div>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:'15px',fontWeight:600,fontFamily:FONT}}>{tab==='receivable'?(lang==='tr'?'Henüz alacak kaydı yok':'No receivables yet'):(lang==='tr'?'Henüz verecek kaydı yok':'No payables yet')}</div>
+            <div style={{color:'rgba(255,255,255,0.2)',fontSize:'13px',fontFamily:FONT}}>+ {lang==='tr'?'butonuna tıklayarak ekle':'button to add'}</div>
           </div>
         ) : currentList.map(debt => {
           const st = STATUS[debt.status] || STATUS.pending
