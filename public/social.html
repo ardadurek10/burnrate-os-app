@@ -2,16 +2,508 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>BurnRate OS Social</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BurnRate OS — Social Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0a1e;--panel:#140d2e;--card:rgba(22,14,46,.8);
+  --p:#7c3aed;--ps:#a855f7;--pk:#c084fc;
+  --t1:#f0ebff;--t2:#9d89c4;--t3:#4e4270;
+  --border:rgba(124,58,237,.2);--success:#10b981;--err:#ef4444;
+}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Syne',sans-serif;overflow:hidden}
+
+.bg{position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 70% 60% at 10% 15%,rgba(124,58,237,.13) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 50% at 90% 85%,rgba(168,85,247,.1) 0%,transparent 60%),
+             #0f0a1e}
+.bg-grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(124,58,237,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(124,58,237,.05) 1px,transparent 1px);
+  background-size:44px 44px}
+
+.app{position:relative;z-index:1;display:grid;grid-template-rows:52px 1fr;height:100vh}
+
+header{
+  display:flex;align-items:center;padding:0 24px;gap:12px;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,4,18,.75);backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;letter-spacing:-.02em}
+.logo-mark{
+  width:26px;height:26px;border-radius:7px;
+  background:linear-gradient(135deg,#6d28d9,#a855f7);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+.logo-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
+.logo-tag{
+  font-size:10px;font-weight:700;color:var(--ps);letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 10px;border:1px solid rgba(168,85,247,.25);border-radius:20px;
+  background:rgba(168,85,247,.08)}
+
+.main{display:grid;grid-template-columns:368px 1fr;overflow:hidden}
+
+/* LEFT */
+.left{
+  padding:22px 20px;border-right:1px solid var(--border);
+  overflow-y:auto;display:flex;flex-direction:column;gap:20px;
+  background:rgba(12,7,28,.35)}
+.left::-webkit-scrollbar{width:3px}
+.left::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.slabel{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:9px}
+
+.plat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.plat-card{
+  padding:13px 10px;border:1px solid var(--border);border-radius:12px;
+  cursor:pointer;background:rgba(18,11,40,.6);
+  transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:7px;
+  position:relative;user-select:none}
+.plat-card:hover{border-color:rgba(168,85,247,.35);background:rgba(124,58,237,.08)}
+.plat-card.active{
+  border-color:var(--ps);background:rgba(124,58,237,.14);
+  box-shadow:0 0 28px rgba(168,85,247,.12),inset 0 1px 0 rgba(168,85,247,.1)}
+.plat-card.active::after{
+  content:'';position:absolute;top:8px;right:8px;
+  width:5px;height:5px;border-radius:50%;background:var(--ps);box-shadow:0 0 7px var(--ps)}
+.plat-icon{width:30px;height:30px;color:var(--t2);transition:color .18s}
+.plat-card.active .plat-icon{color:var(--pk)}
+.plat-name{font-size:11px;font-weight:700;color:var(--t2);transition:color .18s}
+.plat-card.active .plat-name{color:var(--pk)}
+
+.sel-wrap{position:relative}
+.sel-wrap select{
+  width:100%;padding:10px 34px 10px 13px;
+  background:rgba(18,11,40,.8);border:1px solid var(--border);border-radius:10px;
+  color:var(--t1);font-family:'Syne',sans-serif;font-size:13px;font-weight:500;
+  appearance:none;cursor:pointer;outline:none;transition:border-color .18s}
+.sel-wrap select:focus{border-color:var(--ps)}
+.sel-wrap::after{
+  content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  border:4px solid transparent;border-top:5px solid var(--t2);border-bottom:none;
+  margin-top:3px;pointer-events:none}
+.sel-wrap select option{background:#1a1035}
+
+.tone-pills{display:flex;flex-wrap:wrap;gap:6px}
+.tone-pill{
+  padding:5px 12px;border:1px solid var(--border);border-radius:16px;
+  font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;
+  background:rgba(18,11,40,.6);transition:all .18s}
+.tone-pill:hover{border-color:rgba(168,85,247,.35);color:var(--pk)}
+.tone-pill.active{border-color:var(--ps);background:rgba(168,85,247,.14);color:var(--pk)}
+
+textarea.extra{
+  width:100%;padding:10px 13px;min-height:66px;
+  background:rgba(18,11,40,.8);border:1px solid var(--border);border-radius:10px;
+  color:var(--t1);font-family:'Syne',sans-serif;font-size:13px;resize:none;
+  outline:none;transition:border-color .18s}
+textarea.extra:focus{border-color:var(--ps)}
+textarea.extra::placeholder{color:var(--t3)}
+
+.gen-btn{
+  width:100%;padding:13px;margin-top:auto;
+  background:linear-gradient(135deg,#6d28d9,#9333ea);border:none;border-radius:12px;
+  color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:.05em;position:relative;overflow:hidden;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px}
+.gen-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);opacity:0;transition:opacity .2s}
+.gen-btn:hover:not(:disabled)::before{opacity:1}
+.gen-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 32px rgba(124,58,237,.45)}
+.gen-btn:active:not(:disabled){transform:none}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+.gen-btn span{position:relative;z-index:1}
+.spinner{
+  width:15px;height:15px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;
+  display:none;position:relative;z-index:1;flex-shrink:0}
+.gen-btn.loading .spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RIGHT */
+.right{position:relative;display:flex;flex-direction:column;padding:26px 30px;overflow:hidden;gap:0}
+
+.plat-bg-icon{
+  position:absolute;right:-20px;bottom:-20px;pointer-events:none;
+  opacity:.045;transition:opacity .4s;color:var(--ps)}
+.plat-bg-icon svg{width:380px;height:380px}
+
+.empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:13px;color:var(--t3);text-align:center}
+.empty-box{
+  width:52px;height:52px;border:1px solid var(--border);border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(18,11,40,.5);margin-bottom:4px}
+.empty h3{font-size:16px;font-weight:700;color:var(--t2)}
+.empty p{font-size:13px;max-width:250px;line-height:1.65}
+
+.err-box{
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
+  border-radius:10px;padding:11px 14px;font-size:13px;color:#fca5a5;
+  display:none;margin-bottom:14px;flex-shrink:0}
+.err-box.show{display:block}
+
+.output{display:none;flex-direction:column;gap:18px;flex:1;min-height:0}
+.output.show{display:flex;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.out-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.out-badge{
+  display:flex;align-items:center;gap:7px;padding:5px 13px 5px 8px;
+  background:rgba(124,58,237,.12);border:1px solid rgba(168,85,247,.25);border-radius:20px}
+.out-badge svg{width:16px;height:16px;color:var(--ps)}
+.out-badge span{font-size:12px;font-weight:700;color:var(--pk)}
+.out-actions{display:flex;gap:6px}
+.action-btn{
+  padding:6px 13px;background:rgba(18,11,40,.8);border:1px solid var(--border);
+  border-radius:8px;color:var(--t2);font-family:'Syne',sans-serif;
+  font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;gap:5px;letter-spacing:.03em}
+.action-btn:hover{border-color:var(--ps);color:var(--pk)}
+.action-btn.ok{border-color:var(--success);color:var(--success)}
+
+.content-card{
+  background:rgba(18,11,40,.65);border:1px solid var(--border);border-radius:14px;
+  padding:22px;position:relative;overflow:hidden;
+  max-height:52vh;overflow-y:auto;flex-shrink:0}
+.content-card::-webkit-scrollbar{width:3px}
+.content-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.content-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--ps),transparent)}
+.content-text{
+  font-family:'Fragment Mono',monospace;font-size:13.5px;line-height:1.8;
+  color:var(--t1);white-space:pre-wrap;word-break:break-word}
+.char-row{
+  display:flex;justify-content:flex-end;margin-top:10px;
+  font-size:10px;font-family:'Fragment Mono',monospace;color:var(--t3)}
+.char-row.warn{color:#f97316}
+.char-row.over{color:var(--err)}
+
+.hash-section{flex-shrink:0}
+.hash-pills{display:flex;flex-wrap:wrap;gap:6px}
+.hash-pill{
+  padding:5px 11px;background:rgba(124,58,237,.1);
+  border:1px solid rgba(124,58,237,.22);border-radius:16px;
+  font-size:12px;font-weight:600;color:var(--ps);
+  font-family:'Fragment Mono',monospace;cursor:pointer;transition:all .18s;
+  opacity:0;animation:pop .25s ease forwards}
+.hash-pill:hover{background:rgba(124,58,237,.22);border-color:var(--ps);color:var(--pk)}
+@keyframes pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+
+.plat-hint{
+  font-size:11px;color:var(--t3);font-family:'Fragment Mono',monospace;
+  display:flex;align-items:center;gap:7px;flex-shrink:0}
+.plat-hint::before{
+  content:'';display:inline-block;width:5px;height:5px;
+  border-radius:50%;background:var(--ps);flex-shrink:0}
+</style>
 </head>
 <body>
+<div class="bg"><div class="bg-grid"></div></div>
+
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">B</div>
+      BurnRate OS
+    </div>
+    <div class="logo-sep"></div>
+    <div class="logo-tag">Social Generator</div>
+  </header>
+
+  <div class="main">
+    <!-- LEFT PANEL -->
+    <div class="left">
+
+      <div>
+        <div class="slabel">Platform</div>
+        <div class="plat-grid">
+          <div class="plat-card active" data-p="twitter">
+            <svg class="plat-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <div class="plat-name">Twitter / X</div>
+          </div>
+          <div class="plat-card" data-p="linkedin">
+            <svg class="plat-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            </svg>
+            <div class="plat-name">LinkedIn</div>
+          </div>
+          <div class="plat-card" data-p="instagram">
+            <svg class="plat-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
+            <div class="plat-name">Instagram</div>
+          </div>
+          <div class="plat-card" data-p="threads">
+            <svg class="plat-icon" viewBox="0 0 192 192" fill="currentColor">
+              <path d="M141.537 88.988a66.667 66.667 0 00-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.502 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.105 34.568.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.206 17.11 97.015 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.19 0h-.38C68.956.195 47.372 9.642 32.99 28.08 20.206 44.407 13.652 67.408 13.412 96v.5c.24 28.592 6.794 51.593 19.578 67.92 14.382 18.438 35.966 27.885 64.174 28.08h.386c24.922-.172 42.554-6.703 57.048-21.155 18.963-18.929 18.392-42.692 12.142-57.27-4.484-10.454-13.033-18.945-25.203-24.087zM98.44 129.507c-10.44.588-21.286-4.098-21.82-14.135-.397-7.442 5.296-15.746 22.461-16.735 1.966-.113 3.895-.169 5.79-.169 6.235 0 12.068.606 17.37 1.765-1.978 24.702-13.58 28.713-23.801 29.274z"/>
+            </svg>
+            <div class="plat-name">Threads</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="slabel">Konu</div>
+        <div class="sel-wrap">
+          <select id="topicSel">
+            <option value="v2_1_teaser">v2.1 Teaser — Yakında geliyor</option>
+            <option value="feature_ai">AI Finansal Danışman</option>
+            <option value="feature_invest">Canlı Yatırım Takibi</option>
+            <option value="feature_summary">Aylık Özet & PDF Rapor</option>
+            <option value="feature_challenge">30 Gün Finansal Challenge</option>
+            <option value="general_product">Genel Ürün Tanıtımı</option>
+            <option value="tips">Finansal İpucu</option>
+            <option value="engagement">Etkileşim Postu</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <div class="slabel">Ton</div>
+        <div class="tone-pills">
+          <div class="tone-pill active" data-t="heyecanli">Heyecanlı</div>
+          <div class="tone-pill" data-t="profesyonel">Profesyonel</div>
+          <div class="tone-pill" data-t="gizemli">Gizemli</div>
+          <div class="tone-pill" data-t="samimi">Samimi</div>
+          <div class="tone-pill" data-t="teknik">Teknik</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="slabel">Ekstra not (opsiyonel)</div>
+        <textarea class="extra" id="extraInput" placeholder="Özel detay, kampanya adı, tarih..."></textarea>
+      </div>
+
+      <button class="gen-btn" id="genBtn">
+        <div class="spinner"></div>
+        <span id="btnLabel">Üret</span>
+      </button>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right">
+
+      <div class="plat-bg-icon" id="platBg">
+        <svg id="platBgSvg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </div>
+
+      <div class="empty" id="emptyState">
+        <div class="empty-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <h3>Hazır</h3>
+        <p>Platform, konu ve ton seçip Üret'e bas.</p>
+      </div>
+
+      <div class="err-box" id="errBox"></div>
+
+      <div class="output" id="output">
+        <div class="out-header">
+          <div class="out-badge">
+            <svg id="badgeIcon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <span id="badgeName">Twitter / X</span>
+          </div>
+          <div class="out-actions">
+            <button class="action-btn" id="regenBtn">↺ Yeniden</button>
+            <button class="action-btn" id="copyBtn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Kopyala
+            </button>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="content-text" id="contentText"></div>
+          <div class="char-row" id="charRow"></div>
+        </div>
+
+        <div class="hash-section">
+          <div class="slabel">Hashtag'ler</div>
+          <div class="hash-pills" id="hashPills"></div>
+        </div>
+
+        <div class="plat-hint" id="platHint"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
-  // Test
-  fetch('/api/social', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({platform:'twitter', topic:'v2_1_teaser', tone:'heyecanli', extra:''})
-  }).then(r=>r.json()).then(d=>document.body.innerHTML='<pre>'+JSON.stringify(d,null,2)+'</pre>').catch(e=>document.body.innerHTML=e.message)
+const SVG_PATHS = {
+  twitter:'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z',
+  linkedin:'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
+  instagram:'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z',
+  threads:'M141.537 88.988a66.667 66.667 0 00-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.502 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.105 34.568.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.206 17.11 97.015 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.19 0h-.38C68.956.195 47.372 9.642 32.99 28.08 20.206 44.407 13.652 67.408 13.412 96v.5c.24 28.592 6.794 51.593 19.578 67.92 14.382 18.438 35.966 27.885 64.174 28.08h.386c24.922-.172 42.554-6.703 57.048-21.155 18.963-18.929 18.392-42.692 12.142-57.27-4.484-10.454-13.033-18.945-25.203-24.087zM98.44 129.507c-10.44.588-21.286-4.098-21.82-14.135-.397-7.442 5.296-15.746 22.461-16.735 1.966-.113 3.895-.169 5.79-.169 6.235 0 12.068.606 17.37 1.765-1.978 24.702-13.58 28.713-23.801 29.274z'
+}
+const THREADS_VIEWBOX = '0 0 192 192'
+
+const LABELS = {twitter:'Twitter / X',linkedin:'LinkedIn',instagram:'Instagram',threads:'Threads'}
+const LIMITS = {twitter:280,linkedin:3000,instagram:2200,threads:500}
+const HINTS = {
+  twitter:'Maks. 280 karakter · kısa ve vurucu',
+  linkedin:'Profesyonel ağ · 150–350 kelime ideal',
+  instagram:'Görsel odaklı · 100–200 kelime + CTA',
+  threads:'Maks. 500 karakter · samimi ve sohbet tarzı'
+}
+
+let st = {platform:'twitter',topic:'v2_1_teaser',tone:'heyecanli',extra:'',loading:false}
+let lastData = null
+
+// Platform cards
+document.querySelectorAll('.plat-card').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('.plat-card').forEach(x=>x.classList.remove('active'))
+    c.classList.add('active')
+    st.platform = c.dataset.p
+    updateBgIcon(st.platform)
+  })
+})
+
+// Topic
+document.getElementById('topicSel').addEventListener('change',e=>st.topic=e.target.value)
+
+// Tone
+document.querySelectorAll('.tone-pill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    document.querySelectorAll('.tone-pill').forEach(x=>x.classList.remove('active'))
+    p.classList.add('active')
+    st.tone = p.dataset.t
+  })
+})
+
+// Extra
+document.getElementById('extraInput').addEventListener('input',e=>st.extra=e.target.value)
+
+function updateBgIcon(p){
+  const svg = document.getElementById('platBgSvg')
+  const vb = p==='threads' ? THREADS_VIEWBOX : '0 0 24 24'
+  svg.setAttribute('viewBox', vb)
+  svg.innerHTML = `<path d="${SVG_PATHS[p]}"/>`
+}
+
+function setBadge(p){
+  const icon = document.getElementById('badgeIcon')
+  const vb = p==='threads' ? THREADS_VIEWBOX : '0 0 24 24'
+  icon.setAttribute('viewBox', vb)
+  icon.innerHTML = `<path d="${SVG_PATHS[p]}"/>`
+  document.getElementById('badgeName').textContent = LABELS[p]
+}
+
+function updateCharRow(text,p){
+  const el = document.getElementById('charRow')
+  const limit = LIMITS[p], len = text.length
+  el.textContent = `${len} / ${limit} karakter`
+  el.className = 'char-row'
+  if(len > limit) el.classList.add('over')
+  else if(len > limit*.85) el.classList.add('warn')
+}
+
+async function generate(){
+  if(st.loading) return
+  st.loading = true
+  const btn = document.getElementById('genBtn')
+  btn.classList.add('loading'); btn.disabled = true
+  document.getElementById('btnLabel').textContent = 'Üretiliyor...'
+  document.getElementById('errBox').classList.remove('show')
+  document.getElementById('emptyState').style.display = 'none'
+  document.getElementById('output').classList.remove('show')
+
+  try{
+    const res = await fetch('/api/social',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({platform:st.platform,topic:st.topic,tone:st.tone,extra:st.extra})
+    })
+    const data = await res.json()
+    if(!res.ok) throw new Error(data.error||'Sunucu hatası')
+    lastData = data
+    showOutput(data)
+  }catch(e){
+    const eb = document.getElementById('errBox')
+    eb.textContent = '⚠ '+e.message
+    eb.classList.add('show')
+    document.getElementById('emptyState').style.display = 'flex'
+  }finally{
+    st.loading = false
+    btn.classList.remove('loading'); btn.disabled = false
+    document.getElementById('btnLabel').textContent = 'Üret'
+  }
+}
+
+function showOutput(data){
+  setBadge(st.platform)
+
+  // Typewriter
+  const el = document.getElementById('contentText')
+  el.textContent = ''
+  const text = data.content || ''
+  let i = 0
+  const speed = Math.max(8, Math.min(25, 1800/text.length))
+  ;(function tick(){
+    if(i<text.length){ el.textContent += text[i++]; setTimeout(tick,speed) }
+    else updateCharRow(text, st.platform)
+  })()
+
+  // Hashtags
+  const pills = document.getElementById('hashPills')
+  pills.innerHTML = ''
+  ;(data.hashtags||[]).forEach((tag,i)=>{
+    const pill = document.createElement('div')
+    pill.className = 'hash-pill'
+    pill.style.animationDelay = i*55+'ms'
+    const t = tag.startsWith('#') ? tag : '#'+tag
+    pill.textContent = t
+    pill.title = 'Kopyala'
+    pill.addEventListener('click',()=>{
+      navigator.clipboard.writeText(t)
+      const orig = pill.textContent
+      pill.textContent = '✓'
+      setTimeout(()=>pill.textContent=orig, 1000)
+    })
+    pills.appendChild(pill)
+  })
+
+  document.getElementById('platHint').textContent = HINTS[st.platform]
+  document.getElementById('output').classList.add('show')
+}
+
+// Copy button
+document.getElementById('copyBtn').addEventListener('click',()=>{
+  if(!lastData) return
+  const tags = (lastData.hashtags||[]).map(t=>t.startsWith('#')?t:'#'+t).join(' ')
+  navigator.clipboard.writeText(lastData.content + (tags ? '\n\n'+tags : ''))
+  const btn = document.getElementById('copyBtn')
+  btn.classList.add('ok')
+  btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Kopyalandı'
+  setTimeout(()=>{
+    btn.classList.remove('ok')
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Kopyala'
+  }, 2200)
+})
+
+document.getElementById('regenBtn').addEventListener('click', generate)
+document.getElementById('genBtn').addEventListener('click', generate)
+
+updateBgIcon('twitter')
 </script>
 </body>
 </html>
