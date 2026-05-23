@@ -911,7 +911,6 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         ))}
       </div>
 
-      {/* FİNANSAL SAĞLIK SKORU */}
       {(() => {
         const score = totalIncome > 0 ? Math.min(100, Math.round(
           (totalIncome > 0 ? 30 : 0) +
@@ -919,47 +918,55 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           (subs.filter(s=>s.status==='dead').length === 0 ? 15 : 0) +
           (investments.length > 0 ? 15 : 0)
         )) : 0
-        const scoreColor = score >= 80 ? '#6ee7b7' : score >= 60 ? '#fde68a' : score >= 40 ? '#f97316' : '#fca5a5'
+        const scoreColor = score >= 80 ? '#30d158' : score >= 60 ? '#ffd60a' : score >= 40 ? '#ff9f0a' : '#ff453a'
+        const scoreRgb = score >= 80 ? '48,209,88' : score >= 60 ? '255,214,10' : score >= 40 ? '255,159,10' : '255,69,58'
         const scoreLabel = score >= 80 ? (lang==='tr'?'Mükemmel':'Excellent') : score >= 60 ? (lang==='tr'?'İyi':'Good') : score >= 40 ? (lang==='tr'?'Orta':'Fair') : (lang==='tr'?'Gelişmeli':'Needs Work')
-        const circumference = 2 * Math.PI * 54
+        const circumference = 2 * Math.PI * 52
         const strokeDash = (score / 100) * circumference
+        const checks = [
+          {label:lang==='tr'?'Gelir Kaydı':'Income',ok:totalIncome>0,tip:lang==='tr'?'Gelir var':'Has income'},
+          {label:lang==='tr'?'Tasarruf':'Savings',ok:(totalIncome-totalExp-totalSubs)/Math.max(totalIncome,1)>=0.2,tip:'≥20%'},
+          {label:lang==='tr'?'Abonelik':'Dead Subs',ok:subs.filter(s=>s.status==='dead').length===0,tip:lang==='tr'?'Ölü yok':'None dead'},
+          {label:lang==='tr'?'Yatırım':'Investing',ok:investments.length>0,tip:lang==='tr'?'Aktif':'Active'},
+        ]
         return (
-          <div style={{background:'rgba(124,58,237,0.04)',borderRadius:'20px',padding:'20px 24px',marginBottom:'16px',boxShadow:'0 0 0 1px rgba(124,58,237,0.15), inset 0 1px 0 rgba(124,58,237,0.1), 0 4px 24px rgba(0,0,0,0.5)',display:'flex',alignItems:'center',gap:'24px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
-            <div style={{position:'absolute',top:0,left:'5%',right:'5%',height:'1px',background:'linear-gradient(90deg,transparent,rgba(124,58,237,0.25),transparent)'}}></div>
-            <div style={{position:'relative',width:'120px',height:'120px',flexShrink:0}}>
-              <svg width="120" height="120" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(124,58,237,0.1)" strokeWidth="10"/>
-                <circle cx="60" cy="60" r="54" fill="none" stroke={scoreColor} strokeWidth="10"
+          <div style={{background:`linear-gradient(135deg, rgba(${scoreRgb},0.06) 0%, rgba(124,58,237,0.04) 100%)`,borderRadius:'24px',padding:'24px 28px',marginBottom:'16px',boxShadow:`0 0 0 1px rgba(${scoreRgb},0.2), inset 0 1px 0 rgba(${scoreRgb},0.1), 0 8px 32px rgba(0,0,0,0.5)`,display:'flex',alignItems:'center',gap:'28px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:0,left:'5%',right:'5%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${scoreRgb},0.4),transparent)`}}></div>
+            <div style={{position:'absolute',bottom:'-40px',right:'-40px',width:'160px',height:'160px',borderRadius:'50%',background:`radial-gradient(circle,rgba(${scoreRgb},0.08) 0%,transparent 70%)`,pointerEvents:'none'}}></div>
+            <div style={{position:'relative',width:'130px',height:'130px',flexShrink:0}}>
+              <svg width="130" height="130" viewBox="0 0 130 130" style={{transform:'rotate(-90deg)'}}>
+                <circle cx="65" cy="65" r="52" fill="none" stroke={`rgba(${scoreRgb},0.1)`} strokeWidth="8"/>
+                <circle cx="65" cy="65" r="52" fill="none" stroke={`rgba(${scoreRgb},0.08)`} strokeWidth="1" strokeDasharray="4 8"/>
+                <circle cx="65" cy="65" r="52" fill="none" stroke={scoreColor} strokeWidth="8"
                   strokeDasharray={`${strokeDash} ${circumference}`}
-                  strokeDashoffset={circumference * 0.25}
                   strokeLinecap="round"
-                  style={{transition:'stroke-dasharray 1s ease',filter:`drop-shadow(0 0 6px ${scoreColor}88)`}}/>
-                <text x="60" y="55" textAnchor="middle" fill={scoreColor} fontSize="28" fontWeight="800" fontFamily="Plus Jakarta Sans">{score}</text>
-                <text x="60" y="72" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="10" fontFamily="DM Mono" letterSpacing="1">/100</text>
+                  style={{filter:`drop-shadow(0 0 8px ${scoreColor})`,transition:'stroke-dasharray 1.2s cubic-bezier(.34,1.56,.64,1)'}}/>
               </svg>
-            </div>
-            <div style={{flex:1,minWidth:'200px'}}>
-              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'rgba(124,58,237,0.5)',marginBottom:'6px'}}>{lang==='tr'?'Finansal Sağlık Skoru':'Financial Health Score'}</div>
-              <div style={{fontSize:'22px',fontWeight:800,color:scoreColor,letterSpacing:'-0.5px',marginBottom:'4px',fontFamily:FONT}}>{scoreLabel}</div>
-              <div style={{fontSize:'12px',color:'rgba(255,255,255,0.3)',fontFamily:FONT,lineHeight:'1.5'}}>
-                {score >= 80 ? (lang==='tr'?'Harika gidiyorsun! Finansal sağlığın çok iyi.':'Great job! Your financial health is excellent.') :
-                 score >= 60 ? (lang==='tr'?'İyi durumdasın. Biraz daha tasarruf yapabilirsin.':'Good shape. You can save a bit more.') :
-                 score >= 40 ? (lang==='tr'?'Harcamalarını azaltmaya çalış.':'Try to reduce your spending.') :
-                 (lang==='tr'?'Gelir ekle ve harcamaları azalt.':'Add income and reduce expenses.')}
+              <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                <div style={{fontSize:'34px',fontWeight:800,color:scoreColor,letterSpacing:'-1.5px',lineHeight:1,fontFamily:FONT,textShadow:`0 0 20px ${scoreColor}66`}}>{score}</div>
+                <div style={{fontFamily:MONO,fontSize:'9px',color:`rgba(${scoreRgb},0.5)`,letterSpacing:'1px'}}>/100</div>
               </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',minWidth:'200px'}}>
-              {[
-                {label:lang==='tr'?'Gelir':'Income',ok:totalIncome>0,tip:lang==='tr'?'Gelir var':'Has income'},
-                {label:lang==='tr'?'Tasarruf':'Savings',ok:(totalIncome-totalExp-totalSubs)/Math.max(totalIncome,1)>=0.2,tip:'≥20%'},
-                {label:lang==='tr'?'Abonelik':'Dead Subs',ok:subs.filter(s=>s.status==='dead').length===0,tip:lang==='tr'?'Ölü yok':'None dead'},
-                {label:lang==='tr'?'Yatırım':'Investing',ok:investments.length>0,tip:lang==='tr'?'Aktif':'Active'},
-              ].map((c,i)=>(
-                <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 10px',borderRadius:'10px',background:c.ok?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.06)',border:`1px solid ${c.ok?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.15)'}`}}>
-                  <span style={{fontSize:'14px'}}>{c.ok?'✅':'❌'}</span>
+            <div style={{flex:1,minWidth:'160px'}}>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2.5px',textTransform:'uppercase',color:`rgba(${scoreRgb},0.55)`,marginBottom:'8px'}}>{lang==='tr'?'Finansal Sağlık':'Financial Health'}</div>
+              <div style={{fontSize:'26px',fontWeight:800,color:scoreColor,letterSpacing:'-0.8px',marginBottom:'8px',fontFamily:FONT,textShadow:`0 0 30px ${scoreColor}44`}}>{scoreLabel}</div>
+              <div style={{fontSize:'12.5px',color:'rgba(255,255,255,0.4)',fontFamily:FONT,lineHeight:'1.6',maxWidth:'240px'}}>
+                {score >= 80 ? (lang==='tr'?'Harika! Finansal sağlığın çok iyi durumda.':'Outstanding! Your financial health is excellent.') :
+                 score >= 60 ? (lang==='tr'?'İyi durumdasın, biraz daha tasarruf yapabilirsin.':'Good shape. A bit more savings would help.') :
+                 score >= 40 ? (lang==='tr'?'Harcamalarını azaltmaya çalış.':'Try to reduce your spending.') :
+                 (lang==='tr'?'Gelir ekle ve harcamaları kontrol altına al.':'Add income and control your expenses.')}
+              </div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',minWidth:'220px'}}>
+              {checks.map((c,i)=>(
+                <div key={i}
+                  onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow=c.ok?'0 4px 16px rgba(48,209,88,0.15)':'0 4px 16px rgba(255,69,58,0.1)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='none'}}
+                  style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'14px',background:c.ok?'rgba(48,209,88,0.07)':'rgba(255,69,58,0.07)',border:`1px solid ${c.ok?'rgba(48,209,88,0.2)':'rgba(255,69,58,0.15)'}`,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',cursor:'default'}}>
+                  <div style={{width:'22px',height:'22px',borderRadius:'50%',background:c.ok?'rgba(48,209,88,0.15)':'rgba(255,69,58,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',flexShrink:0,border:`1px solid ${c.ok?'rgba(48,209,88,0.3)':'rgba(255,69,58,0.2)'}`}}>{c.ok?'✓':'✕'}</div>
                   <div>
-                    <div style={{fontSize:'11px',fontWeight:600,color:'rgba(255,255,255,0.7)',fontFamily:FONT}}>{c.label}</div>
-                    <div style={{fontSize:'9px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{c.tip}</div>
+                    <div style={{fontSize:'12px',fontWeight:600,color:c.ok?'rgba(255,255,255,0.8)':'rgba(255,255,255,0.5)',fontFamily:FONT,lineHeight:1.2}}>{c.label}</div>
+                    <div style={{fontSize:'9px',color:c.ok?'rgba(48,209,88,0.6)':'rgba(255,69,58,0.5)',fontFamily:MONO,letterSpacing:'0.5px',marginTop:'2px'}}>{c.tip}</div>
                   </div>
                 </div>
               ))}
