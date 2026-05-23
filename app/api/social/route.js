@@ -2,6 +2,16 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic()
 
+export async function OPTIONS() {
+  return new Response(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    }
+  })
+}
+
 export async function POST(req) {
   try {
     const { platform, topic, tone, extra } = await req.json()
@@ -52,8 +62,12 @@ SADECE JSON formatında yanıt ver, başka hiçbir şey yazma:
     const text = message.content[0].text
     const parsed = JSON.parse(text.replace(/\`\`\`json|\`\`\`/g, '').trim())
 
-    return Response.json(parsed)
+    const response = Response.json(parsed)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    return response
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 })
+    const response = Response.json({ error: error.message }, { status: 500 })
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    return response
   }
 }
