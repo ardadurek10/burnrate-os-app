@@ -1,1 +1,17 @@
-test
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>BurnRate OS Social</title>
+</head>
+<body>
+<script>
+  // Test
+  fetch('/api/social', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({platform:'twitter', topic:'v2_1_teaser', tone:'heyecanli', extra:''})
+  }).then(r=>r.json()).then(d=>document.body.innerHTML='<pre>'+JSON.stringify(d,null,2)+'</pre>').catch(e=>document.body.innerHTML=e.message)
+</script>
+</body>
+</html>
