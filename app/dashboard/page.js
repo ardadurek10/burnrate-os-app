@@ -911,6 +911,63 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         ))}
       </div>
 
+      {/* FİNANSAL SAĞLIK SKORU */}
+      {(() => {
+        const score = totalIncome > 0 ? Math.min(100, Math.round(
+          (totalIncome > 0 ? 30 : 0) +
+          ((totalIncome - totalExp - totalSubs) / Math.max(totalIncome, 1) * 40) +
+          (subs.filter(s=>s.status==='dead').length === 0 ? 15 : 0) +
+          (investments.length > 0 ? 15 : 0)
+        )) : 0
+        const scoreColor = score >= 80 ? '#6ee7b7' : score >= 60 ? '#fde68a' : score >= 40 ? '#f97316' : '#fca5a5'
+        const scoreLabel = score >= 80 ? (lang==='tr'?'Mükemmel':'Excellent') : score >= 60 ? (lang==='tr'?'İyi':'Good') : score >= 40 ? (lang==='tr'?'Orta':'Fair') : (lang==='tr'?'Gelişmeli':'Needs Work')
+        const circumference = 2 * Math.PI * 54
+        const strokeDash = (score / 100) * circumference
+        return (
+          <div style={{background:'rgba(124,58,237,0.04)',borderRadius:'20px',padding:'20px 24px',marginBottom:'16px',boxShadow:'0 0 0 1px rgba(124,58,237,0.15), inset 0 1px 0 rgba(124,58,237,0.1), 0 4px 24px rgba(0,0,0,0.5)',display:'flex',alignItems:'center',gap:'24px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:0,left:'5%',right:'5%',height:'1px',background:'linear-gradient(90deg,transparent,rgba(124,58,237,0.25),transparent)'}}></div>
+            <div style={{position:'relative',width:'120px',height:'120px',flexShrink:0}}>
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(124,58,237,0.1)" strokeWidth="10"/>
+                <circle cx="60" cy="60" r="54" fill="none" stroke={scoreColor} strokeWidth="10"
+                  strokeDasharray={`${strokeDash} ${circumference}`}
+                  strokeDashoffset={circumference * 0.25}
+                  strokeLinecap="round"
+                  style={{transition:'stroke-dasharray 1s ease',filter:`drop-shadow(0 0 6px ${scoreColor}88)`}}/>
+                <text x="60" y="55" textAnchor="middle" fill={scoreColor} fontSize="28" fontWeight="800" fontFamily="Plus Jakarta Sans">{score}</text>
+                <text x="60" y="72" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="10" fontFamily="DM Mono" letterSpacing="1">/100</text>
+              </svg>
+            </div>
+            <div style={{flex:1,minWidth:'200px'}}>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'rgba(124,58,237,0.5)',marginBottom:'6px'}}>{lang==='tr'?'Finansal Sağlık Skoru':'Financial Health Score'}</div>
+              <div style={{fontSize:'22px',fontWeight:800,color:scoreColor,letterSpacing:'-0.5px',marginBottom:'4px',fontFamily:FONT}}>{scoreLabel}</div>
+              <div style={{fontSize:'12px',color:'rgba(255,255,255,0.3)',fontFamily:FONT,lineHeight:'1.5'}}>
+                {score >= 80 ? (lang==='tr'?'Harika gidiyorsun! Finansal sağlığın çok iyi.':'Great job! Your financial health is excellent.') :
+                 score >= 60 ? (lang==='tr'?'İyi durumdasın. Biraz daha tasarruf yapabilirsin.':'Good shape. You can save a bit more.') :
+                 score >= 40 ? (lang==='tr'?'Harcamalarını azaltmaya çalış.':'Try to reduce your spending.') :
+                 (lang==='tr'?'Gelir ekle ve harcamaları azalt.':'Add income and reduce expenses.')}
+              </div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',minWidth:'200px'}}>
+              {[
+                {label:lang==='tr'?'Gelir':'Income',ok:totalIncome>0,tip:lang==='tr'?'Gelir var':'Has income'},
+                {label:lang==='tr'?'Tasarruf':'Savings',ok:(totalIncome-totalExp-totalSubs)/Math.max(totalIncome,1)>=0.2,tip:'≥20%'},
+                {label:lang==='tr'?'Abonelik':'Dead Subs',ok:subs.filter(s=>s.status==='dead').length===0,tip:lang==='tr'?'Ölü yok':'None dead'},
+                {label:lang==='tr'?'Yatırım':'Investing',ok:investments.length>0,tip:lang==='tr'?'Aktif':'Active'},
+              ].map((c,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 10px',borderRadius:'10px',background:c.ok?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.06)',border:`1px solid ${c.ok?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.15)'}`}}>
+                  <span style={{fontSize:'14px'}}>{c.ok?'✅':'❌'}</span>
+                  <div>
+                    <div style={{fontSize:'11px',fontWeight:600,color:'rgba(255,255,255,0.7)',fontFamily:FONT}}>{c.label}</div>
+                    <div style={{fontSize:'9px',color:'rgba(255,255,255,0.3)',fontFamily:MONO}}>{c.tip}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Harcama Dağılımı':'Spending Breakdown'}</div>
