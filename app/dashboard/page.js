@@ -891,22 +891,23 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
       {/* HIZLI İSTATİSTİKLER */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'16px'}}>
         {[
-          {label:lang==='tr'?'Bu Ay Harcama':'Transactions',val:expenses.length,sub:lang==='tr'?'işlem':'this month',icon:'📊',color:'245,158,11'},
-          {label:lang==='tr'?'Aktif Abonelik':'Active Subs',val:subs.filter(s=>s.status!=='dead').length,sub:lang==='tr'?'abonelik':'active',icon:'⚔️',color:'239,68,68'},
-          {label:lang==='tr'?'Yatırım':'Investments',val:investments.length,sub:lang==='tr'?'pozisyon':'positions',icon:'📈',color:'16,185,129'},
-          {label:lang==='tr'?'Net Alacak':'Net Owed',val:`₺${(debts.filter(d=>d.type==='receivable').reduce((a,d)=>a+Number(d.amount),0)).toFixed(0)}`,sub:lang==='tr'?'alacak':'receivable',icon:'🤝',color:'6,182,212'},
+          {label:lang==='tr'?'Bu Ay Harcama':'Transactions',val:expenses.length,sub:lang==='tr'?'işlem':'this month',icon:'📊',color:'245,158,11',ac:'#f59e0b'},
+          {label:lang==='tr'?'Aktif Abonelik':'Active Subs',val:subs.filter(s=>s.status!=='dead').length,sub:lang==='tr'?'abonelik':'active',icon:'⚔️',color:'239,68,68',ac:'#ef4444'},
+          {label:lang==='tr'?'Yatırım':'Investments',val:investments.length,sub:lang==='tr'?'pozisyon':'positions',icon:'📈',color:'16,185,129',ac:'#10b981'},
+          {label:lang==='tr'?'Net Alacak':'Net Owed',val:`₺${(debts||[]).filter(d=>d.type==='owed').reduce((a,d)=>a+Number(d.amount),0).toFixed(0)}`,sub:lang==='tr'?'alacak':'receivable',icon:'🤝',color:'6,182,212',ac:'#06b6d4'},
         ].map((s,i)=>(
           <div key={i}
-            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${s.color},0.3), 0 8px 24px rgba(${s.color},0.1)`}}
-            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${s.color},0.15), 0 4px 16px rgba(0,0,0,0.4)`}}
-            style={{background:`rgba(${s.color},0.05)`,borderRadius:'16px',padding:'16px',boxShadow:`0 0 0 1px rgba(${s.color},0.15), 0 4px 16px rgba(0,0,0,0.4)`,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',cursor:'default',position:'relative',overflow:'hidden'}}>
-            <div style={{position:'absolute',top:0,left:'10%',right:'10%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${s.color},0.3),transparent)`}}></div>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
-              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:`rgba(${s.color},0.5)`}}>{s.label}</div>
-              <div style={{fontSize:'16px'}}>{s.icon}</div>
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px) scale(1.008)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${s.color},0.45), 0 0 0 4px rgba(${s.color},0.08), 0 16px 40px rgba(${s.color},0.18), 0 4px 12px rgba(0,0,0,0.7)`}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${s.color},0.25), inset 0 1px 0 rgba(${s.color},0.15), 0 4px 24px rgba(0,0,0,0.6)`}}
+            style={{background:`linear-gradient(135deg, rgba(${s.color},0.1) 0%, rgba(${s.color},0.04) 100%)`,borderRadius:'18px',padding:'18px 20px',boxShadow:`0 0 0 1px rgba(${s.color},0.25), inset 0 1px 0 rgba(${s.color},0.15), 0 4px 24px rgba(0,0,0,0.6)`,transition:'all 0.22s cubic-bezier(.34,1.56,.64,1)',cursor:'default',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:0,left:'10%',right:'10%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${s.color},0.5),transparent)`}}></div>
+            <div style={{position:'absolute',bottom:'-20px',right:'-10px',fontSize:'52px',opacity:0.06,pointerEvents:'none'}}>{s.icon}</div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'14px'}}>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.8px',textTransform:'uppercase',color:`rgba(${s.color},0.6)`}}>{s.label}</div>
+              <div style={{width:'28px',height:'28px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',background:`rgba(${s.color},0.15)`,border:`1px solid rgba(${s.color},0.25)`}}>{s.icon}</div>
             </div>
-            <div style={{fontSize:'24px',fontWeight:800,letterSpacing:'-1px',color:`rgb(${s.color})`,fontFamily:FONT}}>{s.val}</div>
-            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',marginTop:'4px',fontFamily:FONT}}>{s.sub}</div>
+            <div style={{fontSize:'32px',fontWeight:800,letterSpacing:'-1.5px',color:s.ac,fontFamily:FONT,lineHeight:1,marginBottom:'6px',textShadow:`0 0 20px rgba(${s.color},0.4)`}}>{s.val}</div>
+            <div style={{fontSize:'11px',color:`rgba(${s.color},0.5)`,fontFamily:FONT,fontWeight:500}}>{s.sub}</div>
           </div>
         ))}
       </div>
