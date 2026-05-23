@@ -2844,10 +2844,12 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 20 }}>
         {/* Sol menü */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {sections.map(s => (
             <button key={s.id} onClick={() => setActiveSection(s.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400, background: activeSection === s.id ? 'rgba(124,58,237,0.1)' : 'transparent', color: activeSection === s.id ? '#c4b5fd' : 'rgba(255,255,255,0.4)', border: activeSection === s.id ? '1px solid rgba(124,58,237,0.3)' : '1px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: FONT, transition: 'all 0.15s' }}>
+              onMouseEnter={e => { if(activeSection !== s.id) { e.currentTarget.style.background='rgba(99,102,241,0.06)'; e.currentTarget.style.transform='translateX(3px)' } }}
+              onMouseLeave={e => { if(activeSection !== s.id) { e.currentTarget.style.background='transparent'; e.currentTarget.style.transform='translateX(0)' } }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400, background: activeSection === s.id ? 'rgba(99,102,241,0.12)' : 'transparent', color: activeSection === s.id ? '#a5b4fc' : 'rgba(255,255,255,0.4)', border: 'none', borderLeft: activeSection === s.id ? '2px solid #6366f1' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: FONT, transition: 'all 0.18s' }}>
               <span>{s.icon}</span> {s.label}
             </button>
           ))}
@@ -2867,12 +2869,14 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                   <div style={{ ...TIP, marginBottom: 6 }}>{lang === 'tr' ? 'Ad Soyad' : 'Full Name'}</div>
                   <input value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
                     placeholder={lang === 'tr' ? 'Adınız...' : 'Your name...'}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: FONT }} />
+                    onFocus={e=>{e.target.style.borderColor='rgba(99,102,241,0.5)';e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'}}
+                    onBlur={e=>{e.target.style.borderColor='rgba(99,102,241,0.2)';e.target.style.boxShadow='none'}}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(99,102,241,0.2)', color: '#f1f0ff', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: FONT, transition: 'border-color 0.18s, box-shadow 0.18s' }} />
                 </div>
                 <div>
                   <div style={{ ...TIP, marginBottom: 6 }}>{lang === 'tr' ? 'Meslek' : 'Profession'}</div>
                   <select value={profileForm.profession} onChange={e => setProfileForm({ ...profileForm, profession: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(30,30,50,0.9)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer' }}>
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, background: 'rgba(30,30,50,0.9)', border: '1px solid rgba(99,102,241,0.2)', color: '#f1f0ff', fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer' }}>
                     <option value="">{lang === 'tr' ? 'Seçin...' : 'Select...'}</option>
                     {['Freelancer', lang === 'tr' ? 'Öğrenci' : 'Student', lang === 'tr' ? 'Girişimci' : 'Entrepreneur', lang === 'tr' ? 'Çalışan' : 'Employee', lang === 'tr' ? 'Serbest Meslek' : 'Self-employed', lang === 'tr' ? 'Diğer' : 'Other'].map(p => (
                       <option key={p} value={p}>{p}</option>
@@ -2885,7 +2889,9 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                     <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontFamily: MONO }}>₺</span>
                     <input type="number" value={profileForm.monthly_income} onChange={e => setProfileForm({ ...profileForm, monthly_income: e.target.value })}
                       placeholder="0"
-                      style={{ width: '100%', padding: '10px 14px 10px 28px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: MONO }} />
+                      onFocus={e=>{e.target.style.borderColor='rgba(99,102,241,0.5)';e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'}}
+                      onBlur={e=>{e.target.style.borderColor='rgba(99,102,241,0.2)';e.target.style.boxShadow='none'}}
+                      style={{ width: '100%', padding: '10px 14px 10px 28px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(99,102,241,0.2)', color: '#f1f0ff', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: MONO, transition: 'border-color 0.18s, box-shadow 0.18s' }} />
                   </div>
                 </div>
                 <div>
@@ -2896,7 +2902,9 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                 </div>
               </div>
               <button onClick={saveProfile} disabled={saving}
-                style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg,#7c3aed,#4c1d95)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, fontFamily: FONT }}>
+                onMouseEnter={e=>{ if(!saving){e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(99,102,241,0.45)'}}}
+                onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='0 4px 20px rgba(99,102,241,0.35)'}}
+                style={{ padding: '10px 24px', borderRadius: 12, fontSize: 13, fontWeight: 700, background: 'linear-gradient(135deg,#6366f1,#4338ca)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, fontFamily: FONT, boxShadow: '0 4px 20px rgba(99,102,241,0.35)', transition: 'transform 0.2s, box-shadow 0.2s' }}>
                 {saving ? (lang === 'tr' ? 'Kaydediliyor...' : 'Saving...') : (lang === 'tr' ? 'Kaydet' : 'Save Changes')}
               </button>
             </Card>
@@ -2981,7 +2989,11 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                   {lang === 'tr' ? 'Plan Değiştir' : 'Change Plan'}
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  {[['starter', 'Starter', '$9'], ['pro', 'Pro', '$19'], ['elite', 'Elite', '$39']].map(([key, name, price]) => (
+                  {[
+                    ['starter', 'Starter', '$9',  {activeBg:'rgba(255,255,255,0.06)', activeBorder:'rgba(255,255,255,0.18)', activeColor:'#f1f0ff', hoverBg:'rgba(255,255,255,0.04)'}],
+                    ['pro',     'Pro',     '$19', {activeBg:'rgba(99,102,241,0.12)',  activeBorder:'rgba(99,102,241,0.4)',  activeColor:'#a5b4fc', hoverBg:'rgba(99,102,241,0.06)'}],
+                    ['elite',   'Elite',   '$39', {activeBg:'rgba(245,158,11,0.1)',   activeBorder:'rgba(245,158,11,0.45)', activeColor:'#fde68a', hoverBg:'rgba(245,158,11,0.06)'}],
+                  ].map(([key, name, price, colors]) => (
   <div key={key} onClick={async () => {
     if (key === currentPlan) return;
     setSaving(true);
@@ -3007,10 +3019,12 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
       setSaving(false);
     }
   }}
-                      style={{ flex: 1, padding: '16px 12px', borderRadius: 12, background: key === currentPlan ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.03)', border: key === currentPlan ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.07)', cursor: key === currentPlan ? 'default' : 'pointer', textAlign: 'center', transition: 'all 0.15s' }}>
-                      <div style={{ color: key === currentPlan ? '#c4b5fd' : '#fff', fontWeight: 700, fontSize: 14, fontFamily: FONT }}>{name}</div>
+  onMouseEnter={e=>{ if(key!==currentPlan) e.currentTarget.style.background=colors.hoverBg }}
+  onMouseLeave={e=>{ if(key!==currentPlan) e.currentTarget.style.background='rgba(255,255,255,0.02)' }}
+                      style={{ flex: 1, padding: '16px 12px', borderRadius: 12, background: key === currentPlan ? colors.activeBg : 'rgba(255,255,255,0.02)', border: `1px solid ${key === currentPlan ? colors.activeBorder : 'rgba(255,255,255,0.07)'}`, boxShadow: key === currentPlan && key === 'elite' ? '0 0 20px rgba(245,158,11,0.12)' : 'none', cursor: key === currentPlan ? 'default' : 'pointer', textAlign: 'center', transition: 'all 0.18s' }}>
+                      <div style={{ color: key === currentPlan ? colors.activeColor : '#fff', fontWeight: 700, fontSize: 14, fontFamily: FONT }}>{name}</div>
                       <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: MONO }}>{price}/mo</div>
-                      {key === currentPlan && <div style={{ color: '#7c3aed', fontSize: 10, marginTop: 4, fontFamily: FONT }}>✓ {lang === 'tr' ? 'Mevcut' : 'Current'}</div>}
+                      {key === currentPlan && <div style={{ color: colors.activeColor, fontSize: 10, marginTop: 4, fontFamily: FONT, opacity: 0.8 }}>✓ {lang === 'tr' ? 'Mevcut' : 'Current'}</div>}
                     </div>
                   ))}
                 </div>
@@ -3059,16 +3073,16 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
               <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 20, fontFamily: FONT }}>
                 {lang === 'tr' ? 'Hesap Bilgileri' : 'Account Information'}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 24 }}>
                 {[
                   { label: 'E-posta', value: user.email },
                   { label: lang === 'tr' ? 'Kullanıcı ID' : 'User ID', value: user.id, mono: true },
                   { label: lang === 'tr' ? 'Lisans Anahtarı' : 'License Key', value: dbUser?.license_key || '—', mono: true },
                   { label: 'Stripe Customer ID', value: dbUser?.stripe_customer_id || lang === 'tr' ? 'Henüz yok' : 'Not yet', mono: true },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: FONT }}>{item.label}</span>
-                    <span style={{ color: '#f5f5f7', fontSize: 12, fontFamily: item.mono ? MONO : FONT, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.value}</span>
+                ].map((item, i, arr) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', background: 'rgba(255,255,255,0.03)', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontFamily: MONO, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.label}</span>
+                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, fontFamily: item.mono ? MONO : FONT, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -3193,7 +3207,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
           {/* HESAP YÖNETİMİ */}
 {activeSection === 'danger' && (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-    <Card style={{ padding: 24, border: '1px solid rgba(255,255,255,0.07)' }}>
+    <Card style={{ padding: 24, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)' }}>
       <div style={{ color: '#f5f5f7', fontSize: 14, fontWeight: 600, marginBottom: 6, fontFamily: FONT }}>
         🗑️ {lang === 'tr' ? 'Tüm Verileri Sil' : 'Delete All Data'}
       </div>
@@ -3203,7 +3217,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
       <div style={{ display: 'flex', gap: 10 }}>
         <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)}
           placeholder={lang === 'tr' ? '"SİL" yazın' : 'Type "DELETE" to confirm'}
-          style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT }} />
+          style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', color: '#f5f5f7', fontSize: 13, outline: 'none', fontFamily: FONT }} />
         <button onClick={handleDeleteData}
           disabled={deleteConfirm !== 'SİL' && deleteConfirm !== 'DELETE'}
           style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.1)', color: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? '#fff' : 'rgba(239,68,68,0.4)', border: 'none', cursor: deleteConfirm === 'SİL' || deleteConfirm === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
@@ -3212,7 +3226,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
       </div>
     </Card>
 
-    <Card style={{ padding: 24, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.02)' }}>
+    <Card style={{ padding: 24, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)' }}>
       <div style={{ color: '#ef4444', fontSize: 14, fontWeight: 600, marginBottom: 6, fontFamily: FONT }}>
         ⛔ {lang === 'tr' ? 'Hesabı Kapat' : 'Close Account'}
       </div>
