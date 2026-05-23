@@ -147,7 +147,9 @@ textarea.extra::placeholder{color:var(--t3)}
   display:none;margin-bottom:14px;flex-shrink:0}
 .err-box.show{display:block}
 
-.output{display:none;flex-direction:column;gap:18px;flex:1;min-height:0}
+.output{display:none;flex-direction:column;gap:18px;flex:1;min-height:0;overflow-y:auto}
+.output::-webkit-scrollbar{width:3px}
+.output::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .output.show{display:flex;animation:fadeUp .35s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
@@ -201,6 +203,9 @@ textarea.extra::placeholder{color:var(--t3)}
 .plat-hint::before{
   content:'';display:inline-block;width:5px;height:5px;
   border-radius:50%;background:var(--ps);flex-shrink:0}
+
+#visualBox{flex-shrink:0;border-radius:12px;overflow:hidden;animation:fadeUp .4s ease .1s both;display:none}
+#visualBox svg{display:block;width:100%}
 </style>
 </head>
 <body>
@@ -341,6 +346,7 @@ textarea.extra::placeholder{color:var(--t3)}
         </div>
 
         <div class="plat-hint" id="platHint"></div>
+        <div id="visualBox"></div>
       </div>
 
     </div>
@@ -484,6 +490,52 @@ function showOutput(data){
 
   document.getElementById('platHint').textContent = HINTS[st.platform]
   document.getElementById('output').classList.add('show')
+
+  const visualDiv = document.getElementById('visualBox')
+  if(visualDiv){
+    visualDiv.innerHTML = buildVisual(data.content, st.topic, st.platform)
+    visualDiv.style.display = 'block'
+  }
+}
+
+function buildVisual(content, topic, platform){
+  const visuals = {
+    v2_1_teaser:{emoji:'⚡',tag:'V2.1 YAKINDA',ac:'#6366f1',bg1:'rgba(67,56,202,0.4)',bg2:'rgba(99,102,241,0.2)'},
+    feature_ai:{emoji:'🤖',tag:'YENİ ÖZELLİK',ac:'#8b5cf6',bg1:'rgba(109,40,217,0.4)',bg2:'rgba(139,92,246,0.2)'},
+    feature_invest:{emoji:'📈',tag:'CANLI TAKİP',ac:'#10b981',bg1:'rgba(16,185,129,0.35)',bg2:'rgba(5,150,105,0.2)'},
+    feature_summary:{emoji:'📋',tag:'YENİ ÖZELLİK',ac:'#14b8a6',bg1:'rgba(20,184,166,0.35)',bg2:'rgba(15,118,110,0.2)'},
+    feature_challenge:{emoji:'🎯',tag:'30 GÜN',ac:'#f43f5e',bg1:'rgba(244,63,94,0.35)',bg2:'rgba(190,18,60,0.2)'},
+    general_product:{emoji:'💜',tag:'BURNRATE OS',ac:'#6366f1',bg1:'rgba(67,56,202,0.4)',bg2:'rgba(99,102,241,0.2)'},
+    tips:{emoji:'💡',tag:'FİNANSAL İPUCU',ac:'#f59e0b',bg1:'rgba(245,158,11,0.35)',bg2:'rgba(217,119,6,0.2)'},
+    engagement:{emoji:'💬',tag:'ETKİLEŞİM',ac:'#06b6d4',bg1:'rgba(6,182,212,0.35)',bg2:'rgba(8,145,178,0.2)'},
+  }
+  const v = visuals[topic] || visuals.general_product
+  const maxLen = 160
+  const short = content.length > maxLen ? content.substring(0, maxLen) + '...' : content
+  const words = short.split(' ')
+  let lines = [], line = ''
+  words.forEach(w => { if((line+' '+w).length > 40){lines.push(line.trim());line=w}else line+=' '+w })
+  if(line.trim()) lines.push(line.trim())
+  lines = lines.slice(0, 5)
+  const lsvg = lines.map((l,i) => `<text x="340" y="${210+i*30}" text-anchor="middle" fill="rgba(238,242,255,0.88)" font-family="sans-serif" font-size="14" font-weight="400">${l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</text>`).join('')
+  return `<svg width="100%" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="rg1" cx="20%" cy="20%"><stop offset="0%" stop-color="${v.bg1}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+<radialGradient id="rg2" cx="80%" cy="80%"><stop offset="0%" stop-color="${v.bg2}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+</defs>
+<rect width="680" height="420" fill="#04040f"/>
+<rect width="680" height="420" fill="url(#rg1)"/>
+<rect width="680" height="420" fill="url(#rg2)"/>
+<line x1="80" y1="1" x2="600" y2="1" stroke="${v.ac}" stroke-opacity="0.4" stroke-width="1"/>
+<text x="340" y="60" text-anchor="middle" fill="${v.ac}" fill-opacity="0.55" font-family="monospace" font-size="11" letter-spacing="3">BURNRATE OS</text>
+<rect x="264" y="76" width="152" height="24" rx="12" fill="${v.ac}" fill-opacity="0.1"/>
+<rect x="264" y="76" width="152" height="24" rx="12" fill="none" stroke="${v.ac}" stroke-opacity="0.3" stroke-width="1"/>
+<text x="340" y="93" text-anchor="middle" fill="${v.ac}" font-family="monospace" font-size="9" letter-spacing="2">${v.tag}</text>
+<text x="340" y="166" text-anchor="middle" font-size="38">${v.emoji}</text>
+${lsvg}
+<text x="340" y="400" text-anchor="middle" fill="${v.ac}" fill-opacity="0.3" font-family="monospace" font-size="10" letter-spacing="1">app.burnrate-os.com</text>
+<rect x="0.5" y="0.5" width="679" height="419" fill="none" stroke="${v.ac}" stroke-opacity="0.12" stroke-width="1"/>
+</svg>`
 }
 
 // Copy button
