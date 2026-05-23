@@ -432,6 +432,7 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([])
   const [income, setIncome] = useState([])
   const [investments, setInvestments] = useState([])
+  const [debts, setDebts] = useState([])
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
   const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
@@ -479,16 +480,18 @@ export default function Dashboard() {
   }, [])
 
   async function loadData(userId) {
-    const [s, e, i, inv] = await Promise.all([
+    const [s, e, i, inv, d] = await Promise.all([
       supabaseQuery('subscriptions', { user_id: userId }),
       supabaseQuery('expenses', { user_id: userId }),
       supabaseQuery('income', { user_id: userId }),
       supabaseQuery('investments', { user_id: userId }),
+      supabaseQuery('debts', { user_id: userId }),
     ])
     setSubs(Array.isArray(s) ? s : [])
     setExpenses(Array.isArray(e) ? e : [])
     setIncome(Array.isArray(i) ? i : [])
     setInvestments(Array.isArray(inv) ? inv.map(i=>({...i,shares:Number(i.shares),buyPrice:Number(i.buy_price),currentPrice:Number(i.current_price)||0,symbol:i.symbol,name:i.name,type:i.type})) : [])
+    setDebts(Array.isArray(d) ? d : [])
   }
 
   async function fetchCurrencyRate(cur) {
@@ -718,7 +721,7 @@ return (
 
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0',scrollbarWidth:'none',msOverflowStyle:'none'}}>
-        {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} investments={investments} debts={debts} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} lang={lang} />)}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='investments' && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} lang={lang} />)}
@@ -839,7 +842,7 @@ function InputField({ label, value, onChange, type='text', placeholder }) {
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
-function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, onSummary, onQuickAdd, onMonthlySummary, onMonthlyGoal, userPlan, userName, currency, currencyRate, currencySymbol, lang }) {
+function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expenses, totalIncome, invGain, totalInvValue, investments=[], debts=[], onSummary, onQuickAdd, onMonthlySummary, onMonthlyGoal, userPlan, userName, currency, currencyRate, currencySymbol, lang }) {
   const sr = totalIncome > 0 ? Math.round(((totalIncome-totalExp-totalSubs)/totalIncome)*100) : 0
   const fmt = (amount) => `${currencySymbol}${(amount / currencyRate).toFixed(0)}`
   const now = new Date()
@@ -885,6 +888,29 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         <StatCard accent={theme.accent} label={lang==='tr'?'Tasarruf Oranı':lang==='tr'?'Tasarruf Oranı':'Savings Rate'} value={`${sr}%`} sub={lang==='tr'?(sr>=30?'Mükemmel 🎉':sr>=15?'İyi, devam et':'Gelişmeli'):(sr>=30?'Excellent 🎉':sr>=15?'Good, keep going':'Needs work')} color={sr>=30?'#6ee7b7':sr>=15?'#fde68a':'#fca5a5'} icon="📊" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={fmt(totalInvValue)} sub={lang==='tr'?(invGain>=0?`+₺${invGain.toFixed(0)} kazanç`:`-₺${Math.abs(invGain).toFixed(0)} kayıp`):(invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`)} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
+      {/* HIZLI İSTATİSTİKLER */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'16px'}}>
+        {[
+          {label:lang==='tr'?'Bu Ay Harcama':'Transactions',val:expenses.length,sub:lang==='tr'?'işlem':'this month',icon:'📊',color:'245,158,11'},
+          {label:lang==='tr'?'Aktif Abonelik':'Active Subs',val:subs.filter(s=>s.status!=='dead').length,sub:lang==='tr'?'abonelik':'active',icon:'⚔️',color:'239,68,68'},
+          {label:lang==='tr'?'Yatırım':'Investments',val:investments.length,sub:lang==='tr'?'pozisyon':'positions',icon:'📈',color:'16,185,129'},
+          {label:lang==='tr'?'Net Alacak':'Net Owed',val:`₺${(debts.filter(d=>d.type==='receivable').reduce((a,d)=>a+Number(d.amount),0)).toFixed(0)}`,sub:lang==='tr'?'alacak':'receivable',icon:'🤝',color:'6,182,212'},
+        ].map((s,i)=>(
+          <div key={i}
+            onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${s.color},0.3), 0 8px 24px rgba(${s.color},0.1)`}}
+            onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 0 0 1px rgba(${s.color},0.15), 0 4px 16px rgba(0,0,0,0.4)`}}
+            style={{background:`rgba(${s.color},0.05)`,borderRadius:'16px',padding:'16px',boxShadow:`0 0 0 1px rgba(${s.color},0.15), 0 4px 16px rgba(0,0,0,0.4)`,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',cursor:'default',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:0,left:'10%',right:'10%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${s.color},0.3),transparent)`}}></div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:`rgba(${s.color},0.5)`}}>{s.label}</div>
+              <div style={{fontSize:'16px'}}>{s.icon}</div>
+            </div>
+            <div style={{fontSize:'24px',fontWeight:800,letterSpacing:'-1px',color:`rgb(${s.color})`,fontFamily:FONT}}>{s.val}</div>
+            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',marginTop:'4px',fontFamily:FONT}}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Harcama Dağılımı':'Spending Breakdown'}</div>
