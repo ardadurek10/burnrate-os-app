@@ -562,7 +562,7 @@ export default function Dashboard() {
       }
     })
 
-    const completedDays = JSON.parse(localStorage.getItem(`burnrate_completed_days_${user.id}`)||'[]')
+    const completedDays = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(`burnrate_completed_days_${user.id}`)||'[]') : []
     const today = now.getDate()
     if(!completedDays.includes(today) && now.getHours() >= 18) {
       notifs.push({
@@ -580,7 +580,7 @@ export default function Dashboard() {
     const finalNotifs = notifs.map(n=>({...n, read: readIds.includes(n.id)}))
     setNotifications(finalNotifs)
     setUnreadCount(finalNotifs.filter(n=>!n.read).length)
-  }, [user, subs.length, investments.length, totalExp, dbUser])
+  }, [user?.id, subs.length, investments.length, totalExp])
 
   async function fetchCurrencyRate(cur) {
     try {
