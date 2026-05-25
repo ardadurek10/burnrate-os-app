@@ -435,6 +435,11 @@ export default function Dashboard() {
   const [debts, setDebts] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [readNotifIds, setReadNotifIds] = useState([])
+  const [budgetLimits, setBudgetLimits] = useState(() => {
+    if(typeof window === 'undefined') return {}
+    try { return JSON.parse(localStorage.getItem('burnrate_budget_limits')||'{}') } catch { return {} }
+  })
+  const [budgetSaved, setBudgetSaved] = useState(false)
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
   const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
@@ -804,7 +809,7 @@ return (
         {page==='summary' && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} lang={lang} />)}
         {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={DYNAMIC_THEME} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} lang={lang} />)}
         {page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
+        {page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} expenses={expenses} budgetLimits={budgetLimits} setBudgetLimits={setBudgetLimits} budgetSaved={budgetSaved} setBudgetSaved={setBudgetSaved} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -2868,7 +2873,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
   )
 }
 // ── SETTINGS PAGE ─────────────────────────────────────────────────
-function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
+function SettingsPage({ theme, user, lang, onLangChange, onSignOut, expenses=[], budgetLimits={}, setBudgetLimits, budgetSaved, setBudgetSaved }) {
   const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
 
@@ -2980,6 +2985,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
     { id: 'plan',     icon: '💳', label: lang === 'tr' ? 'Plan & Abonelik' : 'Plan & Billing' },
     { id: 'prefs',    icon: '🌍', label: lang === 'tr' ? 'Tercihler' : 'Preferences' },
     { id: 'security', icon: '🔒', label: lang === 'tr' ? 'Güvenlik' : 'Security' },
+    { id: 'budget', icon: '📊', label: lang==='tr'?'Bütçe Planı':'Budget Plan' },
     { id: 'export', icon: '📥', label: lang === 'tr' ? 'Rapor İndir' : 'Export Report' },
     { id: 'danger', icon: '🗑️', label: lang === 'tr' ? 'Veri & Hesap' : 'Data & Account' },
   ]
@@ -3258,6 +3264,69 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut }) {
                 </button>
               </div>
             </Card>
+          )}
+
+          {activeSection==='budget' && (
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT,lineHeight:'1.6',marginBottom:'4px'}}>
+                {lang==='tr'?'Her kategori için aylık harcama limiti belirle. Limitler aşılınca uyarı alırsın.':'Set monthly spending limits per category. You\'ll get warnings when exceeded.'}
+              </div>
+              {[
+                {key:'market',label:lang==='tr'?'Market & Alışveriş':'Groceries',icon:'🛒',color:'16,185,129'},
+                {key:'yemek',label:lang==='tr'?'Yemek & Restoran':'Food & Dining',icon:'🍽️',color:'245,158,11'},
+                {key:'ulasim',label:lang==='tr'?'Ulaşım':'Transport',icon:'🚗',color:'6,182,212'},
+                {key:'eglence',label:lang==='tr'?'Eğlence':'Entertainment',icon:'🎬',color:'139,92,246'},
+                {key:'saglik',label:lang==='tr'?'Sağlık':'Health',icon:'💊',color:'244,63,94'},
+                {key:'giyim',label:lang==='tr'?'Giyim':'Clothing',icon:'👕',color:'249,115,22'},
+                {key:'faturalar',label:lang==='tr'?'Faturalar':'Bills',icon:'📄',color:'99,102,241'},
+                {key:'diger',label:lang==='tr'?'Diğer':'Other',icon:'📦',color:'124,58,237'},
+              ].map(cat => {
+                const spent = expenses.filter(e=>(e.category||'').toLowerCase().includes(cat.key)||
+                  (cat.key==='market'&&(e.category||'').toLowerCase().includes('alışveriş'))||
+                  (cat.key==='yemek'&&((e.category||'').toLowerCase().includes('restoran')||(e.category||'').toLowerCase().includes('kafe')))||
+                  (cat.key==='ulasim'&&(e.category||'').toLowerCase().includes('ulaşım'))||
+                  (cat.key==='diger'&&!(e.category))
+                ).reduce((a,e)=>a+Number(e.amount),0)
+                const limit = Number(budgetLimits[cat.key]||0)
+                const pct = limit > 0 ? Math.min(100, Math.round(spent/limit*100)) : 0
+                const over = limit > 0 && spent > limit
+                return (
+                  <div key={cat.key} style={{background:`rgba(${cat.color},0.05)`,border:`1px solid rgba(${cat.color},0.15)`,borderRadius:'16px',padding:'16px 18px',position:'relative',overflow:'hidden'}}>
+                    <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${cat.color},0.25),transparent)`}}></div>
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:limit>0?'12px':'0'}}>
+                      <div style={{width:'34px',height:'34px',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',background:`rgba(${cat.color},0.12)`,border:`1px solid rgba(${cat.color},0.2)`,flexShrink:0}}>{cat.icon}</div>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'13px',fontWeight:600,color:'rgba(255,255,255,0.8)',fontFamily:FONT,marginBottom:'2px'}}>{cat.label}</div>
+                        {limit > 0 && <div style={{fontSize:'11px',color:`rgba(${cat.color},0.6)`,fontFamily:MONO}}>₺{spent.toFixed(0)} / ₺{limit} {over&&<span style={{color:'#fca5a5',marginLeft:'6px'}}>⚠️ {lang==='tr'?'Limit aşıldı!':'Over budget!'}</span>}</div>}
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                        <span style={{color:'rgba(255,255,255,0.3)',fontSize:'12px',fontFamily:MONO}}>₺</span>
+                        <input type="number" placeholder="0" value={budgetLimits[cat.key]||''}
+                          onChange={e=>setBudgetLimits(prev=>({...prev,[cat.key]:e.target.value}))}
+                          style={{width:'90px',padding:'7px 10px',borderRadius:'9px',background:'rgba(255,255,255,0.05)',border:`1px solid rgba(${cat.color},0.2)`,color:'#f1f0ff',fontSize:'13px',fontFamily:MONO,outline:'none',textAlign:'right'}}
+                          onFocus={e=>{e.currentTarget.style.border=`1px solid rgba(${cat.color},0.5)`;e.currentTarget.style.boxShadow=`0 0 0 3px rgba(${cat.color},0.08)`}}
+                          onBlur={e=>{e.currentTarget.style.border=`1px solid rgba(${cat.color},0.2)`;e.currentTarget.style.boxShadow='none'}}
+                        />
+                      </div>
+                    </div>
+                    {limit > 0 && (
+                      <div style={{height:'5px',borderRadius:'100px',background:'rgba(255,255,255,0.06)',overflow:'hidden'}}>
+                        <div style={{height:'100%',borderRadius:'100px',width:`${pct}%`,background:over?'linear-gradient(90deg,#ef4444,#dc2626)':`linear-gradient(90deg,rgb(${cat.color}),rgba(${cat.color},0.7))`,boxShadow:over?'0 0 8px rgba(239,68,68,0.4)':`0 0 8px rgba(${cat.color},0.4)`,transition:'width 0.5s ease'}}></div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              <button onClick={()=>{
+                localStorage.setItem('burnrate_budget_limits', JSON.stringify(budgetLimits))
+                setBudgetSaved(true)
+                setTimeout(()=>setBudgetSaved(false),2500)
+              }} style={{padding:'12px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#6366f1,#4338ca)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(99,102,241,0.35)',transition:'transform 0.2s,box-shadow 0.2s',marginTop:'4px'}}
+                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(99,102,241,0.5)'}}
+                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 20px rgba(99,102,241,0.35)'}}>
+                {budgetSaved ? (lang==='tr'?'✓ Kaydedildi!':'✓ Saved!') : (lang==='tr'?'💾 Bütçeyi Kaydet':'💾 Save Budget')}
+              </button>
+            </div>
           )}
 
           {activeSection === 'export' && (
