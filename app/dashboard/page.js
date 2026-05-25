@@ -425,6 +425,7 @@ function LockedPage({ moduleId, userPlan, onUpgrade, lang='en' }) {
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
   const [page, setPage] = useState(() => {
     try { return localStorage.getItem('burnrate_page') || 'dashboard' } catch { return 'dashboard' }
   })
@@ -483,8 +484,21 @@ export default function Dashboard() {
       }
       setUser(parsed)
       loadData(parsed.id)
+      fetchUserProfile(parsed.id)
     } catch(e) { localStorage.removeItem('burnrate_user'); window.location.href = '/login' }
   }, [])
+
+  async function fetchUserProfile(userId) {
+    try {
+      const data = await supabaseQuery('users', { id: userId })
+      if (Array.isArray(data) && data[0]) {
+        setUserProfile(data[0])
+        if (data[0]?.plan) {
+          localStorage.setItem('burnrate_plan', data[0].plan)
+        }
+      }
+    } catch(e) {}
+  }
 
   async function loadData(userId) {
     const [s, e, i, inv, d] = await Promise.all([
@@ -532,7 +546,7 @@ export default function Dashboard() {
   }, [])
 
   function navigateTo(moduleId) {
-    if (!canAccess(user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
+    if (!canAccess(userProfile?.plan || localStorage.getItem('burnrate_plan') || user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
     setPage(moduleId)
     try { localStorage.setItem('burnrate_page', moduleId) } catch {}
   }
@@ -566,7 +580,7 @@ export default function Dashboard() {
 
   const DYNAMIC_THEME = THEMES.dashboard
 
-  const userPlan = user.plan || 'starter'
+  const userPlan = userProfile?.plan || localStorage.getItem('burnrate_plan') || user.plan || 'starter'
   const planMeta = PLAN_META[userPlan] || PLAN_META.starter
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan]
 
