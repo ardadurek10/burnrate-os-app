@@ -570,6 +570,26 @@ export default function Dashboard() {
   const planMeta = PLAN_META[userPlan] || PLAN_META.starter
   const upgradeLink = WHOP_UPGRADE_LINKS[userPlan]
 
+  async function handleUpgrade(plan, billing='monthly') {
+    try {
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          plan,
+          billing,
+          userId: user.id,
+          email: user.email
+        })
+      })
+      const data = await res.json()
+      if(data.url) window.location.href = data.url
+      else alert('Hata: ' + data.error)
+    } catch(e) {
+      alert('Bağlantı hatası: ' + e.message)
+    }
+  }
+
   const totalIncome = income.reduce((a,i) => a+Number(i.amount), 0)
   const totalExp = expenses.reduce((a,e) => a+Number(e.amount), 0)
   const totalSubs = subs.reduce((a,s) => a+Number(s.cost), 0)
@@ -847,7 +867,7 @@ return (
         {page==='summary' && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} lang={lang} />)}
         {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={DYNAMIC_THEME} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} lang={lang} />)}
         {page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} expenses={expenses} budgetLimits={budgetLimits} setBudgetLimits={setBudgetLimits} budgetSaved={budgetSaved} setBudgetSaved={setBudgetSaved} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
+        {page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} expenses={expenses} budgetLimits={budgetLimits} setBudgetLimits={setBudgetLimits} budgetSaved={budgetSaved} setBudgetSaved={setBudgetSaved} onUpgrade={handleUpgrade} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
       {/* MOBILE TAB BAR */}
@@ -2916,7 +2936,7 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
   )
 }
 // ── SETTINGS PAGE ─────────────────────────────────────────────────
-function SettingsPage({ theme, user, lang, onLangChange, onSignOut, expenses=[], budgetLimits={}, setBudgetLimits, budgetSaved, setBudgetSaved }) {
+function SettingsPage({ theme, user, lang, onLangChange, onSignOut, onUpgrade, expenses=[], budgetLimits={}, setBudgetLimits, budgetSaved, setBudgetSaved }) {
   const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
 
@@ -3208,30 +3228,9 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, expenses=[],
                     ['pro',     'Pro',     '$19', {activeBg:'rgba(99,102,241,0.12)',  activeBorder:'rgba(99,102,241,0.4)',  activeColor:'#a5b4fc', hoverBg:'rgba(99,102,241,0.06)'}],
                     ['elite',   'Elite',   '$39', {activeBg:'rgba(245,158,11,0.1)',   activeBorder:'rgba(245,158,11,0.45)', activeColor:'#fde68a', hoverBg:'rgba(245,158,11,0.06)'}],
                   ].map(([key, name, price, colors]) => (
-  <div key={key} onClick={async () => {
+  <div key={key} onClick={() => {
     if (key === currentPlan) return;
-    setSaving(true);
-    setMessage('');
-    try {
-      const res = await fetch('/api/stripe/update-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, newPlan: key }),
-      });
-      const data = await res.json();
-      if (data.redirect) {
-        window.location.href = data.redirect;
-      } else if (data.success) {
-        setMessage(lang === 'tr' ? `✓ Plan ${name} olarak güncellendi` : `✓ Plan updated to ${name}`);
-        fetchDbUser();
-      } else {
-        setMessage('Hata: ' + (data.error || 'Bir sorun oluştu'));
-      }
-    } catch {
-      setMessage('Bağlantı hatası');
-    } finally {
-      setSaving(false);
-    }
+    if (onUpgrade) onUpgrade(key, 'monthly');
   }}
   onMouseEnter={e=>{ if(key!==currentPlan) e.currentTarget.style.background=colors.hoverBg }}
   onMouseLeave={e=>{ if(key!==currentPlan) e.currentTarget.style.background='rgba(255,255,255,0.02)' }}
