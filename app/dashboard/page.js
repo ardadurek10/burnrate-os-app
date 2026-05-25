@@ -596,6 +596,28 @@ export default function Dashboard() {
         }
       })
     }
+    // Bütçe limiti kontrolü
+    const budgetLimits = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('burnrate_budget_limits')||'{}') : {}
+    const catMap = {
+      market: expenses.filter(e=>(e.category||'').toLowerCase().includes('market')||(e.category||'').toLowerCase().includes('alışveriş')),
+      yemek: expenses.filter(e=>(e.category||'').toLowerCase().includes('yemek')||(e.category||'').toLowerCase().includes('restoran')||(e.category||'').toLowerCase().includes('kafe')),
+      ulasim: expenses.filter(e=>(e.category||'').toLowerCase().includes('ulaşım')||(e.category||'').toLowerCase().includes('akaryakıt')),
+      eglence: expenses.filter(e=>(e.category||'').toLowerCase().includes('eğlence')),
+      saglik: expenses.filter(e=>(e.category||'').toLowerCase().includes('sağlık')),
+      giyim: expenses.filter(e=>(e.category||'').toLowerCase().includes('giyim')),
+      faturalar: expenses.filter(e=>(e.category||'').toLowerCase().includes('fatura')),
+    }
+    const catLabels = {market:'Market',yemek:'Yemek',ulasim:'Ulaşım',eglence:'Eğlence',saglik:'Sağlık',giyim:'Giyim',faturalar:'Faturalar'}
+    Object.keys(budgetLimits).forEach(key=>{
+      const limit = Number(budgetLimits[key])
+      if(limit <= 0) return
+      const spent = (catMap[key]||[]).reduce((a,e)=>a+Number(e.amount),0)
+      if(spent >= limit) {
+        notifs.push({id:`budget-over-${key}`,icon:'🚨',title:lang==='tr'?`${catLabels[key]||key} Limiti Aşıldı`:`${catLabels[key]||key} Budget Exceeded`,body:lang==='tr'?`₺${spent.toFixed(0)} harcandı, limit ₺${limit}`:`Spent ₺${spent.toFixed(0)}, limit ₺${limit}`,type:'warning'})
+      } else if(spent >= limit * 0.8) {
+        notifs.push({id:`budget-warn-${key}`,icon:'⚠️',title:lang==='tr'?`${catLabels[key]||key} Limitine Yaklaşıyor`:`${catLabels[key]||key} Near Limit`,body:lang==='tr'?`%${Math.round(spent/limit*100)} kullanıldı`:`${Math.round(spent/limit*100)}% used`,type:'warning'})
+      }
+    })
     return notifs
   }
 
