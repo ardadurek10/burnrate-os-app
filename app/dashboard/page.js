@@ -852,7 +852,7 @@ return (
 
       {/* MOBILE TAB BAR */}
       <div className="tabbar" style={{display:'none',position:'fixed',bottom:0,left:0,right:0,background:'rgba(10,10,15,0.97)',borderTop:'1px solid rgba(255,255,255,0.07)',backdropFilter:'blur(24px)',zIndex:50,padding:'8px 0 20px',overflowX:'auto',scrollbarWidth:'none'}}>
-        {[...navItems,{id:'ai',icon:'🤖',label:lang==='tr'?'Yapay Zeka':'AI'},{id:'summary',icon:'📋',label:lang==='tr'?'Özet':'Summary'}].map(item => {
+        {[...navItems,{id:'ai',icon:'🤖',label:lang==='tr'?'Yapay Zeka':'AI'}].map(item => {
           const active = page === item.id
           const t = THEMES[item.id] || THEMES.ai
           const locked = !canAccess(userPlan, item.id)
