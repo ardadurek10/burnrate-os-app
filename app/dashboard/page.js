@@ -1429,15 +1429,6 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                   <option value="Diğer">✨ Diğer</option>
                 </select>
               </div>
-              <div>
-                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(239,68,68,0.5)',marginBottom:'7px'}}>DURUM</div>
-                <select value={editingSub.status||'active'} onChange={e=>setEditingSub({...editingSub,status:e.target.value})}
-                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'#0d0820',border:'1px solid rgba(239,68,68,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ef4444' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 13px center'}}>
-                  <option value="keep">✅ Aktif</option>
-                  <option value="warn">⚠️ Uyarı</option>
-                  <option value="dead">💀 Ölü</option>
-                </select>
-              </div>
               <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
                 <button onClick={()=>setEditingSub(null)}
                   style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.1)',background:'transparent',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:FONT}}>
@@ -1449,7 +1440,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                   await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?id=eq.${editingSub.id}`,{
                     method:'PATCH',
                     headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-                    body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category,status:editingSub.status})
+                    body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category})
                   })
                   setEditingSub(null)
                   onRefresh()
