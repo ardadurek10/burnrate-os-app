@@ -599,13 +599,14 @@ export default function Dashboard() {
     // Bütçe limiti kontrolü
     const budgetLimits = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('burnrate_budget_limits')||'{}') : {}
     const catMap = {
-      market: expenses.filter(e=>(e.category||'').toLowerCase().includes('market')||(e.category||'').toLowerCase().includes('alışveriş')),
-      yemek: expenses.filter(e=>(e.category||'').toLowerCase().includes('yemek')||(e.category||'').toLowerCase().includes('restoran')||(e.category||'').toLowerCase().includes('kafe')),
-      ulasim: expenses.filter(e=>(e.category||'').toLowerCase().includes('ulaşım')||(e.category||'').toLowerCase().includes('akaryakıt')),
-      eglence: expenses.filter(e=>(e.category||'').toLowerCase().includes('eğlence')),
-      saglik: expenses.filter(e=>(e.category||'').toLowerCase().includes('sağlık')),
-      giyim: expenses.filter(e=>(e.category||'').toLowerCase().includes('giyim')),
-      faturalar: expenses.filter(e=>(e.category||'').toLowerCase().includes('fatura')),
+      market: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('market')||c.includes('alışveriş')||c.includes('alisveris')||c.includes('grocery')}),
+      yemek: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('yemek')||c.includes('restoran')||c.includes('kafe')||c.includes('food')||c.includes('dining')||c.includes('sipariş')||c.includes('cafe')}),
+      ulasim: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('ulaşım')||c.includes('ulasim')||c.includes('akaryakıt')||c.includes('akaryakit')||c.includes('benzin')||c.includes('taksi')||c.includes('toplu')||c.includes('transport')}),
+      eglence: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('eğlence')||c.includes('eglence')||c.includes('sinema')||c.includes('oyun')||c.includes('entertainment')}),
+      saglik: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('sağlık')||c.includes('saglik')||c.includes('doktor')||c.includes('eczane')||c.includes('ilaç')||c.includes('health')}),
+      giyim: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('giyim')||c.includes('kıyafet')||c.includes('clothing')||c.includes('moda')}),
+      faturalar: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return c.includes('fatura')||c.includes('elektrik')||c.includes('su')||c.includes('doğalgaz')||c.includes('internet')||c.includes('bill')}),
+      diger: expenses.filter(e=>{const c=(e.category||'').toLowerCase(); return !c||c.includes('diğer')||c.includes('diger')||c.includes('other')}),
     }
     const catLabels = {market:'Market',yemek:'Yemek',ulasim:'Ulaşım',eglence:'Eğlence',saglik:'Sağlık',giyim:'Giyim',faturalar:'Faturalar'}
     Object.keys(budgetLimits).forEach(key=>{
@@ -3303,12 +3304,18 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, expenses=[],
                 {key:'faturalar',label:lang==='tr'?'Faturalar':'Bills',icon:'📄',color:'99,102,241'},
                 {key:'diger',label:lang==='tr'?'Diğer':'Other',icon:'📦',color:'124,58,237'},
               ].map(cat => {
-                const spent = expenses.filter(e=>(e.category||'').toLowerCase().includes(cat.key)||
-                  (cat.key==='market'&&(e.category||'').toLowerCase().includes('alışveriş'))||
-                  (cat.key==='yemek'&&((e.category||'').toLowerCase().includes('restoran')||(e.category||'').toLowerCase().includes('kafe')))||
-                  (cat.key==='ulasim'&&(e.category||'').toLowerCase().includes('ulaşım'))||
-                  (cat.key==='diger'&&!(e.category))
-                ).reduce((a,e)=>a+Number(e.amount),0)
+                const spent = expenses.filter(e=>{
+                  const c=(e.category||'').toLowerCase()
+                  if(cat.key==='market') return c.includes('market')||c.includes('alışveriş')||c.includes('alisveris')||c.includes('grocery')
+                  if(cat.key==='yemek') return c.includes('yemek')||c.includes('restoran')||c.includes('kafe')||c.includes('food')||c.includes('dining')||c.includes('sipariş')||c.includes('cafe')
+                  if(cat.key==='ulasim') return c.includes('ulaşım')||c.includes('ulasim')||c.includes('akaryakıt')||c.includes('akaryakit')||c.includes('benzin')||c.includes('taksi')||c.includes('toplu')||c.includes('transport')
+                  if(cat.key==='eglence') return c.includes('eğlence')||c.includes('eglence')||c.includes('sinema')||c.includes('oyun')||c.includes('entertainment')
+                  if(cat.key==='saglik') return c.includes('sağlık')||c.includes('saglik')||c.includes('doktor')||c.includes('eczane')||c.includes('ilaç')||c.includes('health')
+                  if(cat.key==='giyim') return c.includes('giyim')||c.includes('kıyafet')||c.includes('clothing')||c.includes('moda')
+                  if(cat.key==='faturalar') return c.includes('fatura')||c.includes('elektrik')||c.includes('su')||c.includes('doğalgaz')||c.includes('internet')||c.includes('bill')
+                  if(cat.key==='diger') return !c||c.includes('diğer')||c.includes('diger')||c.includes('other')
+                  return false
+                }).reduce((a,e)=>a+Number(e.amount),0)
                 const limit = Number(budgetLimits[cat.key]||0)
                 const pct = limit > 0 ? Math.min(100, Math.round(spent/limit*100)) : 0
                 const over = limit > 0 && spent > limit
