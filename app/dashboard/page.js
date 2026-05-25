@@ -1265,6 +1265,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
   const [adding, setAdding] = useState(false)
   const [subCatSearch, setSubCatSearch] = useState('')
   const [subCatOpen, setSubCatOpen]     = useState(false)
+  const [editingSub, setEditingSub] = useState(null)
   const filtSubCats = subCatSearch ? SUB_CATS.filter(c=>((lang==='tr')?c.tr:c.en).toLowerCase().includes(subCatSearch.toLowerCase())) : SUB_CATS
 
   async function addSub() {
@@ -1360,7 +1361,13 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${theme.accent}22`,color:theme.text,fontFamily:FONT}}>{getSubCatLabel(s.category)}</span></td>
                     <td style={{padding:'12px 0',...VAL,color:'rgba(255,255,255,0.3)',fontSize:'12px'}}>{lang==='tr'?(s.days_since_used===0?'Bugün':`${s.days_since_used}g önce`):(s.days_since_used===0?'Today':`${s.days_since_used}d ago`)}</td>
                     <td style={{padding:'12px 0'}}><span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',fontWeight:600,background:s.status==='dead'?'rgba(239,68,68,0.15)':s.status==='warn'?'rgba(245,158,11,0.15)':'rgba(16,185,129,0.15)',color:s.status==='dead'?'#fca5a5':s.status==='warn'?'#fde68a':'#6ee7b7',fontFamily:FONT}}>{s.status==='dead'?((lang==='tr')?'ÖLÜ':'DEAD'):s.status==='warn'?((lang==='tr')?'UYARI':'WARN'):((lang==='tr')?'TUTUN':'KEEP')}</span></td>
-                    <td style={{padding:'12px 0'}}><button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Sil':'Kill'}</button></td>
+                    <td style={{padding:'12px 0',display:'flex',gap:'6px',alignItems:'center'}}>
+                      <button onClick={()=>setEditingSub(s)}
+                        onMouseEnter={e=>e.currentTarget.style.color='#fca5a5'}
+                        onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}
+                        style={{background:'transparent',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.3)',fontSize:'14px',padding:'4px 8px',transition:'color 0.15s'}}>✏️</button>
+                      <button onClick={()=>del(s.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Sil':'Kill'}</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1381,6 +1388,80 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
           ) : <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Veri yok':'No data'}</div>}
         </Card>
       </div>
+
+      {editingSub && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setEditingSub(null)}>
+          <div style={{background:'#0a0414',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'24px',maxWidth:'500px',width:'100%',padding:'28px',boxShadow:'0 0 60px rgba(239,68,68,0.1)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
+              <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>✏️ Aboneliği Düzenle</div>
+              <button onClick={()=>setEditingSub(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(239,68,68,0.5)',marginBottom:'7px'}}>HİZMET ADI</div>
+                <input value={editingSub.name||''} onChange={e=>setEditingSub({...editingSub,name:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(239,68,68,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',boxSizing:'border-box'}}
+                  onFocus={e=>{e.currentTarget.style.border='1px solid rgba(239,68,68,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(239,68,68,0.08)'}}
+                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(239,68,68,0.2)';e.currentTarget.style.boxShadow=''}}/>
+              </div>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(239,68,68,0.5)',marginBottom:'7px'}}>AYLIK ÜCRET (₺)</div>
+                <input type="number" value={editingSub.cost||''} onChange={e=>setEditingSub({...editingSub,cost:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(239,68,68,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',boxSizing:'border-box'}}
+                  onFocus={e=>{e.currentTarget.style.border='1px solid rgba(239,68,68,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(239,68,68,0.08)'}}
+                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(239,68,68,0.2)';e.currentTarget.style.boxShadow=''}}/>
+              </div>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(239,68,68,0.5)',marginBottom:'7px'}}>KATEGORİ</div>
+                <select value={editingSub.category||''} onChange={e=>setEditingSub({...editingSub,category:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'#0d0820',border:'1px solid rgba(239,68,68,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ef4444' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 13px center'}}>
+                  <option value="">Kategori seç...</option>
+                  <option value="SaaS / Araçlar">⚙️ SaaS / Araçlar</option>
+                  <option value="Yapay Zeka">🤖 Yapay Zeka</option>
+                  <option value="Pazarlama">📣 Pazarlama</option>
+                  <option value="Eğlence">🎬 Eğlence</option>
+                  <option value="Müzik">🎵 Müzik</option>
+                  <option value="Oyun">🎮 Oyun</option>
+                  <option value="Eğitim">📚 Eğitim</option>
+                  <option value="Sağlık">💊 Sağlık</option>
+                  <option value="Finans">💳 Finans</option>
+                  <option value="Bulut Depolama">☁️ Bulut Depolama</option>
+                  <option value="Diğer">✨ Diğer</option>
+                </select>
+              </div>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(239,68,68,0.5)',marginBottom:'7px'}}>DURUM</div>
+                <select value={editingSub.status||'active'} onChange={e=>setEditingSub({...editingSub,status:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'#0d0820',border:'1px solid rgba(239,68,68,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ef4444' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 13px center'}}>
+                  <option value="keep">✅ Aktif</option>
+                  <option value="warn">⚠️ Uyarı</option>
+                  <option value="dead">💀 Ölü</option>
+                </select>
+              </div>
+              <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+                <button onClick={()=>setEditingSub(null)}
+                  style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.1)',background:'transparent',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:FONT}}>
+                  İptal
+                </button>
+                <button onClick={async()=>{
+                  const SUPABASE_URL='https://cgfcdtjyhphppucnldor.supabase.co'
+                  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+                  await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?id=eq.${editingSub.id}`,{
+                    method:'PATCH',
+                    headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+                    body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category,status:editingSub.status})
+                  })
+                  setEditingSub(null)
+                  onRefresh()
+                }}
+                  style={{flex:2,padding:'11px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 16px rgba(239,68,68,0.35)'}}>
+                  💾 Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
