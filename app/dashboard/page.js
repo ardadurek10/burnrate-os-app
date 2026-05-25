@@ -656,6 +656,19 @@ return (
           .grid2{grid-template-columns:1fr!important}
           .hide-mobile{display:none!important}
           .charts-row{grid-template-columns:1fr!important}
+          .mobile-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+          .settings-layout{display:flex!important;flex-direction:column!important}
+          .settings-sidebar{width:100%!important;flex-direction:row!important;overflow-x:auto!important;flex-wrap:nowrap!important;padding:8px!important;gap:6px!important;border-right:none!important;border-bottom:1px solid rgba(124,58,237,0.15)!important}
+          .settings-sidebar button{flex-shrink:0!important;padding:8px 14px!important;font-size:12px!important}
+          .settings-content{padding:16px!important}
+          .form-grid-2{grid-template-columns:1fr!important}
+          .form-grid-3{grid-template-columns:1fr!important}
+          .stat-grid-4{grid-template-columns:repeat(2,1fr)!important}
+          .stat-grid-3{grid-template-columns:repeat(2,1fr)!important}
+          .chart-grid-2{grid-template-columns:1fr!important}
+          .inv-table-wrap{overflow-x:auto!important}
+          .modal-box{max-width:95vw!important;margin:10px!important}
+          .health-card{flex-direction:column!important;align-items:center!important;text-align:center!important}
         }
       `}</style>
 
@@ -1035,7 +1048,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           {label:lang==='tr'?'Yatırım':'Investing',ok:investments.length>0,tip:lang==='tr'?'Aktif':'Active'},
         ]
         return (
-          <div style={{background:`linear-gradient(135deg, rgba(${scoreRgb},0.06) 0%, rgba(124,58,237,0.04) 100%)`,borderRadius:'24px',padding:'24px 28px',marginBottom:'16px',boxShadow:`0 0 0 1px rgba(${scoreRgb},0.2), inset 0 1px 0 rgba(${scoreRgb},0.1), 0 8px 32px rgba(0,0,0,0.5)`,display:'flex',alignItems:'center',gap:'28px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
+          <div className="health-card" style={{background:`linear-gradient(135deg, rgba(${scoreRgb},0.06) 0%, rgba(124,58,237,0.04) 100%)`,borderRadius:'24px',padding:'24px 28px',marginBottom:'16px',boxShadow:`0 0 0 1px rgba(${scoreRgb},0.2), inset 0 1px 0 rgba(${scoreRgb},0.1), 0 8px 32px rgba(0,0,0,0.5)`,display:'flex',alignItems:'center',gap:'28px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',top:0,left:'5%',right:'5%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${scoreRgb},0.4),transparent)`}}></div>
             <div style={{position:'absolute',bottom:'-40px',right:'-40px',width:'160px',height:'160px',borderRadius:'50%',background:`radial-gradient(circle,rgba(${scoreRgb},0.08) 0%,transparent 70%)`,pointerEvents:'none'}}></div>
             <div style={{position:'relative',width:'130px',height:'130px'}}>
@@ -1080,7 +1093,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         )
       })()}
 
-      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
+      <div className="grid2 chart-grid-2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'Harcama Dağılımı':'Spending Breakdown'}</div>
           {pieData.length > 0 ? (
@@ -1118,7 +1131,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           ) : <div style={{height:'180px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'10px',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>📊</span>Henüz veri yok</div>}
         </Card>
       </div>
-      <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
+      <div className="grid2 chart-grid-2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
           <div style={{color:'rgba(255,255,255,0.6)',fontSize:'13px',fontWeight:600,marginBottom:'14px',fontFamily:FONT}}>{lang==='tr'?'⚔️ En Büyük Abonelikler':'⚔️ Top Subscriptions'}</div>
           {subs.length===0 ? <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'24px 0',color:'rgba(255,255,255,0.15)',fontSize:'13px',fontFamily:FONT}}><span style={{fontSize:'28px',opacity:0.4}}>⚔️</span>Henüz abonelik yok</div> :
@@ -1255,7 +1268,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
       )}
       <div className="grid2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'14px'}}>
         <Card accent={theme.accent} style={{padding:'22px'}}>
-          <div style={{overflowX:'auto'}}>
+          <div className="mobile-table-wrap" style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:'500px'}}>
               <thead><tr><TH>{lang==='tr'?'Hizmet':'Service'}</TH><TH>{lang==='tr'?'Maliyet/ay':'Cost/mo'}</TH><TH>{lang==='tr'?'Kategori':'Category'}</TH><TH>{lang==='tr'?'Son Kullanım':'Last Used'}</TH><TH>Status</TH><TH></TH></tr></thead>
               <tbody>
@@ -1754,7 +1767,7 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 
           {/* STOCK LIST */}
           <Card accent={theme.accent} style={{padding:'22px',marginBottom:'16px'}}>
-            <div style={{overflowX:'auto'}}>
+            <div className="mobile-table-wrap" style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:'600px'}}>
                 <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                   {[lang==='tr'?'Hisse':'Stock',lang==='tr'?'Adet':'Shares',lang==='tr'?'Alış':'Buy',lang==='tr'?'Güncel':'Current','24s',lang==='tr'?'Değer':'Value',lang==='tr'?'Kar/Zarar':'G/L',''].map(h=>(
@@ -3038,9 +3051,9 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, expenses=[],
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 20 }}>
+      <div className="settings-layout" style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
         {/* Sol menü */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div className="settings-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '200px', flexShrink: 0 }}>
           {sections.map(s => (
             <button key={s.id} onClick={() => setActiveSection(s.id)}
               onMouseEnter={e => { if(activeSection !== s.id) { e.currentTarget.style.background='rgba(99,102,241,0.06)'; e.currentTarget.style.transform='translateX(3px)' } }}
@@ -3052,7 +3065,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, expenses=[],
         </div>
 
         {/* İçerik */}
-        <div>
+        <div className="settings-content" style={{ flex: 1, minWidth: 0 }}>
 
           {/* PROFİL */}
           {activeSection === 'profile' && (
