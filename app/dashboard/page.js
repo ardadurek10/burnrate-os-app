@@ -433,6 +433,8 @@ export default function Dashboard() {
   const [income, setIncome] = useState([])
   const [investments, setInvestments] = useState([])
   const [debts, setDebts] = useState([])
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [readNotifIds, setReadNotifIds] = useState([])
   const [upgradeModal, setUpgradeModal] = useState(null)
   const [manageModal, setManageModal] = useState(false)
   const [monthlySummaryModal, setMonthlySummaryModal] = useState(false)
@@ -571,6 +573,30 @@ export default function Dashboard() {
   const totalInvValue = investments.reduce((a,inv) => a+(inv.shares*inv.currentPrice), 0)
   const totalInvCost = investments.reduce((a,inv) => a+(inv.shares*inv.buyPrice), 0)
   const invGain = totalInvValue - totalInvCost
+
+  const getNotifications = () => {
+    if(typeof window === 'undefined' || !user) return []
+    const notifs = []
+    if(totalExp > 0 && subs.filter(s=>s.status==='dead').length > 0) {
+      notifs.push({id:'dead-subs',icon:'💀',title:lang==='tr'?'Ölü Abonelik Var':'Dead Subscriptions',body:lang==='tr'?`${subs.filter(s=>s.status==='dead').length} abonelik ödeniyor ama kullanılmıyor`:`${subs.filter(s=>s.status==='dead').length} subscriptions unused`,type:'warning'})
+    }
+    if(dbUser?.monthly_income_goal > 0 && totalExp > dbUser.monthly_income_goal * 0.8) {
+      notifs.push({id:'limit',icon:'🔴',title:lang==='tr'?'Harcama Limiti Uyarısı':'Spending Warning',body:lang==='tr'?`Limitinin %${Math.round(totalExp/dbUser.monthly_income_goal*100)}'ini harcadın`:`Spent ${Math.round(totalExp/dbUser.monthly_income_goal*100)}% of limit`,type:'warning'})
+    }
+    if(investments.length > 0) {
+      investments.forEach(inv=>{
+        if(inv.currentPrice && inv.buy_price){
+          const gain=((inv.currentPrice-inv.buy_price)/inv.buy_price)*100
+          if(Math.abs(gain)>=10) notifs.push({id:`inv-${inv.id}`,icon:gain>0?'📈':'📉',title:`${inv.symbol} ${gain>0?(lang==='tr'?'Yükseldi':'Up'):(lang==='tr'?'Düştü':'Down')}`,body:`${gain>0?'+':''}${gain.toFixed(1)}%`,type:gain>0?'success':'warning'})
+        }
+      })
+    }
+    return notifs
+  }
+
+  const notifications = getNotifications()
+  const unreadCount = notifications.filter(n=>!readNotifIds.includes(n.id)).length
+
 return (
     <div style={{
       background: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(109,40,217,0.14) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 85%, rgba(76,29,149,0.1) 0%, transparent 50%), linear-gradient(160deg, #04030e 0%, #020209 40%, #030214 70%, #020209 100%)",
@@ -604,6 +630,45 @@ return (
       `}</style>
 
       {upgradeModal && <UpgradeModal moduleId={upgradeModal} userPlan={userPlan} onClose={() => setUpgradeModal(null)} />}
+
+      {notifOpen && typeof window !== 'undefined' && (
+        <div style={{position:'fixed',inset:0,zIndex:1000,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)'}} onClick={()=>setNotifOpen(false)}>
+          <div style={{position:'absolute',top:0,right:0,bottom:0,width:'360px',background:'#0a0414',borderLeft:'1px solid rgba(124,58,237,0.2)',boxShadow:'-8px 0 48px rgba(0,0,0,0.7)',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'24px 20px 16px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{color:'#f1f0ff',fontSize:'16px',fontWeight:700,fontFamily:FONT}}>🔔 {lang==='tr'?'Bildirimler':'Notifications'}</div>
+                <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:MONO,marginTop:'2px'}}>{unreadCount} {lang==='tr'?'okunmamış':'unread'}</div>
+              </div>
+              <div style={{display:'flex',gap:'8px'}}>
+                {unreadCount > 0 && <button onClick={()=>setReadNotifIds(notifications.map(n=>n.id))} style={{fontSize:'11px',color:'rgba(124,58,237,0.7)',background:'rgba(124,58,237,0.1)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'8px',padding:'5px 10px',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Tümünü Oku':'Mark All Read'}</button>}
+                <button onClick={()=>setNotifOpen(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+              </div>
+            </div>
+            <div style={{flex:1,overflowY:'auto',scrollbarWidth:'none',padding:'12px'}}>
+              {notifications.length===0 ? (
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'200px',gap:'12px'}}>
+                  <div style={{fontSize:'36px',opacity:0.4}}>🔕</div>
+                  <div style={{color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Bildirim yok':'No notifications'}</div>
+                </div>
+              ) : notifications.map(n=>(
+                <div key={n.id} onClick={()=>setReadNotifIds(prev=>[...new Set([...prev,n.id])])}
+                  onMouseEnter={e=>e.currentTarget.style.background='rgba(124,58,237,0.06)'}
+                  onMouseLeave={e=>e.currentTarget.style.background=readNotifIds.includes(n.id)?'transparent':'rgba(124,58,237,0.03)'}
+                  style={{display:'flex',gap:'12px',padding:'14px 12px',borderRadius:'14px',background:readNotifIds.includes(n.id)?'transparent':'rgba(124,58,237,0.03)',border:`1px solid ${readNotifIds.includes(n.id)?'rgba(255,255,255,0.04)':'rgba(124,58,237,0.12)'}`,marginBottom:'8px',cursor:'pointer',transition:'background 0.15s'}}>
+                  <div style={{width:'38px',height:'38px',borderRadius:'12px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',background:n.type==='success'?'rgba(16,185,129,0.12)':n.type==='warning'?'rgba(239,68,68,0.1)':'rgba(124,58,237,0.12)',flexShrink:0}}>{n.icon}</div>
+                  <div style={{flex:1}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                      <div style={{color:readNotifIds.includes(n.id)?'rgba(255,255,255,0.5)':'#f1f0ff',fontSize:'13px',fontWeight:readNotifIds.includes(n.id)?400:600,fontFamily:FONT}}>{n.title}</div>
+                      {!readNotifIds.includes(n.id) && <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#7c3aed',flexShrink:0,marginTop:'4px'}}></div>}
+                    </div>
+                    <div style={{color:'rgba(255,255,255,0.35)',fontSize:'12px',fontFamily:FONT,marginTop:'3px'}}>{n.body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {monthlyGoalModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setMonthlyGoalModal(false)}>
@@ -706,6 +771,15 @@ return (
             {!canAccess(userPlan,'ai') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
+
+        <button onClick={()=>setNotifOpen(true)}
+          onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.08)'}}
+          onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
+          style={{width:'calc(100% - 16px)',margin:'0 8px 6px',display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'12px',background:'transparent',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.45)',fontFamily:FONT,fontSize:'13px',fontWeight:500,transition:'all 0.18s',position:'relative'}}>
+          <span style={{fontSize:'16px'}}>🔔</span>
+          <span>{lang==='tr'?'Bildirimler':'Notifications'}</span>
+          {unreadCount > 0 && <span style={{marginLeft:'auto',background:'#ef4444',color:'#fff',borderRadius:'100px',fontSize:'10px',fontWeight:700,padding:'2px 7px',fontFamily:MONO,boxShadow:'0 0 8px rgba(239,68,68,0.5)'}}>{unreadCount}</span>}
+        </button>
 
         <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'14px'}}>
           <div style={{paddingLeft:'8px',marginBottom:'10px'}}>
