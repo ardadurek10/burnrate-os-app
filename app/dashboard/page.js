@@ -901,7 +901,7 @@ return (
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0',scrollbarWidth:'none',msOverflowStyle:'none'}}>
         {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} investments={investments} debts={debts} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} userPlan={userPlan} />}
+        {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} setSubs={setSubs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} userPlan={userPlan} />}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='investments' && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
         {page==='balance' && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
@@ -1236,7 +1236,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 }
 
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
-function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en', userPlan='starter' }) {
+function SubsPage({ theme, subs, setSubs, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en', userPlan='starter' }) {
 
   const SUB_CATS = [
     { v:'saas',          tr:'SaaS / Araçlar',       en:'SaaS / Tools',       icon:'🛠️', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
@@ -1449,6 +1449,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                     headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
                     body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category,last_used:editingSub.last_used})
                   })
+                  setSubs(prev=>prev.map(s=>s.id===editingSub.id?{...s,...editingSub}:s))
                   setEditingSub(null)
                   onRefresh()
                 }}
