@@ -1429,6 +1429,13 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                   <option value="Diğer">✨ Diğer</option>
                 </select>
               </div>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(239,68,68,0.5)',marginBottom:'7px'}}>SON KULLANIM TARİHİ</div>
+                <input type="date" value={editingSub.last_used||''} onChange={e=>setEditingSub({...editingSub,last_used:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(239,68,68,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                  onFocus={e=>{e.currentTarget.style.border='1px solid rgba(239,68,68,0.5)'}}
+                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(239,68,68,0.2)'}}/>
+              </div>
               <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
                 <button onClick={()=>setEditingSub(null)}
                   style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.1)',background:'transparent',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:FONT}}>
@@ -1440,7 +1447,7 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
                   await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?id=eq.${editingSub.id}`,{
                     method:'PATCH',
                     headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-                    body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category})
+                    body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category,last_used:editingSub.last_used})
                   })
                   setEditingSub(null)
                   onRefresh()
