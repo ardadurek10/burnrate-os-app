@@ -851,8 +851,8 @@ return (
       </div>
 
       {/* MOBILE TAB BAR */}
-      <div className="tabbar" style={{display:'none',position:'fixed',bottom:0,left:0,right:0,background:'rgba(10,10,15,0.97)',borderTop:'1px solid rgba(255,255,255,0.07)',backdropFilter:'blur(24px)',zIndex:50,padding:'8px 0 20px'}}>
-        {[...navItems,{id:'ai',icon:'🤖',label:lang==='tr'?'Yapay Zeka':'AI'},{id:'summary',icon:'📋',label:lang==='tr'?'Özet':'Summary'},{id:'settings',icon:'⚙️',label:lang==='tr'?'Ayarlar':'Settings'}].map(item => {
+      <div className="tabbar" style={{display:'none',position:'fixed',bottom:0,left:0,right:0,background:'rgba(10,10,15,0.97)',borderTop:'1px solid rgba(255,255,255,0.07)',backdropFilter:'blur(24px)',zIndex:50,padding:'8px 0 20px',overflowX:'auto',scrollbarWidth:'none'}}>
+        {[...navItems,{id:'ai',icon:'🤖',label:lang==='tr'?'Yapay Zeka':'AI'},{id:'summary',icon:'📋',label:lang==='tr'?'Özet':'Summary'}].map(item => {
           const active = page === item.id
           const t = THEMES[item.id] || THEMES.ai
           const locked = !canAccess(userPlan, item.id)
@@ -867,6 +867,11 @@ return (
             </button>
           )
         })}
+        <button onClick={()=>setPage('settings')}
+          style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',padding:'6px 4px 4px',background:'transparent',border:'none',cursor:'pointer',color:page==='settings'?'#a78bfa':'rgba(255,255,255,0.4)',minWidth:'40px',transition:'color 0.15s'}}>
+          <span style={{fontSize:'20px'}}>⚙️</span>
+          <span style={{fontSize:'10px',fontWeight:page==='settings'?600:400,fontFamily:FONT}}>{lang==='tr'?'Ayarlar':'Settings'}</span>
+        </button>
       </div>
     </div>
   )
