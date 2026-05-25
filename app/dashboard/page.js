@@ -650,10 +650,12 @@ return (
           .sidebar{display:none!important}
           .tabbar{display:flex!important}
           .page-wrap{padding-bottom:80px!important}
-          .page-pad{padding:20px!important}
+          .page-pad{padding:16px!important}
           .grid4{grid-template-columns:repeat(2,1fr)!important}
           .grid3{grid-template-columns:repeat(2,1fr)!important}
           .grid2{grid-template-columns:1fr!important}
+          .hide-mobile{display:none!important}
+          .charts-row{grid-template-columns:1fr!important}
         }
       `}</style>
 
@@ -843,12 +845,12 @@ return (
           const locked = !canAccess(userPlan, item.id)
           return (
             <button key={item.id} onClick={() => navigateTo(item.id)}
-              style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',padding:'6px 2px',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
-              <div style={{width:'32px',height:'32px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.15s',position:'relative'}}>
+              style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',padding:'6px 4px 4px',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
+              <div style={{width:'32px',height:'32px',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',background:active?t.bg:'transparent',border:active?`1px solid ${t.border}`:'1px solid transparent',transition:'all 0.15s',position:'relative'}}>
                 <span style={{opacity:locked?0.4:1}}>{item.icon}</span>
                 {locked && <span style={{position:'absolute',top:'-4px',right:'-4px',fontSize:'8px'}}>🔒</span>}
               </div>
-              <span style={{fontSize:'9px',fontWeight:active?600:400,color:active?t.text:locked?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>{item.label}</span>
+              <span style={{fontSize:'10px',fontWeight:active?600:400,color:active?t.text:locked?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.28)',transition:'all 0.15s'}}>{item.label}</span>
             </button>
           )
         })}
@@ -960,7 +962,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           <h1 style={{color:theme.text,fontSize:'24px',fontWeight:700,letterSpacing:'-0.5px',margin:0,marginBottom:'4px',fontFamily:FONT}}>{getGreeting(userName, lang)}</h1>
           <p style={{color:'rgba(255,255,255,0.35)',fontSize:'13px',margin:0,fontFamily:FONT}}>{monthName} · {daysLeft} {lang==='tr'?'gün kaldı':'days left'}</p>
         </div>
-        <div style={{display:'flex',gap:'10px'}}>
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
           <button onClick={onMonthlyGoal}
             style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'100px',fontSize:'13px',fontWeight:600,background:'rgba(244,63,94,0.1)',color:'#fda4af',border:'1px solid rgba(244,63,94,0.3)',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',boxShadow:'0 0 0 1px rgba(244,63,94,0.25)'}}
             onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.04)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(244,63,94,0.5), 0 8px 24px rgba(244,63,94,0.2)'}}
@@ -991,7 +993,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
         <StatCard accent={theme.accent} label={lang==='tr'?'Portföy':'Portfolio'} value={fmt(totalInvValue)} sub={lang==='tr'?(invGain>=0?`+₺${invGain.toFixed(0)} kazanç`:`-₺${Math.abs(invGain).toFixed(0)} kayıp`):(invGain>=0?`+₺${invGain.toFixed(0)} gain`:`-₺${Math.abs(invGain).toFixed(0)} loss`)} color={invGain>=0?'#6ee7b7':'#fca5a5'} icon="📈" />
       </div>
       {/* HIZLI İSTATİSTİKLER */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'16px'}}>
+      <div className="grid4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'16px'}}>
         {[
           {label:lang==='tr'?'Bu Ay Harcama':'Transactions',val:expenses.length,sub:lang==='tr'?'işlem':'this month',icon:'📊',color:'245,158,11',ac:'#f59e0b'},
           {label:lang==='tr'?'Aktif Abonelik':'Active Subs',val:subs.filter(s=>s.status!=='dead').length,sub:lang==='tr'?'abonelik':'active',icon:'⚔️',color:'239,68,68',ac:'#ef4444'},
@@ -1036,7 +1038,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
           <div style={{background:`linear-gradient(135deg, rgba(${scoreRgb},0.06) 0%, rgba(124,58,237,0.04) 100%)`,borderRadius:'24px',padding:'24px 28px',marginBottom:'16px',boxShadow:`0 0 0 1px rgba(${scoreRgb},0.2), inset 0 1px 0 rgba(${scoreRgb},0.1), 0 8px 32px rgba(0,0,0,0.5)`,display:'flex',alignItems:'center',gap:'28px',flexWrap:'wrap',position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',top:0,left:'5%',right:'5%',height:'1px',background:`linear-gradient(90deg,transparent,rgba(${scoreRgb},0.4),transparent)`}}></div>
             <div style={{position:'absolute',bottom:'-40px',right:'-40px',width:'160px',height:'160px',borderRadius:'50%',background:`radial-gradient(circle,rgba(${scoreRgb},0.08) 0%,transparent 70%)`,pointerEvents:'none'}}></div>
-            <div style={{position:'relative',width:'130px',height:'130px',flexShrink:0}}>
+            <div style={{position:'relative',width:'130px',height:'130px'}}>
               <svg width="130" height="130" viewBox="0 0 130 130" style={{transform:'rotate(-90deg)'}}>
                 <circle cx="65" cy="65" r="52" fill="none" stroke={`rgba(${scoreRgb},0.1)`} strokeWidth="8"/>
                 <circle cx="65" cy="65" r="52" fill="none" stroke={`rgba(${scoreRgb},0.08)`} strokeWidth="1" strokeDasharray="4 8"/>
@@ -1050,7 +1052,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                 <div style={{fontFamily:MONO,fontSize:'9px',color:`rgba(${scoreRgb},0.5)`,letterSpacing:'1px'}}>/100</div>
               </div>
             </div>
-            <div style={{flex:1,minWidth:'160px'}}>
+            <div style={{flex:1,minWidth:'140px'}}>
               <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'2.5px',textTransform:'uppercase',color:`rgba(${scoreRgb},0.55)`,marginBottom:'8px'}}>{lang==='tr'?'Finansal Sağlık':'Financial Health'}</div>
               <div style={{fontSize:'26px',fontWeight:800,color:scoreColor,letterSpacing:'-0.8px',marginBottom:'8px',fontFamily:FONT,textShadow:`0 0 30px ${scoreColor}44`}}>{scoreLabel}</div>
               <div style={{fontSize:'12.5px',color:'rgba(255,255,255,0.4)',fontFamily:FONT,lineHeight:'1.6',maxWidth:'240px'}}>
@@ -1060,7 +1062,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
                  (lang==='tr'?'Gelir ekle ve harcamaları kontrol altına al.':'Add income and control your expenses.')}
               </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',minWidth:'220px'}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px',minWidth:'160px'}}>
               {checks.map((c,i)=>(
                 <div key={i}
                   onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow=c.ok?'0 4px 16px rgba(48,209,88,0.15)':'0 4px 16px rgba(255,69,58,0.1)'}}
