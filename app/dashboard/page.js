@@ -580,8 +580,8 @@ export default function Dashboard() {
     if(totalExp > 0 && subs.filter(s=>s.status==='dead').length > 0) {
       notifs.push({id:'dead-subs',icon:'💀',title:lang==='tr'?'Ölü Abonelik Var':'Dead Subscriptions',body:lang==='tr'?`${subs.filter(s=>s.status==='dead').length} abonelik ödeniyor ama kullanılmıyor`:`${subs.filter(s=>s.status==='dead').length} subscriptions unused`,type:'warning'})
     }
-    if(dbUser?.monthly_income_goal > 0 && totalExp > dbUser.monthly_income_goal * 0.8) {
-      notifs.push({id:'limit',icon:'🔴',title:lang==='tr'?'Harcama Limiti Uyarısı':'Spending Warning',body:lang==='tr'?`Limitinin %${Math.round(totalExp/dbUser.monthly_income_goal*100)}'ini harcadın`:`Spent ${Math.round(totalExp/dbUser.monthly_income_goal*100)}% of limit`,type:'warning'})
+    if(user?.monthly_income > 0 && totalExp > user.monthly_income * 0.8) {
+      notifs.push({id:'limit',icon:'🔴',title:lang==='tr'?'Harcama Limiti Uyarısı':'Spending Warning',body:lang==='tr'?`Gelirinizin %${Math.round(totalExp/user.monthly_income*100)}'ini harcadın`:`Spent ${Math.round(totalExp/user.monthly_income*100)}% of income`,type:'warning'})
     }
     if(investments.length > 0) {
       investments.forEach(inv=>{
