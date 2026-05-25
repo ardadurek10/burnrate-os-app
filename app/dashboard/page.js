@@ -1602,10 +1602,28 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
               </div>
               <div>
                 <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(245,158,11,0.5)',marginBottom:'7px'}}>KATEGORİ</div>
-                <input value={editingExpense.category||''} onChange={e=>setEditingExpense({...editingExpense,category:e.target.value})}
-                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(245,158,11,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',boxSizing:'border-box'}}
+                <select value={editingExpense.category||''} onChange={e=>setEditingExpense({...editingExpense,category:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'#0d0820',border:'1px solid rgba(245,158,11,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f59e0b' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 13px center'}}
                   onFocus={e=>{e.currentTarget.style.border='1px solid rgba(245,158,11,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(245,158,11,0.08)'}}
-                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(245,158,11,0.2)';e.currentTarget.style.boxShadow=''}}/>
+                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(245,158,11,0.2)';e.currentTarget.style.boxShadow=''}}>
+                  <option value="">Kategori seç...</option>
+                  <option value="Kira / Mortgage">🏠 Kira / Mortgage</option>
+                  <option value="Market & Alışveriş">🛒 Market & Alışveriş</option>
+                  <option value="Restoran & Kafe">🍽️ Restoran & Kafe</option>
+                  <option value="Yemek Siparişi">🚗 Yemek Siparişi</option>
+                  <option value="Akaryakıt">⛽ Akaryakıt</option>
+                  <option value="Toplu Taşıma">🚌 Toplu Taşıma</option>
+                  <option value="Taksi & Araç Kiralama">🚕 Taksi & Araç Kiralama</option>
+                  <option value="Hastane & Doktor">🏥 Hastane & Doktor</option>
+                  <option value="İlaç & Eczane">💊 İlaç & Eczane</option>
+                  <option value="Spor & Fitness">💪 Spor & Fitness</option>
+                  <option value="Sinema & Eğlence">🎬 Sinema & Eğlence</option>
+                  <option value="Giyim & Aksesuar">👕 Giyim & Aksesuar</option>
+                  <option value="Elektrik & Su">💡 Elektrik & Su</option>
+                  <option value="İnternet & Telefon">📱 İnternet & Telefon</option>
+                  <option value="Eğitim">📚 Eğitim</option>
+                  <option value="Diğer">✨ Diğer</option>
+                </select>
               </div>
               <div>
                 <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(245,158,11,0.5)',marginBottom:'7px'}}>TARİH</div>
