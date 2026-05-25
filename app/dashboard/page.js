@@ -847,12 +847,22 @@ return (
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#7c3aedcc)':'rgba(124,58,237,0.12)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
-            <span style={{fontSize:'15px',opacity:canAccess('ai',userPlan)?1:0.5}}>🤖</span>
+            <span style={{fontSize:'15px'}}>🤖</span>
             <div style={{textAlign:'left',flex:1}}>
               <div style={{fontSize:'13px',fontWeight:600}}>{lang==='tr'?'Yapay Zeka':'AI Advisor'}</div>
               <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'#c4b5fd88',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
             </div>
-            {!canAccess('ai',userPlan) && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
+            {userPlan === 'starter' && (
+              <span style={{fontSize:'11px',opacity:0.45}}>🔒</span>
+            )}
+            {userPlan === 'pro' && (() => {
+              const _count = (() => { try { const s = localStorage.getItem('burnrate_ai_chat'); if(s){const p=JSON.parse(s);return Array.isArray(p)?p.filter(m=>m.role==='user').length:0}return 0}catch{return 0} })()
+              const _rem = Math.max(0, 20 - _count)
+              return <span style={{fontSize:'10px',fontFamily:MONO,fontWeight:700,color:_rem<=5?'#fca5a5':_rem<=10?'#fde68a':'#a5b4fc',background:_rem<=5?'rgba(239,68,68,0.15)':_rem<=10?'rgba(245,158,11,0.15)':'rgba(99,102,241,0.15)',padding:'2px 7px',borderRadius:'100px',border:`1px solid ${_rem<=5?'rgba(239,68,68,0.3)':_rem<=10?'rgba(245,158,11,0.3)':'rgba(99,102,241,0.3)'}`}}>{_rem} {lang==='tr'?'kaldı':'left'}</span>
+            })()}
+            {userPlan === 'elite' && (
+              <span style={{fontSize:'13px',fontFamily:MONO,fontWeight:700,color:'#6ee7b7'}}>∞</span>
+            )}
           </button>
         </div>
 
