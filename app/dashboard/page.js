@@ -496,6 +496,14 @@ export default function Dashboard() {
     } catch(e) { localStorage.removeItem('burnrate_user'); window.location.href = '/login' }
   }, [])
 
+  useEffect(()=>{
+    if(!user?.id) return
+    try {
+      const saved = JSON.parse(localStorage.getItem(`burnrate_read_notifs_${user.id}`) || '[]')
+      setReadNotifIds(saved)
+    } catch {}
+  }, [user?.id])
+
   async function fetchUserProfile(userId) {
     try {
       const data = await supabaseQuery('users', { id: userId })
