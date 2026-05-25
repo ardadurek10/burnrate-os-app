@@ -255,9 +255,14 @@ const MODULE_PLAN = {
   summary:       'elite',
 }
 
-function canAccess(userPlan, moduleId) {
-  const plan = userPlan || 'starter'
-  return (PLAN_ACCESS[plan] || PLAN_ACCESS.starter).includes(moduleId)
+function canAccess(feature, plan) {
+  const p = plan || 'starter'
+  const access = {
+    starter: ['expenses', 'subscriptions_limited', 'subscriptions', 'balance', 'basic_charts', 'dashboard', 'spending', 'settings'],
+    pro:     ['expenses', 'subscriptions', 'subscriptions_limited', 'balance', 'investments', 'debt', 'challenge', 'goals', 'ai_limited', 'charts', 'dashboard', 'spending', 'settings'],
+    elite:   ['expenses', 'subscriptions', 'subscriptions_limited', 'balance', 'investments', 'debt', 'challenge', 'goals', 'ai', 'ai_limited', 'pdf', 'summary', 'budget', 'charts', 'priority', 'dashboard', 'spending', 'settings']
+  }
+  return (access[p] || access.starter).includes(feature)
 }
 
 const THEMES = {
@@ -546,7 +551,9 @@ export default function Dashboard() {
   }, [])
 
   function navigateTo(moduleId) {
-    if (!canAccess(userProfile?.plan || localStorage.getItem('burnrate_plan') || user?.plan, moduleId)) { setUpgradeModal(moduleId); return }
+    const planForAccess = userProfile?.plan || localStorage.getItem('burnrate_plan') || user?.plan
+    const overlayModules = ['investments', 'debt', 'goals', 'ai']
+    if (!overlayModules.includes(moduleId) && !canAccess(moduleId, planForAccess)) { setUpgradeModal(moduleId); return }
     setPage(moduleId)
     try { localStorage.setItem('burnrate_page', moduleId) } catch {}
   }
@@ -821,7 +828,7 @@ return (
           {navItems.map(item => {
             const t = THEMES[item.id]
             const active = page === item.id
-            const locked = !canAccess(userPlan, item.id)
+            const locked = !canAccess(item.id, userPlan)
             return (
               <button key={item.id} onClick={() => navigateTo(item.id)}
                 onMouseEnter={e=>{if(!active){e.currentTarget.style.background='rgba(124,58,237,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.65)';e.currentTarget.style.transform='translateX(3px)'}}}
@@ -840,12 +847,12 @@ return (
         <div style={{marginBottom:'14px'}}>
           <button onClick={() => navigateTo('ai')}
            style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'11px 12px',borderRadius:'12px',background:page==='ai'?'linear-gradient(135deg,#7c3aed,#7c3aedcc)':'rgba(124,58,237,0.12)',color:page==='ai'?'#fff':'#c4b5fd',border:'1px solid rgba(124,58,237,0.3)',cursor:'pointer',transition:'all 0.15s',fontFamily:FONT}}>
-            <span style={{fontSize:'15px',opacity:canAccess(userPlan,'ai')?1:0.5}}>🤖</span>
+            <span style={{fontSize:'15px',opacity:canAccess('ai',userPlan)?1:0.5}}>🤖</span>
             <div style={{textAlign:'left',flex:1}}>
               <div style={{fontSize:'13px',fontWeight:600}}>{lang==='tr'?'Yapay Zeka':'AI Advisor'}</div>
               <div style={{fontSize:'10px',color:page==='ai'?'rgba(255,255,255,0.5)':'#c4b5fd88',fontFamily:MONO}}>{lang==='tr'?'claude destekli':'powered by claude'}</div>
             </div>
-            {!canAccess(userPlan,'ai') && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
+            {!canAccess('ai',userPlan) && <span style={{fontSize:'10px',opacity:0.4}}>🔒</span>}
           </button>
         </div>
 
@@ -873,14 +880,14 @@ return (
       {/* MAIN */}
       <div className="page-wrap" style={{flex:1,overflowY:'auto',paddingTop:user?.is_trial?'40px':'0',scrollbarWidth:'none',msOverflowStyle:'none'}}>
         {page==='dashboard' && <OverviewPage theme={DYNAMIC_THEME} netBal={netBal} totalSubs={totalSubs} totalExp={totalExp} deadSubs={deadSubs} subs={subs} expenses={expenses} totalIncome={totalIncome} invGain={invGain} totalInvValue={totalInvValue} investments={investments} debts={debts} onSummary={()=>navigateTo('summary')} onQuickAdd={()=>navigateTo('spending')} onMonthlySummary={()=>setMonthlySummaryModal(true)} onMonthlyGoal={()=>setMonthlyGoalModal(true)} userPlan={userPlan} userName={user.name||'User'} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='subscriptions' && (canAccess(userPlan,'subscriptions') ? <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} /> : <LockedPage moduleId="subscriptions" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('subscriptions')} lang={lang} />)}
+        {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} userPlan={userPlan} />}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='investments' && (canAccess(userPlan,'investments') ? <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} /> : <LockedPage moduleId="investments" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('investments')} lang={lang} />)}
+        {page==='investments' && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
         {page==='balance' && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
-        {page==='goals' && (canAccess(userPlan,'goals') ? <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} /> : <LockedPage moduleId="goals" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('goals')} lang={lang} />)}
-        {page==='summary' && (canAccess(userPlan,'summary') ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} lang={lang} />)}
-        {page==='ai' && (canAccess(userPlan,'ai') ? <AIPage theme={DYNAMIC_THEME} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} /> : <LockedPage moduleId="ai" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('ai')} lang={lang} />)}
-        {page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='goals' && <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
+        {page==='summary' && (canAccess('summary',userPlan) ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} lang={lang} />)}
+        {page==='ai' && <AIPage theme={DYNAMIC_THEME} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
+        {page==='debt' && <DebtPage theme={THEMES.debt} userId={user.id} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
         {page==='settings' && <SettingsPage theme={DYNAMIC_THEME} user={user} lang={lang} userPlan={userPlan} onLangChange={changeLang} expenses={expenses} budgetLimits={budgetLimits} setBudgetLimits={setBudgetLimits} budgetSaved={budgetSaved} setBudgetSaved={setBudgetSaved} onUpgrade={handleUpgrade} onSignOut={()=>{ localStorage.removeItem('burnrate_user'); localStorage.removeItem('burnrate_lang'); localStorage.removeItem('burnrate_ai_chat'); window.location.href='/login' }} />}
       </div>
 
@@ -889,7 +896,7 @@ return (
         {[...navItems,{id:'ai',icon:'🤖',label:lang==='tr'?'Yapay Zeka':'AI'}].map(item => {
           const active = page === item.id
           const t = THEMES[item.id] || THEMES.ai
-          const locked = !canAccess(userPlan, item.id)
+          const locked = !canAccess(item.id, userPlan)
           return (
             <button key={item.id} onClick={() => navigateTo(item.id)}
               style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',padding:'6px 4px 4px',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>
@@ -1021,12 +1028,14 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
             onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 0 1px rgba(244,63,94,0.25)'}}>
             🎯 {lang==='tr'?'Aylık Hedef':'Monthly Goal'}
           </button>
+          {userPlan === 'elite' && (
           <button onClick={onMonthlySummary}
             style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 18px',borderRadius:'100px',fontSize:'13px',fontWeight:600,background:'rgba(20,184,166,0.1)',color:'#5eead4',border:'1px solid rgba(20,184,166,0.3)',cursor:'pointer',fontFamily:FONT,transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)',boxShadow:'0 0 0 1px rgba(20,184,166,0.2)'}}
             onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px) scale(1.04)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(20,184,166,0.5), 0 8px 24px rgba(20,184,166,0.2)'}}
             onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 0 1px rgba(20,184,166,0.2)'}}>
             📋 {lang==='tr'?'Aylık Özet':'Monthly Summary'}
           </button>
+          )}
         </div>
       </div>
       {deadSubs.length > 0 && (
@@ -1206,7 +1215,7 @@ function OverviewPage({ theme, netBal, totalSubs, totalExp, deadSubs, subs, expe
 }
 
 // ── SUBSCRIPTIONS ─────────────────────────────────────────────────
-function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
+function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en', userPlan='starter' }) {
 
   const SUB_CATS = [
     { v:'saas',          tr:'SaaS / Araçlar',       en:'SaaS / Tools',       icon:'🛠️', g_tr:'İş & Üretkenlik', g_en:'Work & Productivity' },
@@ -1253,7 +1262,18 @@ function SubsPage({ theme, subs, userId, onRefresh, currency='TRY', currencyRate
   return (
     <div className="page-pad" style={{padding:'36px'}}>
       <PageHeader theme={theme} title={lang==='tr'?'⚔️ Abonelik Guillotine':'⚔️ Subscription Guillotine'} subtitle={lang==='tr'?'Tüm yinelenen ücretleri takip et. Ölüleri öldür.':'Track every recurring charge. Kill the dead ones.'}
-        action={<AddBtn theme={theme} label={lang==='tr'?'+ Abonelik Ekle':'+ Add Subscription'} onClick={()=>setAdding(!adding)} />} />
+        action={
+          userPlan === 'starter' && subs.length >= 5
+            ? <div style={{position:'relative',display:'inline-block'}}>
+                <button disabled style={{padding:'9px 18px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.25)',border:'1px solid rgba(255,255,255,0.1)',cursor:'not-allowed',fontFamily:FONT}}>
+                  + {lang==='tr'?'Abonelik Ekle':'Add Subscription'}
+                </button>
+                <div style={{position:'absolute',top:'calc(100% + 6px)',right:0,whiteSpace:'nowrap',padding:'6px 12px',borderRadius:'8px',background:'rgba(245,158,11,0.15)',border:'1px solid rgba(245,158,11,0.3)',color:'#fde68a',fontSize:'11px',fontFamily:FONT,zIndex:20}}>
+                  ⚠️ {lang==='tr'?'Starter limiti: 5 abonelik':'Starter limit: 5 subscriptions'}
+                </div>
+              </div>
+            : <AddBtn theme={theme} label={lang==='tr'?'+ Abonelik Ekle':'+ Add Subscription'} onClick={()=>setAdding(!adding)} />
+        } />
       <div className="grid3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
         <StatCard accent={theme.accent} label={lang==='tr'?'Aylık Maliyet':'Monthly Cost'} value={`${currencySymbol}${(total/currencyRate).toFixed(2)}`} color={theme.text} icon="💸" />
         <StatCard accent={theme.accent} label={lang==='tr'?'Ölü Araçlar':'Dead Tools'} value={dead.length} sub={lang==='tr'?`${currencySymbol}${(dead.reduce((a,s)=>a+Number(s.cost),0)/currencyRate).toFixed(2)}/ay israf`:`${currencySymbol}${(dead.reduce((a,s)=>a+Number(s.cost),0)/currencyRate).toFixed(2)}/mo wasted`} color="#fca5a5" icon="💀" />
@@ -1534,7 +1554,7 @@ function SpendingPage({ theme, expenses, userId, onRefresh, currency='TRY', curr
 }
 
 // ── INVESTMENTS ───────────────────────────────────────────────────
-function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh, lang='en' }) {
+function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh, lang='en', userPlan='starter', onGoToSettings }) {
   const [activeTab, setActiveTab] = useState('stocks') // 'stocks' | 'fx'
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({symbol:'',name:'',shares:'',buyPrice:'',currentPrice:'',type:'stock'})
@@ -1719,7 +1739,17 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
   const totalFxGain = totalFxValue - totalFxCost
 
   return (
-    <div className="page-pad" style={{padding:'36px'}}>
+    <div className="page-pad" style={{padding:'36px',position:'relative'}}>
+      {userPlan === 'starter' && (
+        <div style={{position:'absolute',inset:0,background:'rgba(4,4,15,0.85)',backdropFilter:'blur(8px)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:10,borderRadius:'20px',gap:'16px'}}>
+          <div style={{fontSize:'40px'}}>🔒</div>
+          <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Pro Plan Gerekli</div>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT,textAlign:'center',maxWidth:'260px'}}>Yatırım takibi Pro ve Elite planlarda kullanılabilir</div>
+          <button onClick={onGoToSettings} style={{padding:'11px 24px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#6366f1,#4338ca)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(99,102,241,0.4)'}}>
+            Planı Yükselt →
+          </button>
+        </div>
+      )}
       {/* HEADER */}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px',flexWrap:'wrap',gap:'12px'}}>
         <div>
@@ -2283,7 +2313,7 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
 }
 
 // ── 30-DAY CHALLENGE ──────────────────────────────────────────────
-function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='', lang='en' }) {
+function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='', lang='en', userPlan='starter', onGoToSettings }) {
   const now = new Date()
   const today = now.getDate()
   const monthName = now.toLocaleString(lang==='tr'?'tr-TR':'en-US',{month:'long',year:'numeric'})
@@ -2357,7 +2387,17 @@ function GoalsPage({ theme, expenses, totalExp, totalSubs, totalIncome, userId='
   const dayTasks = selectedDay ? (aiTasks[selectedDay]||DAILY_TASKS[(selectedDay-1)%DAILY_TASKS.length]) : []
 
   return (
-    <div className="page-pad" style={{padding:'36px'}}>
+    <div className="page-pad" style={{padding:'36px',position:'relative'}}>
+      {userPlan === 'starter' && (
+        <div style={{position:'absolute',inset:0,background:'rgba(4,4,15,0.85)',backdropFilter:'blur(8px)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:10,borderRadius:'20px',gap:'16px'}}>
+          <div style={{fontSize:'40px'}}>🔒</div>
+          <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Pro Plan Gerekli</div>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT,textAlign:'center',maxWidth:'260px'}}>Meydan Okuma özelliği Pro ve Elite planlarda kullanılabilir</div>
+          <button onClick={onGoToSettings} style={{padding:'11px 24px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#6366f1,#4338ca)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(99,102,241,0.4)'}}>
+            Planı Yükselt →
+          </button>
+        </div>
+      )}
 
       {showCelebration && (
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
@@ -2836,7 +2876,7 @@ function MonthlySummaryPage({ theme, totalIncome, totalExp, totalSubs, netBal, s
 }
 
 // ── AI ADVISOR ────────────────────────────────────────────────────
-function AIPage({ theme, user, subs, expenses, income, investments, lang='en' }) {
+function AIPage({ theme, user, subs, expenses, income, investments, lang='en', userPlan='starter', onGoToSettings }) {
   const getDefaultMsg = (l) => [{ role:'ai', text: l==='tr' ? "Merhaba! Ben BurnRate Yapay Zeka Danışmanınızım. Gerçek finansal verilerinizi görüyorum — abonelikler, harcamalar, gelir ve yatırımlar. Her şeyi sorun, size keskin ve uygulanabilir tavsiyeler vereceğim." : "Hey! I'm your BurnRate AI Advisor. I can see your real financial data — subscriptions, spending, income, and investments. Ask me anything and I'll give you sharp, actionable advice." }]
   const [messages, setMessages] = useState(getDefaultMsg(lang))
   useEffect(() => {
@@ -2860,9 +2900,13 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
 
   const suggestions = lang==='tr'?["Hangi abonelikleri iptal etmeliyim?","Tasarruf oranımı nasıl artırabilirim?","Yatırım tavsiyesi ver","Para sızıntım nerede?"]:["Which subscriptions should I cancel?","How can I improve my savings rate?","Give me investment advice","Where am I leaking money?"]
 
+  const aiLimit = userPlan === 'elite' ? Infinity : userPlan === 'pro' ? 20 : 0
+  const aiMessageCount = messages.filter(m=>m.role==='user').length
+  const aiLimitReached = aiLimit !== Infinity && aiMessageCount >= aiLimit
+
   async function send(msg) {
     const userMsg = msg||input.trim()
-    if (!userMsg||loading) return
+    if (!userMsg||loading||aiLimit===0||aiLimitReached) return
     setInput('')
     setMessages(prev=>{const updated=[...prev,{role:'user',text:userMsg}];try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(updated.slice(-50)))}catch{};return updated})
     setLoading(true)
@@ -2878,14 +2922,34 @@ function AIPage({ theme, user, subs, expenses, income, investments, lang='en' })
   }
 
   return (
-    <div className="page-pad" style={{padding:'36px',height:'100vh',display:'flex',flexDirection:'column',maxHeight:'100vh',boxSizing:'border-box'}}>
+    <div className="page-pad" style={{padding:'36px',height:'100vh',display:'flex',flexDirection:'column',maxHeight:'100vh',boxSizing:'border-box',position:'relative'}}>
+      {aiLimit === 0 && (
+        <div style={{position:'absolute',inset:0,background:'rgba(4,4,15,0.85)',backdropFilter:'blur(8px)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:10,borderRadius:'20px',gap:'16px'}}>
+          <div style={{fontSize:'40px'}}>🔒</div>
+          <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Pro Plan Gerekli</div>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT,textAlign:'center',maxWidth:'260px'}}>AI Danışman Pro ve Elite planlarda kullanılabilir</div>
+          <button onClick={onGoToSettings} style={{padding:'11px 24px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#6366f1,#4338ca)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(99,102,241,0.4)'}}>
+            Planı Yükselt →
+          </button>
+        </div>
+      )}
+      {aiLimitReached && (
+        <div style={{margin:'0 0 14px',padding:'14px 18px',borderRadius:'12px',background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.3)',display:'flex',alignItems:'center',gap:'10px'}}>
+          <span style={{fontSize:'20px'}}>⚠️</span>
+          <div>
+            <div style={{color:'#fde68a',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Aylık mesaj limitine ulaştın':'Monthly message limit reached'}</div>
+            <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?`Pro plan: 20 mesaj/ay · Sınırsız için Elite\'e geç`:`Pro plan: 20 messages/month · Upgrade to Elite for unlimited`}</div>
+          </div>
+          <button onClick={onGoToSettings} style={{marginLeft:'auto',padding:'7px 16px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#fff',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:FONT,flexShrink:0}}>Elite →</button>
+        </div>
+      )}
       <div style={{marginBottom:'18px'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
             <div style={{width:'40px',height:'40px',borderRadius:'12px',background:`linear-gradient(135deg,${theme.accent},${theme.accent}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>🤖</div>
             <div>
               <h1 style={{color:theme.text,fontSize:'20px',fontWeight:700,letterSpacing:'-0.4px',margin:0,fontFamily:FONT}}>{lang==='tr'?'Yapay Zeka Danışmanı':'AI Financial Advisor'}</h1>
-              <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?'claude destekli · gerçek verilerinizi görür':'powered by claude · sees your real data'}</div>
+              <div style={{color:'rgba(255,255,255,0.28)',fontSize:'11px',fontFamily:MONO}}>{lang==='tr'?`claude destekli · ${userPlan==='pro'?`${20-aiMessageCount} mesaj kaldı`:'sınırsız'}`:`powered by claude · ${userPlan==='pro'?`${20-aiMessageCount} messages left`:'unlimited'}`}</div>
             </div>
           </div>
           <button onClick={()=>{const init=[{role:'ai',text:lang==='tr'?'Sohbet temizlendi. Size nasıl yardımcı olabilirim?':'Chat cleared. How can I help you?'}];setMessages(init);try{localStorage.setItem('burnrate_ai_chat',JSON.stringify(init))}catch{}}} style={{padding:'6px 14px',borderRadius:'10px',fontSize:'12px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'🗑️ Temizle':'🗑️ Clear'}</button>
@@ -3234,6 +3298,35 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, onUpgrade, e
 
               <Card accent={theme.accent} style={{ padding: 24 }}>
                 <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 16, fontFamily: FONT }}>
+                  {lang === 'tr' ? 'Plan Özellikleri' : 'Plan Features'}
+                </div>
+                {[
+                  { plan: 'starter', color: '#06b6d4', features: lang==='tr'
+                    ? ['✅ Harcama takibi', '✅ 5 aboneliğe kadar', '✅ Bakiye & gelir', '❌ Yatırım takibi', '❌ Borç takibi', '❌ Meydan okuma', '❌ AI danışman', '❌ PDF rapor']
+                    : ['✅ Expense tracking', '✅ Up to 5 subscriptions', '✅ Balance & income', '❌ Investment tracking', '❌ Debt tracking', '❌ 30-Day Challenge', '❌ AI advisor', '❌ PDF report'] },
+                  { plan: 'pro', color: '#7c3aed', features: lang==='tr'
+                    ? ['✅ Starter\'daki her şey', '✅ Yatırım takibi', '✅ Borç takibi', '✅ Meydan okuma', '✅ AI danışman (20 mesaj/ay)', '❌ PDF rapor', '❌ Aylık özet']
+                    : ['✅ Everything in Starter', '✅ Investment tracking', '✅ Debt tracking', '✅ 30-Day Challenge', '✅ AI advisor (20 msgs/mo)', '❌ PDF report', '❌ Monthly summary'] },
+                  { plan: 'elite', color: '#f59e0b', features: lang==='tr'
+                    ? ['✅ Pro\'daki her şey', '✅ Sınırsız AI', '✅ PDF rapor', '✅ Aylık özet', '✅ Bütçe planlama', '✅ Öncelikli destek']
+                    : ['✅ Everything in Pro', '✅ Unlimited AI', '✅ PDF report', '✅ Monthly summary', '✅ Budget planning', '✅ Priority support'] },
+                ].map(({plan, color, features}) => (
+                  <div key={plan} style={{marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: plan === currentPlan ? `${color}12` : 'rgba(255,255,255,0.02)', border: `1px solid ${plan === currentPlan ? color+'44' : 'rgba(255,255,255,0.06)'}`}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                      <span style={{color, fontSize:13,fontWeight:700,fontFamily:FONT,textTransform:'capitalize'}}>{plan.charAt(0).toUpperCase()+plan.slice(1)}</span>
+                      {plan === currentPlan && <span style={{background:`${color}22`,color,fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,fontFamily:FONT}}>✓ {lang==='tr'?'Mevcut':'Current'}</span>}
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 12px'}}>
+                      {features.map((f,i) => (
+                        <div key={i} style={{fontSize:12,fontFamily:FONT,color:f.startsWith('✅')?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.25)'}}>{f}</div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </Card>
+
+              <Card accent={theme.accent} style={{ padding: 24 }}>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600, marginBottom: 16, fontFamily: FONT }}>
                   {lang === 'tr' ? 'Plan Değiştir' : 'Change Plan'}
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
@@ -3397,6 +3490,15 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, onUpgrade, e
       <div style={{color:'rgba(255,255,255,0.6)',fontSize:13,fontWeight:600,marginBottom:16,fontFamily:FONT}}>
         📥 {lang==='tr'?'Finansal Rapor İndir':'Download Financial Report'}
       </div>
+      {currentPlan !== 'elite' && (
+        <div style={{padding:'12px 16px',borderRadius:'10px',background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)',marginBottom:16,display:'flex',alignItems:'center',gap:'10px'}}>
+          <span style={{fontSize:'18px'}}>🔒</span>
+          <div>
+            <div style={{color:'#fde68a',fontSize:'13px',fontWeight:600,fontFamily:FONT}}>{lang==='tr'?'Elite Plan Gerekli':'Elite Plan Required'}</div>
+            <div style={{color:'rgba(255,255,255,0.4)',fontSize:'12px',fontFamily:FONT}}>{lang==='tr'?'PDF raporu sadece Elite planda kullanılabilir.':'PDF reports are available on Elite plan only.'}</div>
+          </div>
+        </div>
+      )}
       <div style={{color:'rgba(255,255,255,0.4)',fontSize:13,marginBottom:20,fontFamily:FONT,lineHeight:1.6}}>
         {lang==='tr'?'Tüm finansal verilerinizi (harcamalar, gelirler, abonelikler, yatırımlar) PDF formatında indirin.':'Download all your financial data (expenses, income, subscriptions, investments) as a PDF report.'}
       </div>
@@ -3491,10 +3593,11 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, onUpgrade, e
         win.document.close()
         setTimeout(()=>win.print(),500)
       }}
-        style={{padding:'12px 24px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:'linear-gradient(135deg,#7c3aed,#4c1d95)',color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(124,58,237,0.35)',transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)'}}
-        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(124,58,237,0.5)'}}
-        onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 20px rgba(124,58,237,0.35)'}}>
-        📥 {lang==='tr'?'PDF Raporu İndir':'Download PDF Report'}
+        disabled={currentPlan !== 'elite'}
+        style={{padding:'12px 24px',borderRadius:'12px',fontSize:'13px',fontWeight:600,background:currentPlan==='elite'?'linear-gradient(135deg,#7c3aed,#4c1d95)':'rgba(255,255,255,0.05)',color:currentPlan==='elite'?'#fff':'rgba(255,255,255,0.25)',border:'none',cursor:currentPlan==='elite'?'pointer':'not-allowed',fontFamily:FONT,boxShadow:currentPlan==='elite'?'0 4px 20px rgba(124,58,237,0.35)':'none',transition:'all 0.2s cubic-bezier(.34,1.56,.64,1)'}}
+        onMouseEnter={e=>{if(currentPlan==='elite'){e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(124,58,237,0.5)'}}}
+        onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=currentPlan==='elite'?'0 4px 20px rgba(124,58,237,0.35)':'none'}}>
+        📥 {lang==='tr'?'PDF Raporu İndir':'Download PDF Report'} {currentPlan !== 'elite' ? '🔒' : ''}
       </button>
     </Card>
   </div>
@@ -3561,7 +3664,7 @@ function SettingsPage({ theme, user, lang, onLangChange, onSignOut, onUpgrade, e
     </div>
   )
 }
-function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbol='₺', lang }) {
+function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbol='₺', lang, userPlan='starter', onGoToSettings }) {
   const SUPABASE_URL = 'https://cgfcdtjyhphppucnldor.supabase.co'
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
 
@@ -3679,7 +3782,17 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
   }
 
   return (
-    <div className="page-pad" style={{padding:'36px'}}>
+    <div className="page-pad" style={{padding:'36px',position:'relative'}}>
+      {userPlan === 'starter' && (
+        <div style={{position:'absolute',inset:0,background:'rgba(4,4,15,0.85)',backdropFilter:'blur(8px)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:10,borderRadius:'20px',gap:'16px'}}>
+          <div style={{fontSize:'40px'}}>🔒</div>
+          <div style={{color:'#f1f0ff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>Pro Plan Gerekli</div>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'13px',fontFamily:FONT,textAlign:'center',maxWidth:'260px'}}>Borç takibi Pro ve Elite planlarda kullanılabilir</div>
+          <button onClick={onGoToSettings} style={{padding:'11px 24px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#6366f1,#4338ca)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 20px rgba(99,102,241,0.4)'}}>
+            Planı Yükselt →
+          </button>
+        </div>
+      )}
       {/* Başlık */}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px',flexWrap:'wrap',gap:'12px'}}>
         <div>
