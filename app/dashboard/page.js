@@ -1444,14 +1444,30 @@ function SubsPage({ theme, subs, setSubs, userId, onRefresh, currency='TRY', cur
                 <button onClick={async()=>{
                   const SUPABASE_URL='https://cgfcdtjyhphppucnldor.supabase.co'
                   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+                  let days_since_used = editingSub.days_since_used || 0
+                  if(editingSub.last_used) {
+                    const lastDate = new Date(editingSub.last_used)
+                    const today = new Date()
+                    today.setHours(0,0,0,0)
+                    lastDate.setHours(0,0,0,0)
+                    days_since_used = Math.floor((today - lastDate) / (1000*60*60*24))
+                  }
+                  const status = days_since_used === 0 ? 'keep' : days_since_used < 30 ? 'keep' : days_since_used < 60 ? 'warn' : 'dead'
+                  const updateData = {
+                    name: editingSub.name,
+                    cost: parseFloat(editingSub.cost),
+                    category: editingSub.category,
+                    last_used: editingSub.last_used,
+                    days_since_used: days_since_used,
+                    status: status
+                  }
                   await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?id=eq.${editingSub.id}`,{
                     method:'PATCH',
                     headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-                    body:JSON.stringify({name:editingSub.name,cost:parseFloat(editingSub.cost),category:editingSub.category,last_used:editingSub.last_used})
+                    body:JSON.stringify(updateData)
                   })
-                  setSubs(prev=>prev.map(s=>s.id===editingSub.id?{...s,...editingSub}:s))
+                  setSubs(prev=>prev.map(s=>s.id===editingSub.id?{...s,...updateData,days_since_used}:s))
                   setEditingSub(null)
-                  onRefresh()
                 }}
                   style={{flex:2,padding:'11px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 16px rgba(239,68,68,0.35)'}}>
                   💾 Kaydet
