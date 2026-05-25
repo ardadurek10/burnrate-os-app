@@ -440,7 +440,10 @@ export default function Dashboard() {
   const [investments, setInvestments] = useState([])
   const [debts, setDebts] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
-  const [readNotifIds, setReadNotifIds] = useState([])
+  const [readNotifIds, setReadNotifIds] = useState(() => {
+    if(typeof window === 'undefined') return []
+    try { return JSON.parse(localStorage.getItem(`burnrate_read_notifs_${user?.id}`) || '[]') } catch { return [] }
+  })
   const [budgetLimits, setBudgetLimits] = useState(() => {
     if(typeof window === 'undefined') return {}
     try { return JSON.parse(localStorage.getItem('burnrate_budget_limits')||'{}') } catch { return {} }
@@ -724,7 +727,7 @@ return (
                 <div style={{color:'rgba(255,255,255,0.3)',fontSize:'11px',fontFamily:MONO,marginTop:'2px'}}>{unreadCount} {lang==='tr'?'okunmamış':'unread'}</div>
               </div>
               <div style={{display:'flex',gap:'8px'}}>
-                {unreadCount > 0 && <button onClick={()=>setReadNotifIds(notifications.map(n=>n.id))} style={{fontSize:'11px',color:'rgba(124,58,237,0.7)',background:'rgba(124,58,237,0.1)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'8px',padding:'5px 10px',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Tümünü Oku':'Mark All Read'}</button>}
+                {unreadCount > 0 && <button onClick={()=>{const updatedIds=notifications.map(n=>n.id);setReadNotifIds(updatedIds);localStorage.setItem(`burnrate_read_notifs_${user?.id}`,JSON.stringify(updatedIds))}} style={{fontSize:'11px',color:'rgba(124,58,237,0.7)',background:'rgba(124,58,237,0.1)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:'8px',padding:'5px 10px',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Tümünü Oku':'Mark All Read'}</button>}
                 <button onClick={()=>setNotifOpen(false)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
               </div>
             </div>
@@ -735,7 +738,7 @@ return (
                   <div style={{color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:FONT}}>{lang==='tr'?'Bildirim yok':'No notifications'}</div>
                 </div>
               ) : notifications.map(n=>(
-                <div key={n.id} onClick={()=>setReadNotifIds(prev=>[...new Set([...prev,n.id])])}
+                <div key={n.id} onClick={()=>{const updatedIds=[...new Set([...readNotifIds,n.id])];setReadNotifIds(updatedIds);localStorage.setItem(`burnrate_read_notifs_${user?.id}`,JSON.stringify(updatedIds))}}
                   onMouseEnter={e=>e.currentTarget.style.background='rgba(124,58,237,0.06)'}
                   onMouseLeave={e=>e.currentTarget.style.background=readNotifIds.includes(n.id)?'transparent':'rgba(124,58,237,0.03)'}
                   style={{display:'flex',gap:'12px',padding:'14px 12px',borderRadius:'14px',background:readNotifIds.includes(n.id)?'transparent':'rgba(124,58,237,0.03)',border:`1px solid ${readNotifIds.includes(n.id)?'rgba(255,255,255,0.04)':'rgba(124,58,237,0.12)'}`,marginBottom:'8px',cursor:'pointer',transition:'background 0.15s'}}>
