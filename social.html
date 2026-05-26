@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BurnRate OS — İçerik Stüdyosu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#030308;
+  --surface:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.07);
+  --text:#f0eeff;
+  --dim:rgba(240,238,255,0.4);
+  --dimmer:rgba(240,238,255,0.18);
+  --purple:#7c3aed;
+  --purple-glow:rgba(124,58,237,0.3);
+  --teal:#14b8a6;
+  --rose:#f43f5e;
+  --amber:#f59e0b;
+  --mono:'DM Mono',monospace;
+  --sans:'Space Grotesk',sans-serif;
+  --display:'Syne',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 0%,rgba(124,58,237,0.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 100%,rgba(20,184,166,0.08) 0%,transparent 55%);pointer-events:none;z-index:0}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh;position:relative;z-index:1}
+
+/* SIDEBAR */
+.sidebar{background:rgba(255,255,255,0.02);border-right:1px solid var(--border);padding:28px 20px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{font-family:var(--display);font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:28px;display:flex;align-items:center;gap:10px}
+.logo-badge{background:linear-gradient(135deg,#7c3aed,#4c1d95);border-radius:8px;padding:5px 9px;font-size:11px;font-family:var(--mono);letter-spacing:1px}
+.sidebar-label{font-family:var(--mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dimmer);padding:0 8px;margin:16px 0 8px}
+.tab-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;transition:all 0.18s;width:100%;text-align:left;background:transparent;color:var(--dim)}
+.tab-btn:hover{background:rgba(124,58,237,0.08);color:var(--text)}
+.tab-btn.active{background:rgba(124,58,237,0.14);color:#c4b5fd;border:1px solid rgba(124,58,237,0.25)}
+.tab-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+/* MAIN */
+.main{padding:36px;overflow-y:auto}
+.page-header{margin-bottom:32px}
+.page-title{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.page-sub{color:var(--dim);font-size:13px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.card-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dimmer);margin-bottom:16px}
+
+/* FORM ELEMENTS */
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dimmer);margin-bottom:8px}
+select,textarea,input[type=text]{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:11px;color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 14px;outline:none;transition:border 0.18s,box-shadow 0.18s;appearance:none}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c3aed' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+select option{background:#0a0a1a}
+select:focus,textarea:focus,input:focus{border-color:rgba(124,58,237,0.5);box-shadow:0 0 0 3px rgba(124,58,237,0.08)}
+textarea{resize:none;line-height:1.7}
+
+/* TOPIC PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pill{padding:7px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);cursor:pointer;font-size:12px;font-weight:500;color:var(--dim);transition:all 0.18s;font-family:var(--sans)}
+.pill:hover{border-color:rgba(124,58,237,0.4);color:var(--text);background:rgba(124,58,237,0.08)}
+.pill.active{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.15);color:#c4b5fd;font-weight:600}
+
+/* TONE PILLS */
+.tone-pills{display:flex;gap:7px;flex-wrap:wrap}
+.tone-pill{padding:6px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);cursor:pointer;font-size:11px;color:var(--dim);transition:all 0.18s;font-family:var(--mono);letter-spacing:0.5px}
+.tone-pill.active{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.15);color:#c4b5fd}
+
+/* GENERATE BUTTON */
+.gen-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;font-family:var(--display);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-0.3px;box-shadow:0 4px 24px rgba(124,58,237,0.4),inset 0 1px 0 rgba(255,255,255,0.15);transition:transform 0.2s cubic-bezier(.34,1.56,.64,1),box-shadow 0.2s;margin-top:8px}
+.gen-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.55)}
+.gen-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none}
+
+/* RESULT */
+.result-wrap{display:none}
+.result-wrap.show{display:block;animation:fadeUp 0.35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.result-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)}
+.result-btns{display:flex;gap:8px}
+.copy-btn{padding:7px 16px;border-radius:10px;border:1px solid rgba(124,58,237,0.3);background:rgba(124,58,237,0.1);color:#c4b5fd;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.copy-btn:hover{background:rgba(124,58,237,0.2)}
+.regen-btn{padding:7px 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--dim);font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
+
+/* TEXT RESULT */
+.text-result{font-size:13px;line-height:1.9;color:rgba(240,238,255,0.85);white-space:pre-wrap;border-left:2px solid rgba(124,58,237,0.4);padding-left:16px;margin-bottom:12px}
+.char-info{font-family:var(--mono);font-size:10px;color:var(--dimmer);margin-bottom:14px}
+.char-info.over{color:#fca5a5}
+.hashtag-row{display:flex;flex-wrap:wrap;gap:6px;padding-top:14px;border-top:1px solid var(--border)}
+.hashtag{background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.18);border-radius:100px;padding:4px 12px;font-size:11px;color:#c4b5fd;font-family:var(--mono)}
+
+/* THREAD RESULT */
+.thread-container{display:flex;flex-direction:column;gap:12px}
+.thread-item{display:flex;gap:14px;padding:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;position:relative}
+.thread-num{width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:#c4b5fd;flex-shrink:0;margin-top:2px}
+.thread-text{font-size:13px;line-height:1.8;color:rgba(240,238,255,0.85);flex:1}
+.thread-chars{font-family:var(--mono);font-size:9px;color:var(--dimmer);margin-top:6px}
+.thread-line{position:absolute;left:27px;bottom:-12px;width:1px;height:12px;background:rgba(124,58,237,0.2)}
+
+/* VISUAL RESULT */
+.visual-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(124,58,237,0.2);margin-bottom:12px}
+.visual-actions{display:flex;gap:8px}
+.dl-btn{padding:7px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(124,58,237,0.35)}
+
+/* LOADING */
+.loading{display:none;align-items:center;justify-content:center;gap:12px;padding:28px;color:var(--dim);font-size:13px}
+.loading.show{display:flex}
+.spinner{width:20px;height:20px;border-radius:50%;border:2px solid rgba(124,58,237,0.15);border-top-color:#7c3aed;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ERROR */
+.error{background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);border-radius:12px;padding:12px 16px;color:#fda4af;font-size:13px;display:none;margin-top:10px}
+.error.show{display:block}
+
+/* DIVIDER */
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);margin:20px 0}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">BR</div>
+      İçerik Stüdyosu
+    </div>
+    <div class="sidebar-label">Modüller</div>
+    <button class="tab-btn active" onclick="switchTab('instagram')" id="tab-instagram">
+      <div class="tab-icon" style="background:rgba(244,63,94,0.12)">📸</div>
+      Instagram Görseli
+    </button>
+    <button class="tab-btn" onclick="switchTab('thread')" id="tab-thread">
+      <div class="tab-icon" style="background:rgba(124,58,237,0.12)">🧵</div>
+      Twitter Thread
+    </button>
+    <button class="tab-btn" onclick="switchTab('post')" id="tab-post">
+      <div class="tab-icon" style="background:rgba(20,184,166,0.12)">✍️</div>
+      Post Yaz
+    </button>
+    <div class="sidebar-label" style="margin-top:auto">Hakkında</div>
+    <div style="padding:12px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:14px;font-size:12px;color:var(--dim);line-height:1.6">
+      BurnRate OS sosyal medya içerik üretici. AI destekli, markanıza özel içerikler.
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- INSTAGRAM TAB -->
+    <div id="page-instagram">
+      <div class="page-header">
+        <div class="page-title">📸 Instagram Görseli</div>
+        <div class="page-sub">Panel ve özellikleri yansıtan premium görseller üret</div>
+      </div>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start">
+        <div>
+          <div class="card">
+            <div class="card-title">Görsel Tipi</div>
+            <div class="pills" id="ig-type-pills">
+              <div class="pill active" data-val="feature_showcase" onclick="selectPill(this,'ig-type')">🌟 Özellik Showcase</div>
+              <div class="pill" data-val="dashboard_preview" onclick="selectPill(this,'ig-type')">📊 Dashboard Preview</div>
+              <div class="pill" data-val="stats_highlight" onclick="selectPill(this,'ig-type')">📈 İstatistik Vurgu</div>
+              <div class="pill" data-val="tips_card" onclick="selectPill(this,'ig-type')">💡 İpucu Kartı</div>
+              <div class="pill" data-val="before_after" onclick="selectPill(this,'ig-type')">⚡ Önce/Sonra</div>
+              <div class="pill" data-val="announcement" onclick="selectPill(this,'ig-type')">🎯 Duyuru</div>
+              <div class="pill" data-val="v21_teaser" onclick="selectPill(this,'ig-type')">🚀 v2.1 Teaser</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Konu & İçerik</div>
+            <div class="field">
+              <label>Öne Çıkan Özellik</label>
+              <select id="ig-feature">
+                <option value="ai_advisor">🤖 AI Finansal Danışman</option>
+                <option value="investment">📈 Canlı Yatırım Takibi</option>
+                <option value="subscriptions">⚔️ Abonelik Yönetimi</option>
+                <option value="monthly_summary">📋 Aylık Özet & PDF</option>
+                <option value="challenge">🎯 30 Günlük Meydan Okuma</option>
+                <option value="budget">📊 Bütçe Planlama</option>
+                <option value="debt">🤝 Borç Takibi</option>
+                <option value="general">💜 Genel Uygulama</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Renk Teması</label>
+              <select id="ig-theme">
+                <option value="purple">💜 Royal Purple</option>
+                <option value="teal">🩵 Ocean Teal</option>
+                <option value="rose">🌹 Rose Red</option>
+                <option value="amber">🟡 Amber Gold</option>
+                <option value="dark">⚫ Ultra Dark</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ekstra Mesaj (opsiyonel)</label>
+              <textarea id="ig-extra" rows="2" placeholder="Görselde vurgulanmasını istediğin özel bir şey..."></textarea>
+            </div>
+          </div>
+          <button class="gen-btn" onclick="generateInstagram()" id="ig-btn">✨ Görsel Üret</button>
+          <div class="loading" id="ig-loading"><div class="spinner"></div>Görsel hazırlanıyor...</div>
+          <div class="error" id="ig-error"></div>
+        </div>
+        <div>
+          <div class="result-wrap" id="ig-result">
+            <div class="result-header">
+              <div class="result-title">📸 Instagram Görseli</div>
+              <div class="result-btns">
+                <button class="regen-btn" onclick="generateInstagram()">↺ Yeniden</button>
+                <button class="dl-btn" onclick="downloadVisual('ig-visual','burnrate-instagram')">📥 PNG İndir</button>
+              </div>
+            </div>
+            <div class="visual-wrap" id="ig-visual"></div>
+            <div style="margin-top:12px">
+              <div class="card-title">Caption</div>
+              <div class="text-result" id="ig-caption"></div>
+              <div class="hashtag-row" id="ig-hashtags"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THREAD TAB -->
+    <div id="page-thread" style="display:none">
+      <div class="page-header">
+        <div class="page-title">🧵 Twitter Thread</div>
+        <div class="page-sub">BurnRate OS hakkında ilgi çekici thread'ler üret</div>
+      </div>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start">
+        <div>
+          <div class="card">
+            <div class="card-title">Thread Konusu</div>
+            <div class="pills" id="thread-topic-pills">
+              <div class="pill active" data-val="financial_freedom" onclick="selectPill(this,'thread-topic')">💸 Finansal Özgürlük</div>
+              <div class="pill" data-val="subscription_trap" onclick="selectPill(this,'thread-topic')">⚔️ Abonelik Tuzağı</div>
+              <div class="pill" data-val="investment_101" onclick="selectPill(this,'thread-topic')">📈 Yatırım 101</div>
+              <div class="pill" data-val="ai_money" onclick="selectPill(this,'thread-topic')">🤖 AI & Para</div>
+              <div class="pill" data-val="burnrate_features" onclick="selectPill(this,'thread-topic')">🚀 BurnRate Özellikleri</div>
+              <div class="pill" data-val="money_mistakes" onclick="selectPill(this,'thread-topic')">❌ Para Hataları</div>
+              <div class="pill" data-val="savings_tips" onclick="selectPill(this,'thread-topic')">💡 Tasarruf İpuçları</div>
+              <div class="pill" data-val="v21_launch" onclick="selectPill(this,'thread-topic')">🎯 v2.1 Launch</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Thread Ayarları</div>
+            <div class="field">
+              <label>Tweet Sayısı</label>
+              <select id="thread-count">
+                <option value="5">5 tweet</option>
+                <option value="7" selected>7 tweet</option>
+                <option value="10">10 tweet</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ton</label>
+              <div class="tone-pills" id="thread-tone-pills">
+                <div class="tone-pill active" data-val="engaging" onclick="selectTone(this,'thread')">🔥 Çarpıcı</div>
+                <div class="tone-pill" data-val="educational" onclick="selectTone(this,'thread')">📚 Eğitici</div>
+                <div class="tone-pill" data-val="storytelling" onclick="selectTone(this,'thread')">📖 Hikaye</div>
+                <div class="tone-pill" data-val="controversial" onclick="selectTone(this,'thread')">⚡ Tartışmalı</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Ekstra Not</label>
+              <textarea id="thread-extra" rows="2" placeholder="Thread'e eklemek istediğin spesifik bir şey..."></textarea>
+            </div>
+          </div>
+          <button class="gen-btn" onclick="generateThread()" id="thread-btn">🧵 Thread Üret</button>
+          <div class="loading" id="thread-loading"><div class="spinner"></div>Thread yazılıyor...</div>
+          <div class="error" id="thread-error"></div>
+        </div>
+        <div>
+          <div class="result-wrap" id="thread-result">
+            <div class="result-header">
+              <div class="result-title">🧵 Thread</div>
+              <div class="result-btns">
+                <button class="regen-btn" onclick="generateThread()">↺ Yeniden</button>
+                <button class="copy-btn" onclick="copyThread()">⎘ Tümünü Kopyala</button>
+              </div>
+            </div>
+            <div class="thread-container" id="thread-items"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST TAB -->
+    <div id="page-post" style="display:none">
+      <div class="page-header">
+        <div class="page-title">✍️ Post Yaz</div>
+        <div class="page-sub">Tüm platformlar için özelleştirilmiş içerik üret</div>
+      </div>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start">
+        <div>
+          <div class="card">
+            <div class="card-title">Platform</div>
+            <div class="pills" id="post-platform-pills">
+              <div class="pill active" data-val="twitter" onclick="selectPill(this,'post-platform')">𝕏 Twitter/X</div>
+              <div class="pill" data-val="linkedin" onclick="selectPill(this,'post-platform')">💼 LinkedIn</div>
+              <div class="pill" data-val="instagram" onclick="selectPill(this,'post-platform')">📸 Instagram</div>
+              <div class="pill" data-val="threads" onclick="selectPill(this,'post-platform')">🧵 Threads</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">İçerik Ayarları</div>
+            <div class="field">
+              <label>Konu</label>
+              <select id="post-topic">
+                <option value="v2_1_teaser">🚀 v2.1 Yakında</option>
+                <option value="feature_ai">🤖 AI Danışman</option>
+                <option value="feature_invest">📈 Yatırım Takibi</option>
+                <option value="feature_summary">📋 Aylık Özet</option>
+                <option value="feature_challenge">🎯 Meydan Okuma</option>
+                <option value="general">💜 Genel Tanıtım</option>
+                <option value="tips">💡 Finansal İpucu</option>
+                <option value="engagement">💬 Etkileşim</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ton</label>
+              <div class="tone-pills" id="post-tone-pills">
+                <div class="tone-pill active" data-val="heyecanli" onclick="selectTone(this,'post')">🔥 Heyecanlı</div>
+                <div class="tone-pill" data-val="profesyonel" onclick="selectTone(this,'post')">💼 Profesyonel</div>
+                <div class="tone-pill" data-val="gizemli" onclick="selectTone(this,'post')">🌙 Gizemli</div>
+                <div class="tone-pill" data-val="samimi" onclick="selectTone(this,'post')">😊 Samimi</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Ekstra Not</label>
+              <textarea id="post-extra" rows="2" placeholder="Özellikle vurgulanmasını istediğin bir şey..."></textarea>
+            </div>
+          </div>
+          <button class="gen-btn" onclick="generatePost()" id="post-btn">✨ Post Üret</button>
+          <div class="loading" id="post-loading"><div class="spinner"></div>Yazılıyor...</div>
+          <div class="error" id="post-error"></div>
+        </div>
+        <div>
+          <div class="result-wrap" id="post-result">
+            <div class="result-header">
+              <div class="result-title" id="post-result-title">Post</div>
+              <div class="result-btns">
+                <button class="regen-btn" onclick="generatePost()">↺ Yeniden</button>
+                <button class="copy-btn" onclick="copyPost()" id="post-copy-btn">⎘ Kopyala</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="text-result" id="post-text"></div>
+              <div class="char-info" id="post-chars"></div>
+              <div class="hashtag-row" id="post-hashtags"></div>
+            </div>
+            <div id="post-visual-section" style="display:none;margin-top:16px">
+              <div class="result-header">
+                <div class="result-title">Eşleşen Görsel</div>
+                <div class="result-btns">
+                  <button class="dl-btn" onclick="downloadVisual('post-visual','burnrate-post')">📥 PNG İndir</button>
+                </div>
+              </div>
+              <div class="visual-wrap" id="post-visual"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// STATE
+let igType = 'feature_showcase'
+let threadTopic = 'financial_freedom'
+let threadTone = 'engaging'
+let postPlatform = 'twitter'
+let postTone = 'heyecanli'
+
+// TAB SWITCH
+function switchTab(tab) {
+  ['instagram','thread','post'].forEach(t => {
+    document.getElementById(`page-${t}`).style.display = t===tab?'block':'none'
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab)
+  })
+}
+
+// PILL SELECT
+function selectPill(el, group) {
+  document.querySelectorAll(`#${group}-pills .pill`).forEach(p=>p.classList.remove('active'))
+  el.classList.add('active')
+  if(group==='ig-type') igType = el.dataset.val
+  if(group==='thread-topic') threadTopic = el.dataset.val
+  if(group==='post-platform') postPlatform = el.dataset.val
+}
+
+function selectTone(el, group) {
+  el.closest('.tone-pills').querySelectorAll('.tone-pill').forEach(p=>p.classList.remove('active'))
+  el.classList.add('active')
+  if(group==='thread') threadTone = el.dataset.val
+  if(group==='post') postTone = el.dataset.val
+}
+
+// BUILD INSTAGRAM VISUAL
+function buildInstagramVisual(content, type, feature, theme) {
+  const themes = {
+    purple: {ac:'#7c3aed',ac2:'#4c1d95',r:'124,58,237',bg1:'rgba(109,40,217,0.35)',bg2:'rgba(76,29,149,0.2)',text:'#c4b5fd'},
+    teal: {ac:'#14b8a6',ac2:'#0f766e',r:'20,184,166',bg1:'rgba(20,184,166,0.3)',bg2:'rgba(15,118,110,0.18)',text:'#5eead4'},
+    rose: {ac:'#f43f5e',ac2:'#be123c',r:'244,63,94',bg1:'rgba(244,63,94,0.3)',bg2:'rgba(190,18,60,0.18)',text:'#fda4af'},
+    amber: {ac:'#f59e0b',ac2:'#d97706',r:'245,158,11',bg1:'rgba(245,158,11,0.3)',bg2:'rgba(217,119,6,0.18)',text:'#fde68a'},
+    dark: {ac:'#6366f1',ac2:'#4338ca',r:'99,102,241',bg1:'rgba(67,56,202,0.25)',bg2:'rgba(49,46,129,0.15)',text:'#a5b4fc'},
+  }
+  const features = {
+    ai_advisor: {icon:'🤖',title:'AI Finansal Danışman',sub:'Gerçek verilerinle çalışır'},
+    investment: {icon:'📈',title:'Canlı Yatırım Takibi',sub:'5 saniyede bir güncelleme'},
+    subscriptions: {icon:'⚔️',title:'Abonelik Yönetimi',sub:'Ölü abonelikleri tespit eder'},
+    monthly_summary: {icon:'📋',title:'Aylık Özet & PDF',sub:'Finansal raporunuz hazır'},
+    challenge: {icon:'🎯',title:'30 Günlük Meydan Okuma',sub:'Finansal alışkanlık kazan'},
+    budget: {icon:'📊',title:'Bütçe Planlama',sub:'Kategori bazlı limitler'},
+    debt: {icon:'🤝',title:'Borç Takibi',sub:'Alacak & verecek yönetimi'},
+    general: {icon:'💜',title:'BurnRate OS',sub:'Finansal komuta merkezin'},
+  }
+  const t = themes[theme]||themes.purple
+  const f = features[feature]||features.general
+
+  // Dashboard mock elements
+  const mockCards = `
+    <rect x="30" y="260" width="140" height="80" rx="12" fill="rgba(255,255,255,0.04)" stroke="${t.ac}" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="50" y="285" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="8" letter-spacing="1">NET BAKİYE</text>
+    <text x="50" y="310" fill="${t.ac}" font-family="sans-serif" font-size="18" font-weight="800">₺48.500</text>
+    <text x="50" y="328" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="9">↑ Pozitif</text>
+    
+    <rect x="185" y="260" width="140" height="80" rx="12" fill="rgba(255,255,255,0.04)" stroke="${t.ac}" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="205" y="285" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="8" letter-spacing="1">PORTFÖY</text>
+    <text x="205" y="310" fill="#10b981" font-family="sans-serif" font-size="18" font-weight="800">₺27.793</text>
+    <text x="205" y="328" fill="#6ee7b7" font-family="monospace" font-size="9">+6.9% ↑</text>
+    
+    <rect x="340" y="260" width="140" height="80" rx="12" fill="rgba(255,255,255,0.04)" stroke="${t.ac}" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="360" y="285" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="8" letter-spacing="1">TASARRUF</text>
+    <text x="360" y="310" fill="#f59e0b" font-family="sans-serif" font-size="18" font-weight="800">%97</text>
+    <text x="360" y="328" fill="#fde68a" font-family="monospace" font-size="9">Mükemmel ✓</text>
+  `
+
+  const typeLayouts = {
+    feature_showcase: `
+      <text x="250" y="168" text-anchor="middle" font-size="44">${f.icon}</text>
+      <text x="250" y="210" text-anchor="middle" fill="#f0eeff" font-family="sans-serif" font-size="22" font-weight="800">${f.title}</text>
+      <text x="250" y="234" text-anchor="middle" fill="rgba(240,238,255,0.45)" font-family="monospace" font-size="12">${f.sub}</text>
+      ${mockCards}
+    `,
+    dashboard_preview: `
+      <text x="250" y="155" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="10" letter-spacing="2">DASHBOARD PREVİEW</text>
+      ${mockCards}
+      <rect x="30" y="360" width="450" height="100" rx="12" fill="rgba(255,255,255,0.03)" stroke="${t.ac}" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="50" y="385" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="8">Harcama Dağılımı</text>
+      <circle cx="100" cy="430" r="30" fill="none" stroke="${t.ac}" stroke-width="8" stroke-dasharray="120 69" stroke-linecap="round"/>
+      <circle cx="100" cy="430" r="30" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="50 139" stroke-dashoffset="-120" stroke-linecap="round"/>
+    `,
+    stats_highlight: `
+      <text x="250" y="150" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="10" letter-spacing="2">BU AY</text>
+      <text x="250" y="210" text-anchor="middle" fill="${t.ac}" font-family="sans-serif" font-size="64" font-weight="800" letter-spacing="-3">%97</text>
+      <text x="250" y="240" text-anchor="middle" fill="rgba(240,238,255,0.5)" font-family="sans-serif" font-size="16">tasarruf oranı</text>
+      <rect x="80" y="265" width="340" height="6" rx="3" fill="rgba(255,255,255,0.06)"/>
+      <rect x="80" y="265" width="330" height="6" rx="3" fill="${t.ac}" filter="url(#glow)"/>
+      ${mockCards}
+    `,
+    tips_card: `
+      <rect x="40" y="130" width="420" height="220" rx="18" fill="rgba(255,255,255,0.03)" stroke="${t.ac}" stroke-opacity="0.25" stroke-width="1"/>
+      <text x="250" y="168" text-anchor="middle" font-size="32">💡</text>
+      <text x="250" y="200" text-anchor="middle" fill="#f0eeff" font-family="sans-serif" font-size="16" font-weight="700">Günün İpucu</text>
+      <text x="250" y="228" text-anchor="middle" fill="rgba(240,238,255,0.6)" font-family="sans-serif" font-size="13">Aboneliklerinizi düzenli kontrol edin.</text>
+      <text x="250" y="248" text-anchor="middle" fill="rgba(240,238,255,0.6)" font-family="sans-serif" font-size="13">Ortalama kullanıcı aylık ₺847 israf eder.</text>
+      <text x="250" y="280" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="11">BurnRate OS ile takip et →</text>
+      ${mockCards}
+    `,
+    announcement: `
+      <rect x="60" y="120" width="380" height="50" rx="25" fill="${t.ac}" fill-opacity="0.15" stroke="${t.ac}" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="250" y="153" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="11" letter-spacing="2">DUYURU</text>
+      <text x="250" y="215" text-anchor="middle" fill="#f0eeff" font-family="sans-serif" font-size="24" font-weight="800">${f.title}</text>
+      <text x="250" y="243" text-anchor="middle" fill="rgba(240,238,255,0.45)" font-family="sans-serif" font-size="14">artık BurnRate OS'ta mevcut</text>
+      <text x="250" y="275" text-anchor="middle" font-size="36">${f.icon}</text>
+      ${mockCards}
+    `,
+    before_after: `
+      <text x="130" y="150" text-anchor="middle" fill="rgba(255,69,58,0.7)" font-family="monospace" font-size="10" letter-spacing="1">ÖNCE</text>
+      <rect x="30" y="160" width="200" height="160" rx="14" fill="rgba(255,69,58,0.06)" stroke="rgba(255,69,58,0.2)" stroke-width="1"/>
+      <text x="130" y="195" text-anchor="middle" fill="#fca5a5" font-family="sans-serif" font-size="13">😟 Para nereye gidiyor?</text>
+      <text x="130" y="220" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="11">Harcamalar takipsiz</text>
+      <text x="130" y="240" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="11">Abonelikler unutulmuş</text>
+      <text x="130" y="260" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="11">Tasarruf yok</text>
+      <text x="370" y="150" text-anchor="middle" fill="${t.text}" fill-opacity="0.7" font-family="monospace" font-size="10" letter-spacing="1">SONRA</text>
+      <rect x="270" y="160" width="200" height="160" rx="14" fill="rgba(${t.r},0.08)" stroke="${t.ac}" stroke-opacity="0.25" stroke-width="1"/>
+      <text x="370" y="195" text-anchor="middle" fill="${t.text}" font-family="sans-serif" font-size="13">😊 Her şey kontrol altında</text>
+      <text x="370" y="220" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="11">AI danışman aktif</text>
+      <text x="370" y="240" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="11">%97 tasarruf oranı</text>
+      <text x="370" y="260" text-anchor="middle" fill="#6ee7b7" font-family="sans-serif" font-size="11">₺48.500 net bakiye</text>
+      <text x="250" y="240" text-anchor="middle" fill="${t.ac}" font-family="sans-serif" font-size="20" font-weight="800">→</text>
+      ${mockCards}
+    `,
+    v21_teaser: `
+      <text x="250" y="150" text-anchor="middle" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="10" letter-spacing="3">BURNRATE OS</text>
+      <text x="250" y="210" text-anchor="middle" fill="${t.ac}" font-family="sans-serif" font-size="56" font-weight="800" letter-spacing="-2">v2.1</text>
+      <text x="250" y="245" text-anchor="middle" fill="rgba(240,238,255,0.6)" font-family="sans-serif" font-size="18">yakında geliyor.</text>
+      <circle cx="250" cy="280" r="4" fill="${t.ac}" opacity="0.8"/>
+      <circle cx="266" cy="280" r="3" fill="${t.ac}" opacity="0.4"/>
+      <circle cx="280" cy="280" r="2" fill="${t.ac}" opacity="0.2"/>
+      ${mockCards}
+    `
+  }
+
+  const layout = typeLayouts[type] || typeLayouts.feature_showcase
+
+  return `<svg width="100%" viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="bg1" cx="20%" cy="15%"><stop offset="0%" stop-color="${t.bg1}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+<radialGradient id="bg2" cx="80%" cy="85%"><stop offset="0%" stop-color="${t.bg2}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+</defs>
+<rect width="500" height="600" fill="#030308"/>
+<rect width="500" height="600" fill="url(#bg1)"/>
+<rect width="500" height="600" fill="url(#bg2)"/>
+${Array.from({length:9},(_,i)=>`<line x1="${i*62}" y1="0" x2="${i*62}" y2="600" stroke="${t.ac}" stroke-opacity="0.03" stroke-width="1"/>`).join('')}
+${Array.from({length:11},(_,i)=>`<line x1="0" y1="${i*60}" x2="500" y2="${i*60}" stroke="${t.ac}" stroke-opacity="0.03" stroke-width="1"/>`).join('')}
+<line x1="60" y1="1" x2="440" y2="1" stroke="${t.ac}" stroke-opacity="0.35" stroke-width="1"/>
+<line x1="60" y1="599" x2="440" y2="599" stroke="${t.ac}" stroke-opacity="0.15" stroke-width="1"/>
+<circle cx="20" cy="20" r="3" fill="${t.ac}" opacity="0.25"/>
+<circle cx="480" cy="20" r="3" fill="${t.ac}" opacity="0.25"/>
+<circle cx="20" cy="580" r="3" fill="${t.ac}" opacity="0.25"/>
+<circle cx="480" cy="580" r="3" fill="${t.ac}" opacity="0.25"/>
+${layout}
+<text x="250" y="572" text-anchor="middle" fill="${t.ac}" fill-opacity="0.28" font-family="monospace" font-size="10" letter-spacing="1">app.burnrate-os.com</text>
+<rect x="0.5" y="0.5" width="499" height="599" fill="none" stroke="${t.ac}" stroke-opacity="0.1" stroke-width="1"/>
+</svg>`
+}
+
+// INSTAGRAM GENERATE
+async function generateInstagram() {
+  const feature = document.getElementById('ig-feature').value
+  const theme = document.getElementById('ig-theme').value
+  const extra = document.getElementById('ig-extra').value
+  const btn = document.getElementById('ig-btn')
+  const loading = document.getElementById('ig-loading')
+  const result = document.getElementById('ig-result')
+  const error = document.getElementById('ig-error')
+
+  btn.disabled = true
+  loading.classList.add('show')
+  result.classList.remove('show')
+  error.classList.remove('show')
+
+  // Görseli oluştur
+  document.getElementById('ig-visual').innerHTML = buildInstagramVisual('', igType, feature, theme)
+
+  // Caption üret
+  try {
+    const featureLabels = {
+      ai_advisor:'AI Finansal Danışman — gerçek verilerinle çalışan yapay zeka danışman',
+      investment:'Canlı Yatırım Takibi — hisse ve kripto 5 saniyede bir güncelleme',
+      subscriptions:'Abonelik Yönetimi — ölü abonelikleri tespit et ve iptal et',
+      monthly_summary:'Aylık Özet & PDF Rapor — finansal raporunu tek tıkla indir',
+      challenge:'30 Günlük Finansal Meydan Okuma — rozet sistemi ve AI görevleri',
+      budget:'Bütçe Planlama — kategori bazlı harcama limitleri',
+      debt:'Borç Takibi — alacak ve verecek yönetimi',
+      general:'BurnRate OS — finansal komuta merkezin'
+    }
+    const typeLabels = {
+      feature_showcase:'özellik showcase',
+      dashboard_preview:'dashboard önizleme',
+      stats_highlight:'istatistik vurgu',
+      tips_card:'ipucu kartı',
+      before_after:'önce/sonra karşılaştırma',
+      announcement:'duyuru',
+      v21_teaser:'v2.1 teaser'
+    }
+
+    const res = await fetch('/api/social', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        platform:'instagram',
+        topic:'general_product',
+        tone:'heyecanli',
+        extra:`Bu bir ${typeLabels[igType]} görseli için Instagram caption. Öne çıkan özellik: ${featureLabels[feature]}. ${extra?'Ekstra: '+extra:''} Caption 150-200 kelime olsun, emoji kullan, call-to-action ekle.`
+      })
+    })
+    const data = await res.json()
+    if(data.error) throw new Error(data.error)
+
+    document.getElementById('ig-caption').textContent = data.content
+    const hashtagList = document.getElementById('ig-hashtags')
+    hashtagList.innerHTML = ''
+    if(data.hashtags) {
+      data.hashtags.forEach(tag=>{
+        const el = document.createElement('span')
+        el.className = 'hashtag'
+        el.textContent = tag.startsWith('#')?tag:'#'+tag
+        hashtagList.appendChild(el)
+      })
+    }
+    result.classList.add('show')
+  } catch(e) {
+    error.textContent = 'Hata: '+e.message
+    error.classList.add('show')
+    // Görseli yine de göster
+    result.classList.add('show')
+    document.getElementById('ig-caption').textContent = 'Caption üretilemedi. Görseli kullanabilirsiniz.'
+  }
+
+  btn.disabled = false
+  loading.classList.remove('show')
+}
+
+// THREAD GENERATE
+async function generateThread() {
+  const count = document.getElementById('thread-count').value
+  const extra = document.getElementById('thread-extra').value
+  const btn = document.getElementById('thread-btn')
+  const loading = document.getElementById('thread-loading')
+  const result = document.getElementById('thread-result')
+  const error = document.getElementById('thread-error')
+
+  const topicLabels = {
+    financial_freedom:'Finansal özgürlük nedir ve nasıl elde edilir',
+    subscription_trap:'Abonelik tuzağı — farkında olmadan nasıl para kaybediyoruz',
+    investment_101:'Yatırıma başlamak için bilmen gereken 7 şey',
+    ai_money:'Yapay zeka para yönetimini nasıl değiştiriyor',
+    burnrate_features:'BurnRate OS ile finansal hayatını nasıl dönüştürebilirsin',
+    money_mistakes:'Türk gençlerin yaptığı en yaygın para hataları',
+    savings_tips:'Her ay daha fazla para biriktirmek için kanıtlanmış yöntemler',
+    v21_launch:'BurnRate OS v2.1 — neler geliyor ve neden önemli'
+  }
+
+  const toneLabels = {
+    engaging:'çarpıcı, hook ile başla, merak uyandır, her tweet bağımsız ama bütünü tamamlasın',
+    educational:'eğitici, somut veriler kullan, örnekler ver, öğretici ol',
+    storytelling:'hikaye anlat, kişisel deneyim gibi yaz, duygusal bağ kur',
+    controversial:'tartışmalı bir bakış açısı sun, karşı görüş ver, düşündür'
+  }
+
+  btn.disabled = true
+  loading.classList.add('show')
+  result.classList.remove('show')
+  error.classList.remove('show')
+
+  try {
+    const res = await fetch('/api/social', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        platform:'twitter',
+        topic:'engagement',
+        tone:'heyecanli',
+        extra:`${count} tweet'lik bir Twitter thread yaz. Konu: ${topicLabels[threadTopic]}. Ton: ${toneLabels[threadTone]}. Her tweet maksimum 270 karakter olsun. ${extra?'Ekstra: '+extra:''} 
+
+SADECE JSON formatında yanıt ver:
+{
+  "tweets": ["tweet 1", "tweet 2", "tweet 3"...],
+  "hashtags": ["tag1", "tag2", "tag3"]
+}`
+      })
+    })
+    const data = await res.json()
+    if(data.error) throw new Error(data.error)
+
+    // Parse tweets
+    let tweets = []
+    try {
+      const text = typeof data === 'string' ? data : JSON.stringify(data)
+      const match = text.match(/"tweets"\s*:\s*\[(.*?)\]/s)
+      if(match) {
+        tweets = JSON.parse('['+match[1]+']')
+      } else if(data.content) {
+        // Fallback: satırlara böl
+        tweets = data.content.split('\n').filter(t=>t.trim().length>10).slice(0,parseInt(count))
+      }
+    } catch {
+      tweets = data.content ? data.content.split('\n').filter(t=>t.trim()).slice(0,parseInt(count)) : []
+    }
+
+    const container = document.getElementById('thread-items')
+    container.innerHTML = ''
+    tweets.forEach((tweet,i) => {
+      const div = document.createElement('div')
+      div.className = 'thread-item'
+      div.innerHTML = `
+        <div class="thread-num">${i+1}</div>
+        <div style="flex:1">
+          <div class="thread-text">${tweet}</div>
+          <div class="thread-chars">${tweet.length}/280 karakter</div>
+        </div>
+        <button onclick="copyTweet(this)" style="background:transparent;border:1px solid rgba(124,58,237,0.2);border-radius:8px;color:rgba(196,181,253,0.6);padding:4px 10px;font-size:10px;cursor:pointer;flex-shrink:0;align-self:flex-start">⎘</button>
+      `
+      if(i < tweets.length-1) {
+        const line = document.createElement('div')
+        line.className = 'thread-line'
+        div.appendChild(line)
+      }
+      container.appendChild(div)
+    })
+
+    result.classList.add('show')
+  } catch(e) {
+    error.textContent = 'Hata: '+e.message
+    error.classList.add('show')
+  }
+
+  btn.disabled = false
+  loading.classList.remove('show')
+}
+
+// POST GENERATE
+async function generatePost() {
+  const topic = document.getElementById('post-topic').value
+  const extra = document.getElementById('post-extra').value
+  const btn = document.getElementById('post-btn')
+  const loading = document.getElementById('post-loading')
+  const result = document.getElementById('post-result')
+  const error = document.getElementById('post-error')
+  const limits = {twitter:280,linkedin:3000,instagram:2200,threads:500}
+  const platformNames = {twitter:'𝕏 Twitter/X',linkedin:'💼 LinkedIn',instagram:'📸 Instagram',threads:'🧵 Threads'}
+
+  btn.disabled = true
+  loading.classList.add('show')
+  result.classList.remove('show')
+  error.classList.remove('show')
+
+  try {
+    const res = await fetch('/api/social', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({platform:postPlatform, topic, tone:postTone, extra})
+    })
+    const data = await res.json()
+    if(data.error) throw new Error(data.error)
+
+    document.getElementById('post-result-title').textContent = platformNames[postPlatform]
+    document.getElementById('post-text').textContent = data.content
+    const charLen = data.content.length
+    const limit = limits[postPlatform]
+    const charEl = document.getElementById('post-chars')
+    charEl.textContent = `${charLen} / ${limit} karakter`
+    charEl.className = 'char-info'+(charLen>limit?' over':'')
+
+    const hashtagList = document.getElementById('post-hashtags')
+    hashtagList.innerHTML = ''
+    if(data.hashtags) {
+      data.hashtags.forEach(tag=>{
+        const el = document.createElement('span')
+        el.className = 'hashtag'
+        el.textContent = tag.startsWith('#')?tag:'#'+tag
+        hashtagList.appendChild(el)
+      })
+    }
+
+    // Görsel ekle
+    const visualSection = document.getElementById('post-visual-section')
+    const topicMap = {
+      v2_1_teaser:'v21_teaser', feature_ai:'feature_showcase',
+      feature_invest:'feature_showcase', feature_summary:'feature_showcase',
+      feature_challenge:'feature_showcase', general:'feature_showcase',
+      tips:'tips_card', engagement:'stats_highlight'
+    }
+    const featureMap = {
+      v2_1_teaser:'general', feature_ai:'ai_advisor', feature_invest:'investment',
+      feature_summary:'monthly_summary', feature_challenge:'challenge',
+      general:'general', tips:'general', engagement:'general'
+    }
+    document.getElementById('post-visual').innerHTML = buildInstagramVisual(data.content, topicMap[topic]||'feature_showcase', featureMap[topic]||'general', 'purple')
+    visualSection.style.display = 'block'
+
+    result.classList.add('show')
+  } catch(e) {
+    error.textContent = 'Hata: '+e.message
+    error.classList.add('show')
+  }
+
+  btn.disabled = false
+  loading.classList.remove('show')
+}
+
+// COPY FUNCTIONS
+function copyTweet(btn) {
+  const text = btn.parentElement.querySelector('.thread-text').textContent
+  navigator.clipboard.writeText(text)
+  btn.textContent = '✓'
+  setTimeout(()=>btn.textContent='⎘',2000)
+}
+
+function copyThread() {
+  const tweets = Array.from(document.querySelectorAll('.thread-text')).map((t,i)=>`${i+1}/ ${t.textContent}`).join('\n\n')
+  const hashtags = Array.from(document.querySelectorAll('#thread-result .hashtag')).map(h=>h.textContent).join(' ')
+  navigator.clipboard.writeText(tweets+(hashtags?'\n\n'+hashtags:''))
+  const btn = document.querySelector('#thread-result .copy-btn')
+  btn.textContent = '✓ Kopyalandı!'
+  setTimeout(()=>btn.textContent='⎘ Tümünü Kopyala',2000)
+}
+
+function copyPost() {
+  const text = document.getElementById('post-text').textContent
+  const tags = Array.from(document.querySelectorAll('#post-hashtags .hashtag')).map(h=>h.textContent).join(' ')
+  navigator.clipboard.writeText(text+(tags?'\n\n'+tags:''))
+  const btn = document.getElementById('post-copy-btn')
+  btn.textContent = '✓ Kopyalandı!'
+  setTimeout(()=>btn.textContent='⎘ Kopyala',2000)
+}
+
+// PNG DOWNLOAD
+function downloadVisual(containerId, filename) {
+  const svg = document.querySelector(`#${containerId} svg`)
+  if(!svg) return
+  const svgData = new XMLSerializer().serializeToString(svg)
+  const canvas = document.createElement('canvas')
+  canvas.width = 1080
+  canvas.height = 1296
+  const ctx = canvas.getContext('2d')
+  const img = new Image()
+  const blob = new Blob([svgData],{type:'image/svg+xml;charset=utf-8'})
+  const url = URL.createObjectURL(blob)
+  img.onload = function(){
+    ctx.drawImage(img,0,0,1080,1296)
+    URL.revokeObjectURL(url)
+    const a = document.createElement('a')
+    a.download = filename+'-'+Date.now()+'.png'
+    a.href = canvas.toDataURL('image/png')
+    a.click()
+  }
+  img.src = url
+}
+</script>
+</body>
+</html>
