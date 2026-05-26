@@ -3,729 +3,740 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BurnRate OS — İçerik Stüdyosu</title>
+<title>BurnRate OS — Sosyal Stüdyo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#07050f;--surface:#0e0a1e;--surface2:#15102a;
-  --border:rgba(139,92,246,0.15);--border2:rgba(139,92,246,0.3);
-  --accent:#8b5cf6;--accent2:#7c3aed;--accent3:#6d28d9;
-  --cyan:#06b6d4;--pink:#ec4899;
-  --text:#f1f0ff;--text2:rgba(241,240,255,0.55);--text3:rgba(241,240,255,0.28);
-  --font:'Space Grotesk',sans-serif;--font-display:'Syne',sans-serif;
-  --radius:16px;--sidebar:260px;
+  --navy:#06041a;
+  --s1:rgba(255,255,255,0.025);
+  --b1:rgba(255,255,255,0.07);
+  --b2:rgba(255,255,255,0.12);
+  --text:#f1f0ff;
+  --dim:rgba(241,240,255,0.5);
+  --faint:rgba(241,240,255,0.22);
+  --sidebar:288px;
+  --r:13px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font)}
-body{display:flex;min-height:100vh;overflow:hidden}
+html,body{height:100%;background:var(--navy);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(99,102,241,0.045) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.045) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0
+}
+.app{display:flex;flex:1;height:100vh;position:relative;z-index:1}
 
-.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 16px;gap:8px;position:relative;overflow:hidden}
-.sidebar::before{content:'';position:absolute;top:-80px;left:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(139,92,246,0.12) 0%,transparent 70%);pointer-events:none}
-.logo{display:flex;align-items:center;gap:10px;padding:0 8px 24px;border-bottom:1px solid var(--border);margin-bottom:8px}
-.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.logo-text{font-family:var(--font-display);font-weight:700;font-size:14px;line-height:1.2}
-.logo-sub{font-size:10px;color:var(--text3);font-weight:400}
-.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;cursor:pointer;transition:all 0.18s;color:var(--text2);font-size:13px;font-weight:500;border:1px solid transparent;user-select:none;position:relative}
-.nav-item:hover{background:rgba(139,92,246,0.08);color:var(--text)}
-.nav-item.active{background:rgba(139,92,246,0.14);border-color:rgba(139,92,246,0.25);color:var(--text)}
-.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;border-radius:0 2px 2px 0;background:var(--accent)}
-.nav-icon{font-size:17px;width:20px;text-align:center;flex-shrink:0}
-.nav-badge{margin-left:auto;font-size:9px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;padding:2px 7px;border-radius:20px;letter-spacing:0.03em}
-.sidebar-footer{margin-top:auto;padding:16px 8px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);
+  background:var(--s1);border-right:1px solid var(--b1);
+  display:flex;flex-direction:column;overflow:hidden
+}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--b1)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#4c1d95);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.logo-name{font-size:14px;font-weight:800;letter-spacing:-0.02em}
+.logo-sub{font-size:10px;color:var(--faint);font-weight:500;margin-top:1px}
+.sb-label{padding:14px 18px 6px;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--faint)}
+.tpl-list{flex:1;overflow-y:auto;padding:4px 10px}
+.tpl-list::-webkit-scrollbar{width:3px}
+.tpl-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:99px}
+.tpl-item{
+  display:flex;align-items:center;gap:11px;padding:9px 11px;
+  border-radius:10px;cursor:pointer;border:1px solid transparent;
+  transition:background 0.14s,border-color 0.14s;margin-bottom:2px
+}
+.tpl-item:hover{background:rgba(255,255,255,0.04)}
+.tpl-item.active{background:rgba(255,255,255,0.055);border-color:rgba(255,255,255,0.09)}
+.tpl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 7px currentColor}
+.tpl-info{flex:1;min-width:0}
+.tpl-name{font-size:12.5px;font-weight:600;line-height:1.3}
+.tpl-desc{font-size:10px;color:var(--faint);margin-top:1px}
+.tpl-arr{font-size:11px;color:var(--faint);opacity:0;transition:opacity 0.14s}
+.tpl-item.active .tpl-arr,.tpl-item:hover .tpl-arr{opacity:1}
 
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:60px;min-height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 32px;gap:16px}
-.topbar-title{font-family:var(--font-display);font-size:16px;font-weight:700}
-.topbar-sub{font-size:12px;color:var(--text3)}
-.topbar-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
-.content{flex:1;overflow-y:auto;padding:32px;display:flex;flex-direction:column;gap:24px}
-.content::-webkit-scrollbar{width:5px}
-.content::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:99px}
+/* ── SIDEBAR BOTTOM ── */
+.sb-bottom{padding:10px 10px 14px;border-top:1px solid var(--b1);display:flex;flex-direction:column;gap:8px}
+.fmt-toggle{display:flex;background:rgba(0,0,0,0.35);border:1px solid var(--b1);border-radius:10px;padding:3px;gap:3px}
+.fmt-btn{
+  flex:1;padding:7px 4px;border:none;background:transparent;color:var(--dim);
+  font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;border-radius:7px;
+  cursor:pointer;transition:all 0.14s;display:flex;flex-direction:column;align-items:center;gap:2px
+}
+.fmt-btn .fi{font-size:15px;line-height:1}
+.fmt-btn:hover{color:var(--text)}
+.fmt-btn.active{background:rgba(255,255,255,0.08);color:var(--text)}
+.ss-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;
+  border:none;border-radius:11px;color:#fff;font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all 0.18s;width:100%;
+  letter-spacing:-0.01em
+}
+.ss-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.ss-btn:active{transform:none}
+.ss-btn:disabled{opacity:0.55;cursor:not-allowed;transform:none}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
-.card-title{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{
+  height:50px;min-height:50px;border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;padding:0 26px;gap:10px;flex-shrink:0
+}
+.tb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background 0.2s,box-shadow 0.2s}
+.tb-title{font-size:15px;font-weight:800;letter-spacing:-0.02em}
+.tb-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,0.07);color:var(--dim);letter-spacing:0.04em}
+.tb-right{margin-left:auto;font-size:11px;color:var(--faint)}
 
-.pill-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
-.pill{padding:7px 16px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;font-family:var(--font)}
-.pill:hover{border-color:var(--accent);color:var(--text)}
-.pill.active{background:rgba(139,92,246,0.2);border-color:var(--accent);color:var(--text)}
+.preview-area{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative
+}
+.preview-area::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 55% 45% at 50% 50%,rgba(99,102,241,0.045),transparent);
+  pointer-events:none
+}
+#preview-box{
+  position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 28px 70px rgba(0,0,0,0.65),0 0 50px rgba(99,102,241,0.07);
+  border-radius:10px;transform-origin:center center;transition:width 0.28s,height 0.28s
+}
 
-.field-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(139,92,246,0.6);margin-bottom:8px}
-textarea,input[type=text],input[type=number]{width:100%;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;resize:vertical;transition:border 0.15s,box-shadow 0.15s;line-height:1.6}
-textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,0.1)}
-textarea::placeholder,input::placeholder{color:var(--text3)}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s}
-.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;box-shadow:0 4px 20px rgba(139,92,246,0.35)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(139,92,246,0.45)}
-.btn-primary:active{transform:translateY(0)}
-.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
-.btn-sm{padding:8px 16px;font-size:12px;border-radius:9px}
-
-.result-box{background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:20px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;min-height:80px}
-.result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:rgba(10,8,28,0.96);border:1px solid var(--b2);color:var(--text);
+  padding:9px 20px;border-radius:99px;font-size:13px;font-weight:600;
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);z-index:999
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
 
 @keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;animation:spin 0.7s linear infinite;flex-shrink:0}
-
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-
-#ig-canvas-wrap{display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border-radius:12px;border:1px solid var(--border);padding:20px;min-height:180px}
-#ig-canvas-wrap canvas{border-radius:8px;max-width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
-
-.tweet-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;gap:12px}
-.tweet-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;font-family:var(--font-display)}
-.tweet-num{font-size:10px;font-weight:700;letter-spacing:0.06em;color:var(--accent);margin-bottom:4px}
-.tweet-text{font-size:13px;line-height:1.6;color:var(--text);margin-top:6px;white-space:pre-wrap}
-
-.tab-panel{display:none}
-.tab-panel.active{display:flex;flex-direction:column;gap:20px}
-
-.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:4px}
-.char-count.warn{color:#fbbf24}
-.char-count.over{color:#f87171}
-
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(139,92,246,0.95);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;pointer-events:none;z-index:999;backdrop-filter:blur(10px)}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text3);font-size:13px;text-align:center}
-.empty-icon{font-size:32px;opacity:0.4}
-
-@media(max-width:768px){.sidebar{display:none}.content{padding:20px}.grid2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<aside class="sidebar">
-  <div class="logo">
-    <div class="logo-icon">🔥</div>
-    <div>
-      <div class="logo-text">BurnRate OS</div>
-      <div class="logo-sub">İçerik Stüdyosu</div>
-    </div>
-  </div>
-  <div class="nav-item active" onclick="switchTab('instagram',this)">
-    <span class="nav-icon">📸</span>Instagram Görseli<span class="nav-badge">NEW</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('thread',this)">
-    <span class="nav-icon">🧵</span>Twitter Thread
-  </div>
-  <div class="nav-item" onclick="switchTab('post',this)">
-    <span class="nav-icon">✍️</span>Post Yaz
-  </div>
-  <div class="sidebar-footer">Powered by Claude AI<br>BurnRate OS © 2025</div>
-</aside>
-
-<main class="main">
-  <div class="topbar">
-    <div class="topbar-dot"></div>
-    <div>
-      <div class="topbar-title" id="topbar-title">Instagram Görseli</div>
-      <div class="topbar-sub">AI destekli içerik üretimi</div>
-    </div>
-  </div>
-
-  <div class="content">
-
-    <!-- INSTAGRAM TAB -->
-    <div id="tab-instagram" class="tab-panel active">
-      <div class="grid2">
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card">
-            <div class="card-title">İçerik Türü</div>
-            <div class="pill-group" id="ig-type-pills">
-              <div class="pill active" data-val="motivasyon">💪 Motivasyon</div>
-              <div class="pill" data-val="finans tüyo">💡 Finans Tüyo</div>
-              <div class="pill" data-val="tasarruf">🐷 Tasarruf</div>
-              <div class="pill" data-val="yatırım">📈 Yatırım</div>
-              <div class="pill" data-val="kariyer">🚀 Kariyer</div>
-              <div class="pill" data-val="üretkenlik">⚡ Üretkenlik</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Ton</div>
-            <div class="pill-group" id="ig-ton-pills">
-              <div class="pill active" data-val="ilham verici">✨ İlham Verici</div>
-              <div class="pill" data-val="samimi">🤝 Samimi</div>
-              <div class="pill" data-val="cesur">🔥 Cesur</div>
-              <div class="pill" data-val="eğitici">📚 Eğitici</div>
-              <div class="pill" data-val="eğlenceli">😄 Eğlenceli</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Konu / Bağlam</div>
-            <div class="field-label">Ne hakkında? (opsiyonel)</div>
-            <textarea id="ig-context" rows="3" placeholder="Örn: Bu ay %20 tasarruf ettim..."></textarea>
-            <div class="char-count" id="ig-char">0 / 300</div>
-          </div>
-          <div class="card">
-            <div class="card-title">Görsel Ayarları</div>
-            <div class="field-label">Arka Plan</div>
-            <div class="pill-group" id="ig-bg-pills">
-              <div class="pill active" data-val="purple">🟣 Mor</div>
-              <div class="pill" data-val="dark">⚫ Koyu</div>
-              <div class="pill" data-val="cyan">🔵 Cyan</div>
-              <div class="pill" data-val="pink">🩷 Pembe</div>
-              <div class="pill" data-val="green">🟢 Yeşil</div>
-            </div>
-            <div class="field-label" style="margin-top:14px">Format</div>
-            <div class="pill-group" id="ig-format-pills">
-              <div class="pill active" data-val="square">⬛ Kare (1:1)</div>
-              <div class="pill" data-val="portrait">📱 Dikey (4:5)</div>
-              <div class="pill" data-val="story">📲 Story (9:16)</div>
-            </div>
-          </div>
-          <button class="btn btn-primary" id="ig-gen-btn" onclick="generateInstagram()">
-            <span id="ig-btn-inner">✨ Görsel Üret</span>
-          </button>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card" style="flex:1">
-            <div class="card-title">Önizleme</div>
-            <div id="ig-canvas-wrap">
-              <div class="empty"><div class="empty-icon">🎨</div><div>Görsel üretmek için<br>sol tarafı doldurun</div></div>
-            </div>
-          </div>
-          <div class="card" id="ig-caption-card" style="display:none">
-            <div class="card-title">Caption</div>
-            <div class="result-box" id="ig-caption-result"></div>
-            <div class="result-actions">
-              <button class="btn btn-primary btn-sm" onclick="downloadPNG()">⬇️ PNG İndir</button>
-              <button class="btn btn-ghost btn-sm" onclick="copyText('ig-caption-result')">📋 Kopyala</button>
-              <button class="btn btn-ghost btn-sm" onclick="generateInstagram()">🔄 Yenile</button>
-            </div>
-          </div>
-        </div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="logo">
+        <div class="logo-icon">🔥</div>
+        <div><div class="logo-name">BurnRate OS</div><div class="logo-sub">Sosyal Stüdyo</div></div>
       </div>
     </div>
-
-    <!-- THREAD TAB -->
-    <div id="tab-thread" class="tab-panel">
-      <div class="grid2">
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card">
-            <div class="card-title">Thread Konusu</div>
-            <div class="field-label">Ana Konu</div>
-            <textarea id="thread-topic" rows="3" placeholder="Örn: 25 yaşında finansal özgürlüğe ulaşmanın 5 adımı..."></textarea>
-            <div class="char-count" id="thread-char">0 / 280</div>
-          </div>
-          <div class="card">
-            <div class="card-title">Tür</div>
-            <div class="pill-group" id="thread-type-pills">
-              <div class="pill active" data-val="ipuçları listesi">📋 İpucu Listesi</div>
-              <div class="pill" data-val="kişisel hikaye">💬 Kişisel Hikaye</div>
-              <div class="pill" data-val="nasıl yapılır">🛠️ Nasıl Yapılır</div>
-              <div class="pill" data-val="görüş yazısı">🎯 Görüş</div>
-              <div class="pill" data-val="vaka analizi">🔍 Vaka Analizi</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Ton</div>
-            <div class="pill-group" id="thread-ton-pills">
-              <div class="pill active" data-val="uzman">🎓 Uzman</div>
-              <div class="pill" data-val="samimi arkadaş gibi">🤙 Samimi</div>
-              <div class="pill" data-val="provokatif">⚡ Provokatif</div>
-              <div class="pill" data-val="hikaye anlatıcısı">📖 Hikayeci</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Tweet Sayısı</div>
-            <div class="pill-group" id="thread-count-pills">
-              <div class="pill active" data-val="5">5 Tweet</div>
-              <div class="pill" data-val="7">7 Tweet</div>
-              <div class="pill" data-val="10">10 Tweet</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px">
-            <input type="text" id="thread-username" placeholder="@kullaniciadi" value="burnrateos" style="flex:1">
-            <button class="btn btn-primary" id="thread-gen-btn" onclick="generateThread()" style="white-space:nowrap">
-              <span id="thread-btn-inner">🧵 Üret</span>
-            </button>
-          </div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div class="card" style="flex:1;overflow-y:auto;max-height:620px">
-            <div class="card-title">Thread Önizleme</div>
-            <div id="thread-preview">
-              <div class="empty"><div class="empty-icon">🧵</div><div>Thread konusunu girin<br>ve üret butonuna basın</div></div>
-            </div>
-          </div>
-          <div id="thread-actions" style="display:none;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary btn-sm" onclick="copyAllTweets()">📋 Tümünü Kopyala</button>
-            <button class="btn btn-ghost btn-sm" onclick="generateThread()">🔄 Yenile</button>
-          </div>
-        </div>
+    <div class="sb-label">Şablonlar</div>
+    <div class="tpl-list" id="tpl-list"></div>
+    <div class="sb-bottom">
+      <div class="sb-label" style="padding:0 2px 4px;margin:0">Format</div>
+      <div class="fmt-toggle">
+        <button class="fmt-btn active" id="fmt-1x1" onclick="setFormat('1x1')">
+          <span class="fi">⬛</span><span>1:1 Feed</span>
+        </button>
+        <button class="fmt-btn" id="fmt-9x16" onclick="setFormat('9x16')">
+          <span class="fi">📱</span><span>9:16 Story</span>
+        </button>
       </div>
+      <button class="ss-btn" id="ss-btn" onclick="takeScreenshot()">
+        <span id="ss-icon">📸</span><span id="ss-text">Ekran Görüntüsü Al</span>
+      </button>
     </div>
+  </aside>
 
-    <!-- POST TAB -->
-    <div id="tab-post" class="tab-panel">
-      <div class="grid2">
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card">
-            <div class="card-title">Platform</div>
-            <div class="pill-group" id="post-platform-pills">
-              <div class="pill active" data-val="instagram">📸 Instagram</div>
-              <div class="pill" data-val="twitter">🐦 Twitter/X</div>
-              <div class="pill" data-val="linkedin">💼 LinkedIn</div>
-              <div class="pill" data-val="facebook">📘 Facebook</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">İçerik Türü</div>
-            <div class="pill-group" id="post-type-pills">
-              <div class="pill active" data-val="eğitici">📚 Eğitici</div>
-              <div class="pill" data-val="motivasyon">💪 Motivasyon</div>
-              <div class="pill" data-val="haber/trend">📰 Trend</div>
-              <div class="pill" data-val="soru/anket">🗳️ Soru</div>
-              <div class="pill" data-val="ürün tanıtım">🛍️ Tanıtım</div>
-              <div class="pill" data-val="kişisel deneyim">💬 Kişisel</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Ton</div>
-            <div class="pill-group" id="post-ton-pills">
-              <div class="pill active" data-val="profesyonel">👔 Profesyonel</div>
-              <div class="pill" data-val="samimi">🤝 Samimi</div>
-              <div class="pill" data-val="enerjik">⚡ Enerjik</div>
-              <div class="pill" data-val="mizahi">😄 Mizahi</div>
-              <div class="pill" data-val="duygusal">❤️ Duygusal</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Konu / Detay</div>
-            <div class="field-label">Ne hakkında yazayım?</div>
-            <textarea id="post-topic" rows="4" placeholder="Örn: Bu ay harcamalarımı %30 düşürdüm..."></textarea>
-            <div class="char-count" id="post-char">0 / 500</div>
-          </div>
-          <div class="card">
-            <div class="card-title">Ek Ayarlar</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text2)">
-                <input type="checkbox" id="post-emoji" checked style="accent-color:var(--accent);width:15px;height:15px"> Emoji ekle
-              </label>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text2)">
-                <input type="checkbox" id="post-hashtag" checked style="accent-color:var(--accent);width:15px;height:15px"> Hashtag ekle
-              </label>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text2)">
-                <input type="checkbox" id="post-cta" checked style="accent-color:var(--accent);width:15px;height:15px"> CTA ekle
-              </label>
-            </div>
-          </div>
-          <button class="btn btn-primary" id="post-gen-btn" onclick="generatePost()">
-            <span id="post-btn-inner">✍️ Post Yaz</span>
-          </button>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card" style="flex:1">
-            <div class="card-title">Üretilen Post</div>
-            <div id="post-result-wrap">
-              <div class="empty"><div class="empty-icon">✍️</div><div>Detayları doldurun<br>ve post yaz butonuna basın</div></div>
-            </div>
-            <div id="post-actions" style="display:none" class="result-actions">
-              <button class="btn btn-primary btn-sm" onclick="copyText('post-result-box')">📋 Kopyala</button>
-              <button class="btn btn-ghost btn-sm" onclick="generatePost()">🔄 Yenile</button>
-              <button class="btn btn-ghost btn-sm" onclick="generateVariant()">🎲 Varyant</button>
-            </div>
-          </div>
-          <div class="card" id="post-hashtag-card" style="display:none">
-            <div class="card-title">Önerilen Hashtagler</div>
-            <div id="post-hashtags" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-          </div>
-        </div>
-      </div>
+  <main class="main">
+    <div class="topbar">
+      <div class="tb-dot" id="tb-dot"></div>
+      <div class="tb-title" id="tb-title">AI Danışman</div>
+      <span class="tb-badge" id="tb-fmt">1:1 FEED</span>
+      <div class="tb-right" id="tb-size">500 × 500 px</div>
     </div>
-
-  </div>
-</main>
-
+    <div class="preview-area" id="preview-area">
+      <div id="preview-box"></div>
+    </div>
+  </main>
+</div>
 <div class="toast" id="toast"></div>
-<canvas id="hidden-canvas" style="display:none"></canvas>
 
 <script>
-let currentIgText='',currentThreadTweets=[],currentIgBg='purple',currentIgFormat='square'
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const TEMPLATES=[
+  {id:'ai-advisor',  name:'AI Danışman',    desc:'Yapay zeka finansal asistan', color:'#7c3aed', emoji:'🤖'},
+  {id:'live-invest', name:'Canlı Yatırım',  desc:'Anlık portföy takibi',        color:'#10b981', emoji:'📈'},
+  {id:'subscription',name:'Abonelik',       desc:'Abonelik yönetimi',           color:'#ef4444', emoji:'🔄'},
+  {id:'budget',      name:'Bütçe',          desc:'Akıllı bütçe planlayıcı',    color:'#f59e0b', emoji:'💰'},
+  {id:'challenge',   name:'Meydan Okuma',   desc:'30 günlük tasarruf yarışı',   color:'#f43f5e', emoji:'🏆'},
+  {id:'pdf-report',  name:'PDF Rapor',      desc:'Aylık mali rapor',            color:'#06b6d4', emoji:'📄'},
+  {id:'v21-teaser',  name:'v2.1 Teaser',    desc:'Yeni sürüm duyurusu',         color:'#6366f1', emoji:'🚀'},
+]
+let activeId='ai-advisor', activeFmt='1x1'
 
-const BG_CONFIGS={
-  purple:{bg:'#06041a', grad:['#06041a','#0d0830','#140d45'], accent:'#7c3aed', accentLight:'#a78bfa', accentGlow:'rgba(124,58,237,0.35)', text:'#f1f0ff', textDim:'rgba(241,240,255,0.45)', cardBg:'rgba(124,58,237,0.1)', cardBorder:'rgba(124,58,237,0.25)', positive:'#6ee7b7', negative:'#f87171'},
-  dark:  {bg:'#030308', grad:['#030308','#08071a','#0e0c28'], accent:'#6366f1', accentLight:'#a5b4fc', accentGlow:'rgba(99,102,241,0.35)', text:'#f1f0ff', textDim:'rgba(241,240,255,0.45)', cardBg:'rgba(99,102,241,0.1)', cardBorder:'rgba(99,102,241,0.25)', positive:'#6ee7b7', negative:'#f87171'},
-  cyan:  {bg:'#011418', grad:['#011418','#042029','#063040'], accent:'#06b6d4', accentLight:'#67e8f9', accentGlow:'rgba(6,182,212,0.35)', text:'#f0fdff', textDim:'rgba(240,253,255,0.45)', cardBg:'rgba(6,182,212,0.1)', cardBorder:'rgba(6,182,212,0.25)', positive:'#6ee7b7', negative:'#f87171'},
-  pink:  {bg:'#1a0411', grad:['#1a0411','#2d0820','#3d0a2e'], accent:'#f43f5e', accentLight:'#fda4af', accentGlow:'rgba(244,63,94,0.35)', text:'#fff1f2', textDim:'rgba(255,241,242,0.45)', cardBg:'rgba(244,63,94,0.1)', cardBorder:'rgba(244,63,94,0.25)', positive:'#6ee7b7', negative:'#f87171'},
-  green: {bg:'#011a0f', grad:['#011a0f','#042d18','#064022'], accent:'#10b981', accentLight:'#6ee7b7', accentGlow:'rgba(16,185,129,0.35)', text:'#f0fdf4', textDim:'rgba(240,253,244,0.45)', cardBg:'rgba(16,185,129,0.1)', cardBorder:'rgba(16,185,129,0.25)', positive:'#6ee7b7', negative:'#f87171'},
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function rgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16)
+  return `${r},${g},${b}`
 }
-const FORMAT_SIZES={square:{w:500,h:500},portrait:{w:500,h:625},story:{w:400,h:711}}
+function ra(hex,a){return`rgba(${rgb(hex)},${a})`}
 
-function switchTab(name,el){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'))
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
-  document.getElementById('tab-'+name).classList.add('active')
-  el.classList.add('active')
-  const titles={instagram:'Instagram Görseli',thread:'Twitter Thread',post:'Post Yaz'}
-  document.getElementById('topbar-title').textContent=titles[name]
+function gridBg(c,sz=30,op=0.07){
+  return`background-image:linear-gradient(${ra(c,op)} 1px,transparent 1px),linear-gradient(90deg,${ra(c,op)} 1px,transparent 1px);background-size:${sz}px ${sz}px`
+}
+function glow(c,x='50%',y='20%',sz='70%',op=0.2){
+  return`<div style="position:absolute;left:${x};top:${y};transform:translate(-50%,-50%);width:${sz};padding-bottom:${sz};border-radius:50%;background:radial-gradient(circle,${ra(c,op)},transparent 70%);pointer-events:none"></div>`
+}
+function logoBar(c){
+  const d=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'})
+  return`<div style="position:absolute;top:0;left:0;right:0;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10">
+    <div style="display:flex;align-items:center;gap:6px;background:${ra(c,0.22)};border:1px solid ${ra(c,0.45)};padding:4px 10px;border-radius:99px">
+      <span style="font-size:11px">🔥</span>
+      <span style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.9);letter-spacing:0.07em">BURNRATE OS</span>
+    </div>
+    <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.03em">${d}</span>
+  </div>`
+}
+function footer(c){
+  return`<div style="position:absolute;bottom:0;left:0;right:0;height:30px;background:${ra(c,0.12)};border-top:1px solid ${ra(c,0.2)};display:flex;align-items:center;justify-content:center">
+    <span style="font-size:9px;font-weight:600;color:${ra(c,0.75)};letter-spacing:0.05em">app.burnrate-os.com</span>
+  </div>`
+}
+function wrap(bg,c,inner){
+  return`<div style="width:100%;height:100%;background:${bg};position:relative;overflow:hidden;font-family:'Inter',sans-serif;${gridBg(c)}">${inner}</div>`
 }
 
-function initPills(groupId,cb){
-  const g=document.getElementById(groupId);if(!g)return
-  g.querySelectorAll('.pill').forEach(p=>{
-    p.addEventListener('click',()=>{
-      g.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'))
-      p.classList.add('active');if(cb)cb(p.dataset.val)
-    })
-  })
-}
-function getActivePill(id){const e=document.querySelector('#'+id+' .pill.active');return e?e.dataset.val:''}
+// ─── TEMPLATE 1: AI DANIŞMAN ──────────────────────────────────────────────────
+function genAIAdvisor(story){
+  const c='#7c3aed',bg='#070416'
+  const bubbles=`
+    <div style="background:${ra(c,0.18)};border:1px solid ${ra(c,0.32)};border-radius:12px 12px 12px 3px;padding:9px 13px;max-width:88%;margin-bottom:7px">
+      <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.88);line-height:1.55">Bu ay harcamalarını ₺2,400 azaltabilirsin 💡</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px 12px 3px 12px;padding:9px 13px;max-width:80%;align-self:flex-end;margin-bottom:7px">
+      <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.65);line-height:1.55">Nereden başlamalıyım?</div>
+    </div>
+    <div style="background:${ra(c,0.18)};border:1px solid ${ra(c,0.32)};border-radius:12px 12px 12px 3px;padding:9px 13px;max-width:88%">
+      <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.88);line-height:1.55">Aboneliklerini optimize ederek <b style="color:#a78bfa">+₺840/ay</b> tasarruf edebilirsin ✅</div>
+    </div>`
 
-function initCharCount(taId,ctId,max){
-  const ta=document.getElementById(taId),ct=document.getElementById(ctId);if(!ta||!ct)return
-  ta.addEventListener('input',()=>{
-    const n=ta.value.length;ct.textContent=n+' / '+max
-    ct.className='char-count'+(n>max*.9?' warn':'')+(n>max?' over':'')
-  })
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'28%','18%','65%',0.22)}${glow('#a78bfa','78%','82%','45%',0.12)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+      <div style="width:60px;height:60px;border-radius:50%;background:${ra(c,0.2)};border:1.5px solid ${ra(c,0.5)};display:flex;align-items:center;justify-content:center;font-size:26px">🤖</div>
+      <div style="text-align:center">
+        <div style="font-size:25px;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-0.03em">AI Finansal<br>Danışmanınız</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:5px">7/24 yanınızda · her zaman akıllı</div>
+      </div>
+      <div style="width:100%;display:flex;flex-direction:column">${bubbles}</div>
+      <div style="display:flex;align-items:center;gap:5px;background:${ra(c,0.15)};border:1px solid ${ra(c,0.3)};padding:5px 13px;border-radius:99px">
+        <span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;box-shadow:0 0 6px #a78bfa"></span>
+        <span style="font-size:9px;font-weight:700;color:rgba(167,139,250,0.9);letter-spacing:0.05em">AI DANIŞMAN ÖZELLİĞİ</span>
+      </div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','15%','85%',0.25)}${glow('#a78bfa','20%','75%','55%',0.12)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+        <div style="width:72px;height:72px;border-radius:50%;background:${ra(c,0.2)};border:1.5px solid ${ra(c,0.5)};display:flex;align-items:center;justify-content:center;font-size:32px">🤖</div>
+        <div style="font-size:28px;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-0.03em">AI Finansal<br>Danışmanınız</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4)">7/24 akıllı finansal rehberlik</div>
+      </div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:7px">
+        ${['Harcama analizi & öneriler','Tasarruf fırsatı tespiti','Kişisel hedef belirleme','Anlık finansal uyarılar'].map(f=>`
+        <div style="display:flex;align-items:center;gap:9px;background:${ra(c,0.1)};border:1px solid ${ra(c,0.2)};border-radius:9px;padding:10px 13px">
+          <span style="font-size:12px;color:#a78bfa;font-weight:700">✓</span>
+          <span style="font-size:11.5px;font-weight:500;color:rgba(255,255,255,0.85)">${f}</span>
+        </div>`).join('')}
+      </div>
+      <div style="background:${ra(c,0.85)};padding:12px 28px;border-radius:11px;display:inline-block">
+        <span style="font-size:13px;font-weight:800;color:#fff">Hemen Dene →</span>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── TEMPLATE 2: CANLI YATIRIM ────────────────────────────────────────────────
+function genLiveInvest(story){
+  const c='#10b981',bg='#030f08'
+  const assets=[
+    {name:'BIST 100',val:'₺48,520',pct:'+2.4%',up:true},
+    {name:'USD/TRY', val:'₺32.45', pct:'+0.8%',up:true},
+    {name:'Altın',   val:'₺2,840', pct:'-0.3%',up:false},
+  ]
+  const assetRows=assets.map(a=>`
+    <div style="display:flex;align-items:center;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:${story?'10px':'7px'} 12px;margin-bottom:6px">
+      <span style="flex:1;font-size:${story?13:11.5}px;font-weight:600;color:rgba(255,255,255,0.8)">${a.name}</span>
+      <span style="font-size:${story?14:13}px;font-weight:700;color:#fff;margin-right:10px">${a.val}</span>
+      <span style="font-size:10px;font-weight:700;color:${a.up?'#10b981':'#f87171'};background:${a.up?ra(c,0.12):'rgba(248,113,113,0.12)'};padding:2px 8px;border-radius:99px">${a.pct}</span>
+    </div>`).join('')
+  const svg=`<svg viewBox="0 0 300 60" style="width:100%;height:44px" preserveAspectRatio="none">
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${ra(c,0.28)}"/><stop offset="100%" stop-color="${ra(c,0)}"/></linearGradient></defs>
+    <polygon points="0,60 20,55 60,42 100,46 140,28 180,32 220,18 260,22 300,12 300,60" fill="url(#lg)"/>
+    <polyline points="20,55 60,42 100,46 140,28 180,32 220,18 260,22 300,12" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="300" cy="12" r="4" fill="${c}"/>
+  </svg>`
+
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'50%','50%','65%',0.14)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:10px 0 10px">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.08em;text-transform:uppercase">Portföy Değeri</div>
+          <div style="font-size:40px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1.05">₺148,500</div>
+        </div>
+        <div style="background:${ra(c,0.14)};border:1px solid ${ra(c,0.3)};padding:4px 11px;border-radius:99px;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:700;color:${c}">▲ +18.5% Bu Ay</span>
+        </div>
+      </div>
+      <div style="background:${ra(c,0.05)};border:1px solid ${ra(c,0.12)};border-radius:10px;padding:10px 12px;margin-bottom:10px">${svg}</div>
+      ${assetRows}
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px">
+        <span style="width:7px;height:7px;border-radius:50%;background:${c};box-shadow:0 0 8px ${c}"></span>
+        <span style="font-size:9.5px;font-weight:700;color:${ra(c,0.75)};letter-spacing:0.06em">CANLI VERİ</span>
+      </div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','25%','85%',0.18)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;gap:12px">
+      <div style="text-align:center;padding:4px 0">
+        <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.1em;text-transform:uppercase">Portföy Değeri</div>
+        <div style="font-size:50px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1.05">₺148,500</div>
+        <div style="font-size:14px;font-weight:700;color:${c}">▲ +18.5% Bu Ay</div>
+      </div>
+      <div style="background:${ra(c,0.05)};border:1px solid ${ra(c,0.12)};border-radius:11px;padding:12px">${svg}</div>
+      ${assetRows}
+      <div style="background:${ra(c,0.12)};border:1px solid ${ra(c,0.25)};border-radius:11px;padding:14px;text-align:center;margin-top:auto">
+        <div style="font-size:14px;font-weight:800;color:#fff">Portföyünü Takip Et</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px">BurnRate OS ile anlık izleme</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── TEMPLATE 3: ABONELİK ─────────────────────────────────────────────────────
+function genSubscription(story){
+  const c='#ef4444',bg='#110204'
+  const subs=[
+    {n:'Netflix',    logo:'🎬',price:'₺289',tag:''},
+    {n:'Spotify',    logo:'🎵',price:'₺139',tag:''},
+    {n:'ChatGPT Plus',logo:'🤖',price:'₺649',tag:'Pahalı!'},
+    {n:'Notion',     logo:'📝',price:'₺180',tag:''},
+  ]
+  const rows=subs.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.04);border:1px solid ${i===2?ra(c,0.35):'rgba(255,255,255,0.07)'};border-radius:9px;padding:${story?'10':'8'}px 12px;margin-bottom:6px">
+      <span style="font-size:${story?19:17}px">${s.logo}</span>
+      <div style="flex:1">
+        <div style="font-size:${story?12.5:12}px;font-weight:600;color:#fff">${s.n}</div>
+      </div>
+      ${s.tag?`<span style="font-size:9px;font-weight:700;color:${c}">${s.tag}</span>`:''}
+      <div style="font-size:${story?14:13}px;font-weight:700;color:${i===2?'#f87171':'#fff'}">${s.price}</div>
+    </div>`).join('')
+
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'72%','18%','58%',0.18)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:10px 0 12px">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.08em;text-transform:uppercase">Aylık Abonelik</div>
+          <div style="font-size:38px;font-weight:900;color:#fff;letter-spacing:-0.04em">₺1,257</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:rgba(255,255,255,0.35)">4 abonelik</div>
+          <div style="font-size:12px;font-weight:700;color:#f87171">₺428 azaltılabilir</div>
+        </div>
+      </div>
+      ${rows}
+      <div style="display:flex;align-items:center;gap:7px;background:${ra(c,0.1)};border:1px solid ${ra(c,0.22)};border-radius:9px;padding:9px 13px;margin-top:4px">
+        <span style="font-size:13px">💡</span>
+        <span style="font-size:10.5px;font-weight:500;color:rgba(255,255,255,0.8)">ChatGPT'yi paylaşarak <b style="color:${c}">₺324/ay</b> tasarruf et</span>
+      </div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','18%','80%',0.2)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;gap:10px">
+      <div style="text-align:center;padding:4px 0">
+        <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.1em;text-transform:uppercase">Aylık Abonelik Giderlerin</div>
+        <div style="font-size:52px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1.05">₺1,257</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;background:${ra(c,0.14)};border:1px solid ${ra(c,0.3)};padding:4px 13px;border-radius:99px;margin-top:4px">
+          <span style="font-size:11px;font-weight:700;color:${c}">💸 ₺428 tasarruf potansiyeli</span>
+        </div>
+      </div>
+      ${rows}
+      <div style="background:${ra(c,0.1)};border:1px solid ${ra(c,0.22)};border-radius:11px;padding:13px;text-align:center;margin-top:auto">
+        <div style="font-size:14px;font-weight:800;color:#fff">Aboneliklerini Yönet</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px">Gereksiz harcamaları keşfet</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── TEMPLATE 4: BÜTÇE ────────────────────────────────────────────────────────
+function genBudget(story){
+  const c='#f59e0b',bg='#0f0800'
+  const cats=[
+    {n:'Kira & Faturalar', pct:38, clr:'#f59e0b'},
+    {n:'Yiyecek & İçecek', pct:22, clr:'#fb923c'},
+    {n:'Ulaşım',           pct:14, clr:'#fcd34d'},
+    {n:'Tasarruf',         pct:15, clr:'#86efac'},
+    {n:'Diğer',            pct:11, clr:'#93c5fd'},
+  ]
+  const bars=cats.map(cat=>`
+    <div style="margin-bottom:${story?9:7}px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:${story?11:10}px;font-weight:500;color:rgba(255,255,255,0.55)">${cat.n}</span>
+        <span style="font-size:${story?11:10}px;font-weight:700;color:rgba(255,255,255,0.8)">%${cat.pct}</span>
+      </div>
+      <div style="height:${story?7:6}px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:${cat.pct}%;background:${cat.clr};border-radius:99px"></div>
+      </div>
+    </div>`).join('')
+
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'25%','25%','58%',0.2)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:10px 0 12px">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.08em;text-transform:uppercase">Mayıs Bütçesi</div>
+          <div style="font-size:38px;font-weight:900;color:#fff;letter-spacing:-0.04em">₺24,800</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:rgba(255,255,255,0.35)">Kalan</div>
+          <div style="font-size:19px;font-weight:800;color:#86efac">₺6,200</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:13px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:7px">
+          <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.45)">Harcanan Bütçe</span>
+          <span style="font-size:10px;font-weight:700;color:${ra(c,0.9)}">%75</span>
+        </div>
+        <div style="height:9px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:75%;background:linear-gradient(90deg,${c},#fb923c);border-radius:99px"></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px">${bars}</div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','18%','80%',0.2)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;gap:12px">
+      <div style="text-align:center;padding:4px 0">
+        <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.1em;text-transform:uppercase">Mayıs Bütçesi</div>
+        <div style="font-size:50px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1.05">₺24,800</div>
+        <div style="font-size:14px;font-weight:700;color:#86efac">₺6,200 kaldı ✅</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.45)">Kullanılan Bütçe</span>
+          <span style="font-size:12px;font-weight:700;color:${ra(c,0.9)}">%75</span>
+        </div>
+        <div style="height:11px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:75%;background:linear-gradient(90deg,${c},#fb923c);border-radius:99px"></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px">${bars}</div>
+      <div style="background:${ra(c,0.12)};border:1px solid ${ra(c,0.25)};border-radius:11px;padding:13px;text-align:center;margin-top:auto">
+        <div style="font-size:14px;font-weight:800;color:#fff">Bütçeni Planla</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px">Akıllı harcama takibi</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── TEMPLATE 5: MEYDAN OKUMA ──────────────────────────────────────────────────
+function genChallenge(story){
+  const c='#f43f5e',bg='#0f0209'
+  const days=Array.from({length:30},(_,i)=>({d:i+1,done:i<18,today:i===18}))
+  const makeGrid=(sz=20,gap=4)=>days.map(x=>`<div style="width:${sz}px;height:${sz}px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;margin:${gap/2}px;background:${x.today?c:x.done?ra(c,0.28):'rgba(255,255,255,0.04)'};border:1px solid ${x.today?c:x.done?ra(c,0.4):'rgba(255,255,255,0.06)'};color:${x.today?'#fff':x.done?ra(c,0.9):'rgba(255,255,255,0.18)'}">${x.today?'🔥':x.done?'✓':x.d}</div>`).join('')
+
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'50%','28%','60%',0.22)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px">
+      <div style="text-align:center;padding:8px 0 10px">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:${ra(c,0.15)};border:1px solid ${ra(c,0.3)};padding:4px 12px;border-radius:99px;margin-bottom:7px">
+          <span style="font-size:9px;font-weight:700;color:${ra(c,0.9)};letter-spacing:0.06em">🔥 30 GÜNLÜK MEYDAN OKUMA</span>
+        </div>
+        <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.03em;line-height:1.1">Tasarruf<br>Şampiyonu Ol!</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.38);margin-top:5px">Gün 18/30 · ₺3,600 birikti</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;margin-bottom:10px;text-align:center">${makeGrid(20,3)}</div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:${ra(c,0.1)};border:1px solid ${ra(c,0.2)};border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:19px;font-weight:900;color:#fff">₺200</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px">Günlük Hedef</div>
+        </div>
+        <div style="flex:1;background:rgba(134,239,172,0.08);border:1px solid rgba(134,239,172,0.18);border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:19px;font-weight:900;color:#86efac">₺3,600</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px">Toplam Birikim</div>
+        </div>
+        <div style="flex:1;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.18);border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:19px;font-weight:900;color:#fbbf24">%60</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px">İlerleme</div>
+        </div>
+      </div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','18%','82%',0.22)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;gap:13px">
+      <div style="text-align:center">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:${ra(c,0.15)};border:1px solid ${ra(c,0.3)};padding:4px 12px;border-radius:99px;margin-bottom:9px">
+          <span style="font-size:9px;font-weight:700;color:${ra(c,0.9)};letter-spacing:0.06em">🔥 30 GÜNLÜK MEYDAN OKUMA</span>
+        </div>
+        <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-0.03em;line-height:1.1">Tasarruf<br>Şampiyonu Ol!</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.38);margin-top:7px">Gün 18/30 · ₺3,600 birikti</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;text-align:center">${makeGrid(22,4)}</div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:${ra(c,0.1)};border:1px solid ${ra(c,0.2)};border-radius:10px;padding:11px;text-align:center">
+          <div style="font-size:21px;font-weight:900;color:#fff">₺200</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px">Günlük Hedef</div>
+        </div>
+        <div style="flex:1;background:rgba(134,239,172,0.08);border:1px solid rgba(134,239,172,0.18);border-radius:10px;padding:11px;text-align:center">
+          <div style="font-size:21px;font-weight:900;color:#86efac">₺3,600</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px">Birikti</div>
+        </div>
+      </div>
+      <div style="background:${ra(c,0.88)};border-radius:12px;padding:15px;text-align:center;margin-top:auto">
+        <div style="font-size:16px;font-weight:900;color:#fff">Katıl Şimdi! 🏆</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:3px">app.burnrate-os.com</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── TEMPLATE 6: PDF RAPOR ────────────────────────────────────────────────────
+function genPDFReport(story){
+  const c='#06b6d4',bg='#011318'
+  const stats=[
+    {l:'Toplam Gelir', v:'₺62,400',t:'▲ +8.2%', up:true},
+    {l:'Toplam Gider', v:'₺41,200',t:'▼ -3.1%', up:false},
+    {l:'Net Birikim',  v:'₺21,200',t:'▲ +24.7%',up:true},
+    {l:'Tasarruf Oranı',v:'%34',   t:'Hedef:%30',up:true},
+  ]
+  const cards=stats.map(s=>`
+    <div style="background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);border-radius:${story?10:8}px;padding:${story?12:9}px 11px">
+      <div style="font-size:8.5px;font-weight:600;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">${s.l}</div>
+      <div style="font-size:${story?20:17}px;font-weight:800;color:#fff;letter-spacing:-0.02em">${s.v}</div>
+      <div style="font-size:9px;font-weight:600;color:${s.up?'#6ee7b7':'#f87171'};margin-top:2px">${s.t}</div>
+    </div>`).join('')
+  const legend=[['#06b6d4','Kira/Faturalar'],['#7c3aed','Abonelikler'],['#f59e0b','Yiyecek'],['#10b981','Tasarruf']]
+
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'78%','18%','52%',0.15)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 12px">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.08em;text-transform:uppercase">Mayıs 2025 Raporu</div>
+          <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.03em;line-height:1.05">Mali Özet</div>
+        </div>
+        <div style="background:${ra(c,0.14)};border:1px solid ${ra(c,0.3)};padding:6px 10px;border-radius:8px;text-align:center">
+          <div style="font-size:9px;font-weight:700;color:${ra(c,0.75)};letter-spacing:0.06em">PDF</div>
+          <div style="font-size:8px;color:rgba(255,255,255,0.38)">HAZIR</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px">${cards}</div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:11px">
+        <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px">Kategori Dağılımı</div>
+        <div style="display:flex;height:7px;border-radius:99px;overflow:hidden;gap:1px;margin-bottom:8px">
+          <div style="width:38%;background:#06b6d4"></div><div style="width:22%;background:#7c3aed"></div>
+          <div style="width:18%;background:#f59e0b"></div><div style="width:10%;background:#10b981"></div>
+          <div style="flex:1;background:rgba(255,255,255,0.08)"></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${legend.map(([lc,ll])=>`<div style="display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:${lc}"></span><span style="font-size:9px;color:rgba(255,255,255,0.42)">${ll}</span></div>`).join('')}</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','18%','80%',0.18)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;gap:12px">
+      <div style="text-align:center;padding:4px 0">
+        <div style="font-size:10px;font-weight:600;color:${ra(c,0.7)};letter-spacing:0.1em;text-transform:uppercase">Mayıs 2025 Raporu</div>
+        <div style="font-size:42px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1.05">Mali<br>Özet</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${cards}</div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:9px">Kategori Dağılımı</div>
+        <div style="display:flex;height:9px;border-radius:99px;overflow:hidden;gap:1px;margin-bottom:9px">
+          <div style="width:38%;background:#06b6d4"></div><div style="width:22%;background:#7c3aed"></div>
+          <div style="width:18%;background:#f59e0b"></div><div style="width:10%;background:#10b981"></div>
+          <div style="flex:1;background:rgba(255,255,255,0.08)"></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${legend.map(([lc,ll])=>`<div style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:${lc}"></span><span style="font-size:10px;color:rgba(255,255,255,0.45)">${ll}</span></div>`).join('')}</div>
+      </div>
+      <div style="background:${ra(c,0.12)};border:1px solid ${ra(c,0.25)};border-radius:11px;padding:13px;text-align:center;margin-top:auto">
+        <div style="font-size:14px;font-weight:800;color:#fff">📥 PDF Raporunu İndir</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px">app.burnrate-os.com</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── TEMPLATE 7: V2.1 TEASER ──────────────────────────────────────────────────
+function genV21Teaser(story){
+  const c='#6366f1',bg='#04041a'
+  const feats=[
+    {i:'🤖',n:'Gelişmiş AI Danışman',   t:'YENİ',   tc:'#a5b4fc',tb:ra(c,0.2)},
+    {i:'📊',n:'Canlı Portföy Takibi',  t:'BETA',   tc:'#6ee7b7',tb:'rgba(16,185,129,0.15)'},
+    {i:'🔔',n:'Akıllı Bildirimler',     t:'YENİ',   tc:'#a5b4fc',tb:ra(c,0.2)},
+    {i:'🌍',n:'Çoklu Döviz Desteği',   t:'YAKINDA',tc:'rgba(255,255,255,0.35)',tb:'rgba(255,255,255,0.05)'},
+  ]
+  const featRows=feats.map(f=>`
+    <div style="display:flex;align-items:center;gap:9px;background:${ra(c,0.08)};border:1px solid ${ra(c,0.18)};border-radius:${story?10:8}px;padding:${story?11:9}px 12px;margin-bottom:6px">
+      <span style="font-size:${story?17:15}px">${f.i}</span>
+      <span style="flex:1;font-size:${story?12.5:11.5}px;font-weight:600;color:rgba(255,255,255,0.85)">${f.n}</span>
+      <span style="font-size:8px;font-weight:800;color:${f.tc};background:${f.tb};padding:2px 8px;border-radius:99px;letter-spacing:0.05em">${f.t}</span>
+    </div>`).join('')
+
+  if(!story) return wrap(bg,c,`
+    ${glow(c,'50%','40%','68%',0.22)}${glow('#818cf8','18%','82%','48%',0.12)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:52px;left:18px;right:18px;bottom:34px">
+      <div style="text-align:center;padding:10px 0 14px">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:${ra(c,0.2)};border:1px solid ${ra(c,0.45)};padding:4px 13px;border-radius:99px;margin-bottom:9px">
+          <span style="width:5px;height:5px;border-radius:50%;background:${c};box-shadow:0 0 7px ${c}"></span>
+          <span style="font-size:9px;font-weight:700;color:rgba(165,180,252,0.95);letter-spacing:0.07em">v2.1 — YAKINDA GELİYOR</span>
+        </div>
+        <div style="font-size:36px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1.0">BurnRate OS<br>2.1</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:5px">Haziran 2025 · Ücretsiz Güncelleme</div>
+      </div>
+      ${featRows}
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px">
+        <span style="font-size:10px;font-weight:700;color:${ra(c,0.65)}">🚀 app.burnrate-os.com'u takip et</span>
+      </div>
+    </div>
+    ${footer(c)}`)
+
+  return wrap(bg,c,`
+    ${glow(c,'50%','22%','82%',0.25)}${glow('#818cf8','80%','72%','55%',0.12)}
+    ${logoBar(c)}
+    <div style="position:absolute;top:62px;left:18px;right:18px;bottom:34px;display:flex;flex-direction:column;gap:13px">
+      <div style="text-align:center;padding:6px 0">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:${ra(c,0.2)};border:1px solid ${ra(c,0.45)};padding:4px 14px;border-radius:99px;margin-bottom:11px">
+          <span style="width:5px;height:5px;border-radius:50%;background:${c};box-shadow:0 0 7px ${c}"></span>
+          <span style="font-size:9px;font-weight:700;color:rgba(165,180,252,0.95);letter-spacing:0.07em">YAKINDA GELİYOR</span>
+        </div>
+        <div style="font-size:54px;font-weight:900;color:#fff;letter-spacing:-0.05em;line-height:1.0">v2.1</div>
+        <div style="font-size:17px;font-weight:700;color:rgba(165,180,252,0.65);letter-spacing:-0.02em">BurnRate OS</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.28);margin-top:5px">Haziran 2025 · Ücretsiz</div>
+      </div>
+      ${featRows}
+      <div style="background:linear-gradient(135deg,${ra(c,0.8)},rgba(129,140,248,0.6));border-radius:13px;padding:16px;text-align:center;margin-top:auto">
+        <div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:-0.02em">🚀 Bildirim Al</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:3px">app.burnrate-os.com</div>
+      </div>
+    </div>
+    ${footer(c)}`)
+}
+
+// ─── DISPATCH ─────────────────────────────────────────────────────────────────
+const GENS={
+  'ai-advisor':genAIAdvisor,'live-invest':genLiveInvest,'subscription':genSubscription,
+  'budget':genBudget,'challenge':genChallenge,'pdf-report':genPDFReport,'v21-teaser':genV21Teaser
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderSidebar(){
+  document.getElementById('tpl-list').innerHTML=TEMPLATES.map(t=>`
+    <div class="tpl-item${t.id===activeId?' active':''}" onclick="selectTemplate('${t.id}')">
+      <span class="tpl-dot" style="background:${t.color};color:${t.color}"></span>
+      <div class="tpl-info">
+        <div class="tpl-name">${t.emoji} ${t.name}</div>
+        <div class="tpl-desc">${t.desc}</div>
+      </div>
+      <span class="tpl-arr">›</span>
+    </div>`).join('')
+}
+
+function renderPreview(){
+  const story=activeFmt==='9x16'
+  const W=story?360:500, H=story?640:500
+  const box=document.getElementById('preview-box')
+  box.style.width=W+'px'; box.style.height=H+'px'
+  const gen=GENS[activeId]
+  if(gen) box.innerHTML=gen(story)
+  scalePreview()
+  const t=TEMPLATES.find(t=>t.id===activeId)
+  if(t){
+    document.getElementById('tb-title').textContent=t.name
+    document.getElementById('tb-dot').style.cssText=`width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${t.color};box-shadow:0 0 10px ${t.color};transition:all 0.2s`
+    document.getElementById('tb-fmt').textContent=story?'9:16 STORY':'1:1 FEED'
+    document.getElementById('tb-size').textContent=`${W} × ${H} px`
+    document.getElementById('ss-btn').style.background=`linear-gradient(135deg,${t.color},${t.color}bb)`
+  }
+}
+
+function scalePreview(){
+  const area=document.getElementById('preview-area')
+  const box=document.getElementById('preview-box')
+  const story=activeFmt==='9x16'
+  const W=story?360:500, H=story?640:500
+  const aW=area.clientWidth-64, aH=area.clientHeight-64
+  const scale=Math.min(1,aW/W,aH/H)
+  box.style.transform=`scale(${scale})`
+}
+
+function selectTemplate(id){
+  activeId=id; renderSidebar(); renderPreview()
+}
+
+function setFormat(fmt){
+  activeFmt=fmt
+  document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.remove('active'))
+  document.getElementById('fmt-'+fmt).classList.add('active')
+  renderPreview()
+}
+
+async function takeScreenshot(){
+  const btn=document.getElementById('ss-btn')
+  const txt=document.getElementById('ss-text')
+  btn.disabled=true; txt.textContent='Yakalanıyor...'
+  const box=document.getElementById('preview-box')
+  const orig=box.style.transform
+  box.style.transform='none'
+  try{
+    const canvas=await html2canvas(box,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false})
+    box.style.transform=orig
+    const a=document.createElement('a')
+    a.download=`burnrate-${activeId}-${activeFmt}-${Date.now()}.png`
+    a.href=canvas.toDataURL('image/png')
+    a.click()
+    showToast('📸 PNG indirildi!')
+  }catch(e){
+    box.style.transform=orig
+    showToast('❌ '+e.message)
+  }
+  btn.disabled=false; txt.textContent='Ekran Görüntüsü Al'
 }
 
 function showToast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show')
+  const t=document.getElementById('toast')
+  t.textContent=msg; t.classList.add('show')
   setTimeout(()=>t.classList.remove('show'),2500)
 }
-function copyText(id){
-  const el=document.getElementById(id);if(!el)return
-  navigator.clipboard.writeText(el.textContent).then(()=>showToast('📋 Kopyalandı!'))
-}
-function copyAllTweets(){
-  const txt=currentThreadTweets.map((t,i)=>`${i+1}/${currentThreadTweets.length}\n${t}`).join('\n\n---\n\n')
-  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Thread kopyalandı!'))
-}
 
-function setLoading(btnId,innerId,loading,label){
-  const btn=document.getElementById(btnId),inner=document.getElementById(innerId);if(!btn||!inner)return
-  btn.disabled=loading
-  inner.innerHTML=loading?'<div class="spinner"></div> Üretiliyor...':label
-}
-
-async function callAI(prompt){
-  const res=await fetch('/api/social',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})})
-  if(!res.ok)throw new Error('API hatası: '+res.status)
-  const d=await res.json();return d.result||d.text||d.content||''
-}
-
-// ── INSTAGRAM ──
-async function generateInstagram(){
-  const type=getActivePill('ig-type-pills'),ton=getActivePill('ig-ton-pills')
-  const context=document.getElementById('ig-context').value.trim()
-  setLoading('ig-gen-btn','ig-btn-inner',true)
-  const prompt=`Sen bir sosyal medya içerik uzmanısın. Instagram için ${type} temalı, ${ton} tonunda içerik üret.
-${context?'Bağlam: '+context:''}
-ÇIKTI FORMATI (başka hiçbir şey yazma):
-SLOGAN: [max 6 kelime, büyük harf, etkileyici]
-CAPTION: [instagram metni + emojiler + 4-6 hashtag, max 150 kelime, Türkçe]`
-  try{
-    const raw=await callAI(prompt)
-    const sM=raw.match(/SLOGAN:\s*(.+)/i),cM=raw.match(/CAPTION:\s*([\s\S]+)/i)
-    const slogan=sM?sM[1].trim():type.toUpperCase()
-    currentIgText=slogan;drawInstagramCanvas(slogan)
-    const el=document.getElementById('ig-caption-result')
-    el.textContent=cM?cM[1].trim():raw
-    document.getElementById('ig-caption-card').style.display='block'
-  }catch(e){showToast('❌ '+e.message)}
-  setLoading('ig-gen-btn','ig-btn-inner',false,'✨ Görsel Üret')
-}
-
-function drawInstagramCanvas(text){
-  const cfg=BG_CONFIGS[currentIgBg],fmt=FORMAT_SIZES[currentIgFormat]
-  const W=fmt.w,H=fmt.h,PAD=W*.08
-  const canvas=document.getElementById('hidden-canvas')
-  canvas.width=W;canvas.height=H
-  const ctx=canvas.getContext('2d')
-  const SF=W/500 // scale factor relative to 500px base
-
-  // ── helpers ──
-  function hex2rgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return{r,g,b}}
-  function rgba(hex,a){const {r,g,b}=hex2rgb(hex);return`rgba(${r},${g},${b},${a})`}
-  function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
-  function wrapText(t,x,y,maxW,lineH){
-    const words=t.split(' ');const lines=[];let line=''
-    for(const w of words){const test=line?line+' '+w:w;if(ctx.measureText(test).width>maxW&&line){lines.push(line);line=w}else line=test}
-    if(line)lines.push(line)
-    lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lineH));return lines.length
-  }
-
-  // ── 1. BACKGROUND ──
-  const bgGrd=ctx.createLinearGradient(0,0,W,H)
-  bgGrd.addColorStop(0,cfg.grad[0]);bgGrd.addColorStop(.55,cfg.grad[1]);bgGrd.addColorStop(1,cfg.grad[2])
-  ctx.fillStyle=bgGrd;ctx.fillRect(0,0,W,H)
-
-  // ── 2. GRID LINES ──
-  ctx.save();ctx.strokeStyle=rgba(cfg.accentLight,.06);ctx.lineWidth=1
-  const gridStep=W*.1
-  for(let x=0;x<W;x+=gridStep){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
-  for(let y=0;y<H;y+=gridStep){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
-  ctx.restore()
-
-  // ── 3. AMBIENT GLOW BLOBS ──
-  ctx.save()
-  const g1=ctx.createRadialGradient(W*.15,H*.15,0,W*.15,H*.15,W*.55)
-  g1.addColorStop(0,rgba(cfg.accent,.18));g1.addColorStop(1,'transparent')
-  ctx.fillStyle=g1;ctx.fillRect(0,0,W,H)
-  const g2=ctx.createRadialGradient(W*.85,H*.82,0,W*.85,H*.82,W*.45)
-  g2.addColorStop(0,rgba(cfg.accent,.12));g2.addColorStop(1,'transparent')
-  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H)
-  ctx.restore()
-
-  // ── 4. CORNER DOTS ──
-  ctx.save()
-  const dotPos=[[PAD*.6,PAD*.6],[W-PAD*.6,PAD*.6],[PAD*.6,H-PAD*.6],[W-PAD*.6,H-PAD*.6]]
-  dotPos.forEach(([dx,dy])=>{
-    ctx.globalAlpha=.4;ctx.fillStyle=cfg.accentLight
-    ctx.beginPath();ctx.arc(dx,dy,3*SF,0,Math.PI*2);ctx.fill()
-    ctx.globalAlpha=.15
-    ctx.beginPath();ctx.arc(dx,dy,8*SF,0,Math.PI*2);ctx.fill()
-  })
-  ctx.restore()
-
-  // ── 5. TOP BAR — logo badge + date ──
-  const topY=PAD*.85,topH=32*SF
-  // Logo badge background
-  ctx.save()
-  roundRect(PAD,topY,130*SF,topH,8*SF)
-  ctx.fillStyle=rgba(cfg.accent,.2);ctx.fill()
-  ctx.strokeStyle=rgba(cfg.accentLight,.35);ctx.lineWidth=1;ctx.stroke()
-  // Fire icon
-  ctx.font=`${13*SF}px sans-serif`;ctx.fillStyle=cfg.text;ctx.textBaseline='middle'
-  ctx.fillText('🔥',PAD+8*SF,topY+topH/2)
-  // Logo text
-  ctx.font=`700 ${11*SF}px 'Space Grotesk',sans-serif`
-  ctx.fillStyle=cfg.accentLight;ctx.fillText('BURNRATE OS',PAD+26*SF,topY+topH/2)
-  ctx.restore()
-  // Date — right side
-  const now=new Date(),dateStr=now.toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'})
-  ctx.save();ctx.font=`500 ${10*SF}px 'Space Grotesk',sans-serif`
-  ctx.fillStyle=cfg.textDim;ctx.textAlign='right';ctx.textBaseline='middle'
-  ctx.fillText(dateStr,W-PAD,topY+topH/2);ctx.restore()
-
-  // ── 6. HERO SECTION — icon + title ──
-  const heroTopY = H*.24
-  // Icon circle
-  const iconR=30*SF
-  ctx.save()
-  const iconGrd=ctx.createRadialGradient(W/2,heroTopY,0,W/2,heroTopY,iconR*1.8)
-  iconGrd.addColorStop(0,rgba(cfg.accent,.4));iconGrd.addColorStop(1,'transparent')
-  ctx.fillStyle=iconGrd;ctx.fillRect(0,0,W,H)
-  ctx.beginPath();ctx.arc(W/2,heroTopY,iconR,0,Math.PI*2)
-  ctx.fillStyle=rgba(cfg.accent,.25);ctx.fill()
-  ctx.strokeStyle=rgba(cfg.accentLight,.5);ctx.lineWidth=1.5*SF;ctx.stroke()
-  const iconMap={motivasyon:'💪',tasarruf:'🐷','finans tüyo':'💡',yatırım:'📈',kariyer:'🚀',üretkenlik:'⚡'}
-  const type=getActivePill('ig-type-pills')||'motivasyon'
-  ctx.font=`${iconR}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle'
-  ctx.fillText(iconMap[type]||'✨',W/2,heroTopY)
-  ctx.restore()
-
-  // Title text
-  const titleY=heroTopY+iconR+22*SF
-  ctx.save();ctx.textAlign='center';ctx.textBaseline='top'
-  const titleFs=W*.075;ctx.font=`800 ${titleFs}px 'Syne','Space Grotesk',sans-serif`
-  ctx.fillStyle=cfg.text
-  const linesDrawn=wrapText(text,W/2,titleY,W*.82,titleFs*1.22)
-  ctx.restore()
-
-  // Accent underline below title
-  const underlineY=titleY+linesDrawn*titleFs*1.22+10*SF
-  ctx.save();ctx.strokeStyle=cfg.accent;ctx.lineWidth=2.5*SF;ctx.lineCap='round';ctx.globalAlpha=.7
-  ctx.beginPath();ctx.moveTo(W/2-40*SF,underlineY);ctx.lineTo(W/2+40*SF,underlineY);ctx.stroke()
-  ctx.restore()
-
-  // ── 7. STAT CARDS ──
-  const stats=[
-    {label:'Net Bakiye',val:'₺48.500',sub:'+12.3%',pos:true},
-    {label:'Tasarruf Oranı',val:'%34',sub:'Hedef: %30',pos:true},
-    {label:'Yatırım Getirisi',val:'+%18.5',sub:'Bu Ay',pos:true},
-  ]
-  const numCards=3,cardMargin=10*SF
-  const totalCardW=W-PAD*2,cardW=(totalCardW-(numCards-1)*cardMargin)/numCards
-  const cardH=72*SF,cardY=H*.62
-
-  stats.forEach((stat,i)=>{
-    const cx=PAD+i*(cardW+cardMargin),cy=cardY
-    // Card bg
-    ctx.save()
-    roundRect(cx,cy,cardW,cardH,10*SF)
-    ctx.fillStyle=cfg.cardBg;ctx.fill()
-    ctx.strokeStyle=cfg.cardBorder;ctx.lineWidth=1;ctx.stroke()
-    // Subtle inner glow top
-    const topGlow=ctx.createLinearGradient(cx,cy,cx,cy+cardH*.4)
-    topGlow.addColorStop(0,rgba(cfg.accentLight,.07));topGlow.addColorStop(1,'transparent')
-    roundRect(cx,cy,cardW,cardH,10*SF);ctx.fillStyle=topGlow;ctx.fill()
-    ctx.restore()
-    // Label
-    ctx.save();ctx.textAlign='left';ctx.textBaseline='top'
-    ctx.font=`500 ${9*SF}px 'Space Grotesk',sans-serif`
-    ctx.fillStyle=cfg.textDim;ctx.fillText(stat.label.toUpperCase(),cx+10*SF,cy+10*SF)
-    // Value
-    ctx.font=`700 ${18*SF}px 'Syne','Space Grotesk',sans-serif`
-    ctx.fillStyle=cfg.text;ctx.fillText(stat.val,cx+10*SF,cy+24*SF)
-    // Sub badge
-    const subColor=stat.pos?cfg.positive:cfg.negative
-    ctx.font=`600 ${9*SF}px 'Space Grotesk',sans-serif`
-    ctx.fillStyle=subColor;ctx.fillText(stat.sub,cx+10*SF,cy+cardH-16*SF)
-    // Mini bar chart (decorative)
-    const barCount=6,barW=4*SF,barSpacing=3*SF,barsX=cx+cardW-((barCount*(barW+barSpacing))+8*SF)
-    const maxBarH=20*SF,barBaseY=cy+cardH-10*SF
-    for(let b=0;b<barCount;b++){
-      const bh=maxBarH*(0.3+Math.random()*.7)
-      ctx.globalAlpha=b===barCount-1?.9:.35
-      ctx.fillStyle=cfg.accent
-      ctx.fillRect(barsX+b*(barW+barSpacing),barBaseY-bh,barW,bh)
-    }
-    ctx.restore()
-  })
-
-  // ── 8. BOTTOM URL STRIP ──
-  const stripH=28*SF,stripY=H-stripH-6*SF
-  ctx.save()
-  ctx.fillStyle=rgba(cfg.accent,.12);ctx.fillRect(0,stripY,W,stripH+6*SF)
-  ctx.strokeStyle=rgba(cfg.accentLight,.15);ctx.lineWidth=1
-  ctx.beginPath();ctx.moveTo(0,stripY);ctx.lineTo(W,stripY);ctx.stroke()
-  // URL center
-  ctx.font=`600 ${10*SF}px 'Space Grotesk',sans-serif`
-  ctx.fillStyle=rgba(cfg.accentLight,.65);ctx.textAlign='center';ctx.textBaseline='middle'
-  ctx.fillText('app.burnrate-os.com',W/2,stripY+stripH*.5)
-  // Left dot accent
-  ctx.fillStyle=cfg.accent;ctx.globalAlpha=.8
-  ctx.beginPath();ctx.arc(PAD,stripY+stripH*.5,3*SF,0,Math.PI*2);ctx.fill()
-  ctx.beginPath();ctx.arc(W-PAD,stripY+stripH*.5,3*SF,0,Math.PI*2);ctx.fill()
-  ctx.restore()
-
-  // ── 9. UPDATE PREVIEW ──
-  const wrap=document.getElementById('ig-canvas-wrap')
-  const old=wrap.querySelector('canvas');if(old)wrap.removeChild(old)
-  const prev=document.createElement('canvas');prev.width=W;prev.height=H
-  const scale=Math.min(1,(wrap.clientWidth-40)/W)
-  prev.style.width=(W*scale)+'px';prev.style.height=(H*scale)+'px';prev.style.borderRadius='12px'
-  prev.getContext('2d').drawImage(canvas,0,0)
-  const em=wrap.querySelector('.empty');if(em)em.remove()
-  wrap.appendChild(prev)
-}
-
-function downloadPNG(){
-  const canvas=document.getElementById('hidden-canvas')
-  if(!canvas.width){showToast('❌ Önce görsel üretin');return}
-  const a=document.createElement('a');a.href=canvas.toDataURL('image/png')
-  a.download='burnrate-ig-'+Date.now()+'.png';a.click();showToast('⬇️ PNG indiriliyor...')
-}
-
-// ── THREAD ──
-async function generateThread(){
-  const topic=document.getElementById('thread-topic').value.trim()
-  if(!topic){showToast('⚠️ Konu girin');return}
-  const type=getActivePill('thread-type-pills'),ton=getActivePill('thread-ton-pills')
-  const count=getActivePill('thread-count-pills')
-  const username=document.getElementById('thread-username').value.trim()||'kullanici'
-  setLoading('thread-gen-btn','thread-btn-inner',true)
-  const prompt=`Twitter/X için Türkçe viral bir thread yaz.
-Konu: ${topic} | Tür: ${type} | Ton: ${ton} | Tweet sayısı: ${count}
-KURALLAR: Her tweet max 280 karakter. İlk tweet güçlü hook. Son tweet CTA. Her tweeti tam olarak "---" ile ayır. Numara ekleme. Sadece tweet içeriklerini yaz:`
-  try{
-    const raw=await callAI(prompt)
-    currentThreadTweets=raw.split(/\n?---+\n?/).map(t=>t.trim()).filter(t=>t.length>0)
-    renderThread(username,currentThreadTweets)
-    document.getElementById('thread-actions').style.display='flex'
-  }catch(e){showToast('❌ '+e.message)}
-  setLoading('thread-gen-btn','thread-btn-inner',false,'🧵 Üret')
-}
-
-function renderThread(username,tweets){
-  const preview=document.getElementById('thread-preview')
-  const initials=username.slice(0,2).toUpperCase()
-  preview.innerHTML=''
-  tweets.forEach((tweet,i)=>{
-    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column'
-    const card=document.createElement('div');card.className='tweet-card'
-    card.innerHTML=`<div class="tweet-avatar">${initials}</div><div style="flex:1">
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <span style="font-size:13px;font-weight:600;color:var(--text)">@${username}</span>
-        <span style="font-size:12px;color:var(--text3)">· şimdi</span>
-      </div>
-      <div class="tweet-num">${i+1} / ${tweets.length}</div>
-      <div class="tweet-text">${tweet}</div>
-      <div style="display:flex;gap:16px;margin-top:10px">
-        <span style="color:var(--text3);font-size:12px">💬</span>
-        <span style="color:var(--text3);font-size:12px">🔁</span>
-        <span style="color:var(--text3);font-size:12px">❤️</span>
-      </div></div>`
-    wrap.appendChild(card)
-    if(i<tweets.length-1){
-      const conn=document.createElement('div')
-      conn.style.cssText='width:2px;height:14px;background:rgba(139,92,246,0.35);margin:0 0 0 20px;border-radius:1px'
-      wrap.appendChild(conn)
-    }
-    preview.appendChild(wrap)
-  })
-}
-
-// ── POST ──
-async function generatePost(){
-  const topic=document.getElementById('post-topic').value.trim()
-  if(!topic){showToast('⚠️ Konu girin');return}
-  const platform=getActivePill('post-platform-pills'),type=getActivePill('post-type-pills'),ton=getActivePill('post-ton-pills')
-  const emoji=document.getElementById('post-emoji').checked
-  const hashtag=document.getElementById('post-hashtag').checked
-  const cta=document.getElementById('post-cta').checked
-  setLoading('post-gen-btn','post-btn-inner',true)
-  const charMap={twitter:280,instagram:500,linkedin:600,facebook:500}
-  const prompt=`${platform.toUpperCase()} için Türkçe bir gönderi yaz.
-Konu: ${topic} | Tür: ${type} | Ton: ${ton} | Max ~${charMap[platform]||500} karakter
-${emoji?'✅ Emoji kullan':'❌ Emoji kullanma'}
-${hashtag?'✅ 3-6 hashtag ekle':'❌ Hashtag ekleme'}
-${cta?'✅ Güçlü CTA ekle':''}
-Sadece gönderi metnini yaz:`
-  try{
-    const raw=await callAI(prompt);renderPost(raw,hashtag)
-  }catch(e){showToast('❌ '+e.message)}
-  setLoading('post-gen-btn','post-btn-inner',false,'✍️ Post Yaz')
-}
-
-function renderPost(text,showHashtags){
-  const wrap=document.getElementById('post-result-wrap')
-  const tags=text.match(/#\w+/g)||[]
-  let box=document.getElementById('post-result-box')
-  if(!box){box=document.createElement('div');box.className='result-box';box.id='post-result-box';wrap.innerHTML='';wrap.appendChild(box)}
-  box.textContent=text
-  document.getElementById('post-actions').style.display='flex'
-  if(showHashtags&&tags.length>0){
-    document.getElementById('post-hashtag-card').style.display='block'
-    document.getElementById('post-hashtags').innerHTML=tags.map(h=>
-      `<span onclick="navigator.clipboard.writeText('${h}').then(()=>showToast('📋 ${h} kopyalandı'))"
-        style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);padding:4px 12px;border-radius:99px;font-size:12px;color:var(--accent);cursor:pointer">${h}</span>`
-    ).join('')
-  }
-}
-
-async function generateVariant(){
-  const box=document.getElementById('post-result-box');if(!box)return
-  setLoading('post-gen-btn','post-btn-inner',true)
-  const prompt=`Şu gönderi için tamamen farklı bir varyant yaz. Aynı konu, farklı açı ve yapı. Türkçe:\n\n${box.textContent}\n\nSadece yeni metni yaz:`
-  try{
-    const raw=await callAI(prompt)
-    renderPost(raw,document.getElementById('post-hashtag').checked)
-    showToast('🎲 Varyant üretildi!')
-  }catch(e){showToast('❌ '+e.message)}
-  setLoading('post-gen-btn','post-btn-inner',false,'✍️ Post Yaz')
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  initPills('ig-type-pills');initPills('ig-ton-pills')
-  initPills('ig-bg-pills',v=>{currentIgBg=v;if(currentIgText)drawInstagramCanvas(currentIgText)})
-  initPills('ig-format-pills',v=>{currentIgFormat=v;if(currentIgText)drawInstagramCanvas(currentIgText)})
-  initPills('thread-type-pills');initPills('thread-ton-pills');initPills('thread-count-pills')
-  initPills('post-platform-pills');initPills('post-type-pills');initPills('post-ton-pills')
-  initCharCount('ig-context','ig-char',300)
-  initCharCount('thread-topic','thread-char',280)
-  initCharCount('post-topic','post-char',500)
+window.addEventListener('DOMContentLoaded',()=>{
+  renderSidebar(); renderPreview()
+  window.addEventListener('resize',scalePreview)
 })
 </script>
 </body>
