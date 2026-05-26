@@ -3,604 +3,833 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BurnRate OS — Social Generator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+<title>BurnRate OS — İçerik Stüdyosu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0f0a1e;--panel:#140d2e;--card:rgba(22,14,46,.8);
-  --p:#7c3aed;--ps:#a855f7;--pk:#c084fc;
-  --t1:#f0ebff;--t2:#9d89c4;--t3:#4e4270;
-  --border:rgba(124,58,237,.2);--success:#10b981;--err:#ef4444;
+  --bg:#030308;
+  --surface:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.07);
+  --text:#f0eeff;
+  --dim:rgba(240,238,255,0.4);
+  --dimmer:rgba(240,238,255,0.18);
+  --purple:#7c3aed;
+  --purple-glow:rgba(124,58,237,0.3);
+  --teal:#14b8a6;
+  --rose:#f43f5e;
+  --amber:#f59e0b;
+  --mono:'DM Mono',monospace;
+  --sans:'Space Grotesk',sans-serif;
+  --display:'Syne',sans-serif;
 }
-html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Syne',sans-serif;overflow:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 0%,rgba(124,58,237,0.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 100%,rgba(20,184,166,0.08) 0%,transparent 55%);pointer-events:none;z-index:0}
 
-.bg{position:fixed;inset:0;z-index:0;
-  background:radial-gradient(ellipse 70% 60% at 10% 15%,rgba(124,58,237,.13) 0%,transparent 60%),
-             radial-gradient(ellipse 60% 50% at 90% 85%,rgba(168,85,247,.1) 0%,transparent 60%),
-             #0f0a1e}
-.bg-grid{position:absolute;inset:0;
-  background-image:linear-gradient(rgba(124,58,237,.05) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(124,58,237,.05) 1px,transparent 1px);
-  background-size:44px 44px}
+/* LAYOUT */
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh;position:relative;z-index:1}
 
-.app{position:relative;z-index:1;display:grid;grid-template-rows:52px 1fr;height:100vh}
+/* SIDEBAR */
+.sidebar{background:rgba(255,255,255,0.02);border-right:1px solid var(--border);padding:28px 20px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{font-family:var(--display);font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:28px;display:flex;align-items:center;gap:10px}
+.logo-badge{background:linear-gradient(135deg,#7c3aed,#4c1d95);border-radius:8px;padding:5px 9px;font-size:11px;font-family:var(--mono);letter-spacing:1px}
+.sidebar-label{font-family:var(--mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dimmer);padding:0 8px;margin:16px 0 8px}
+.tab-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;transition:all 0.18s;width:100%;text-align:left;background:transparent;color:var(--dim)}
+.tab-btn:hover{background:rgba(124,58,237,0.08);color:var(--text)}
+.tab-btn.active{background:rgba(124,58,237,0.14);color:#c4b5fd;border:1px solid rgba(124,58,237,0.25)}
+.tab-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 
-header{
-  display:flex;align-items:center;padding:0 24px;gap:12px;
-  border-bottom:1px solid var(--border);
-  background:rgba(8,4,18,.75);backdrop-filter:blur(20px)}
-.logo{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;letter-spacing:-.02em}
-.logo-mark{
-  width:26px;height:26px;border-radius:7px;
-  background:linear-gradient(135deg,#6d28d9,#a855f7);
-  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
-.logo-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
-.logo-tag{
-  font-size:10px;font-weight:700;color:var(--ps);letter-spacing:.1em;text-transform:uppercase;
-  padding:3px 10px;border:1px solid rgba(168,85,247,.25);border-radius:20px;
-  background:rgba(168,85,247,.08)}
+/* MAIN */
+.main{padding:36px;overflow-y:auto}
+.page-header{margin-bottom:32px}
+.page-title{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.page-sub{color:var(--dim);font-size:13px}
 
-.main{display:grid;grid-template-columns:368px 1fr;overflow:hidden}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.card-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dimmer);margin-bottom:16px}
 
-/* LEFT */
-.left{
-  padding:22px 20px;border-right:1px solid var(--border);
-  overflow-y:auto;display:flex;flex-direction:column;gap:20px;
-  background:rgba(12,7,28,.35)}
-.left::-webkit-scrollbar{width:3px}
-.left::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* FORM ELEMENTS */
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dimmer);margin-bottom:8px}
+select,textarea,input[type=text]{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:11px;color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 14px;outline:none;transition:border 0.18s,box-shadow 0.18s;appearance:none}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c3aed' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+select option{background:#0a0a1a}
+select:focus,textarea:focus,input:focus{border-color:rgba(124,58,237,0.5);box-shadow:0 0 0 3px rgba(124,58,237,0.08)}
+textarea{resize:none;line-height:1.7}
 
-.slabel{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:9px}
+/* TOPIC PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pill{padding:7px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);cursor:pointer;font-size:12px;font-weight:500;color:var(--dim);transition:all 0.18s;font-family:var(--sans)}
+.pill:hover{border-color:rgba(124,58,237,0.4);color:var(--text);background:rgba(124,58,237,0.08)}
+.pill.active{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.15);color:#c4b5fd;font-weight:600}
 
-.plat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.plat-card{
-  padding:13px 10px;border:1px solid var(--border);border-radius:12px;
-  cursor:pointer;background:rgba(18,11,40,.6);
-  transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:7px;
-  position:relative;user-select:none}
-.plat-card:hover{border-color:rgba(168,85,247,.35);background:rgba(124,58,237,.08)}
-.plat-card.active{
-  border-color:var(--ps);background:rgba(124,58,237,.14);
-  box-shadow:0 0 28px rgba(168,85,247,.12),inset 0 1px 0 rgba(168,85,247,.1)}
-.plat-card.active::after{
-  content:'';position:absolute;top:8px;right:8px;
-  width:5px;height:5px;border-radius:50%;background:var(--ps);box-shadow:0 0 7px var(--ps)}
-.plat-icon{width:30px;height:30px;color:var(--t2);transition:color .18s}
-.plat-card.active .plat-icon{color:var(--pk)}
-.plat-name{font-size:11px;font-weight:700;color:var(--t2);transition:color .18s}
-.plat-card.active .plat-name{color:var(--pk)}
+/* TONE PILLS */
+.tone-pills{display:flex;gap:7px;flex-wrap:wrap}
+.tone-pill{padding:6px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);cursor:pointer;font-size:11px;color:var(--dim);transition:all 0.18s;font-family:var(--mono);letter-spacing:0.5px}
+.tone-pill.active{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.15);color:#c4b5fd}
 
-.sel-wrap{position:relative}
-.sel-wrap select{
-  width:100%;padding:10px 34px 10px 13px;
-  background:rgba(18,11,40,.8);border:1px solid var(--border);border-radius:10px;
-  color:var(--t1);font-family:'Syne',sans-serif;font-size:13px;font-weight:500;
-  appearance:none;cursor:pointer;outline:none;transition:border-color .18s}
-.sel-wrap select:focus{border-color:var(--ps)}
-.sel-wrap::after{
-  content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  border:4px solid transparent;border-top:5px solid var(--t2);border-bottom:none;
-  margin-top:3px;pointer-events:none}
-.sel-wrap select option{background:#1a1035}
+/* GENERATE BUTTON */
+.gen-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;font-family:var(--display);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-0.3px;box-shadow:0 4px 24px rgba(124,58,237,0.4),inset 0 1px 0 rgba(255,255,255,0.15);transition:transform 0.2s cubic-bezier(.34,1.56,.64,1),box-shadow 0.2s;margin-top:8px}
+.gen-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.55)}
+.gen-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none}
 
-.tone-pills{display:flex;flex-wrap:wrap;gap:6px}
-.tone-pill{
-  padding:5px 12px;border:1px solid var(--border);border-radius:16px;
-  font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;
-  background:rgba(18,11,40,.6);transition:all .18s}
-.tone-pill:hover{border-color:rgba(168,85,247,.35);color:var(--pk)}
-.tone-pill.active{border-color:var(--ps);background:rgba(168,85,247,.14);color:var(--pk)}
+/* RESULT */
+.result-wrap{display:none}
+.result-wrap.show{display:block;animation:fadeUp 0.35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-textarea.extra{
-  width:100%;padding:10px 13px;min-height:66px;
-  background:rgba(18,11,40,.8);border:1px solid var(--border);border-radius:10px;
-  color:var(--t1);font-family:'Syne',sans-serif;font-size:13px;resize:none;
-  outline:none;transition:border-color .18s}
-textarea.extra:focus{border-color:var(--ps)}
-textarea.extra::placeholder{color:var(--t3)}
+.result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.result-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)}
+.result-btns{display:flex;gap:8px}
+.copy-btn{padding:7px 16px;border-radius:10px;border:1px solid rgba(124,58,237,0.3);background:rgba(124,58,237,0.1);color:#c4b5fd;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.copy-btn:hover{background:rgba(124,58,237,0.2)}
+.regen-btn{padding:7px 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--dim);font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
 
-.gen-btn{
-  width:100%;padding:13px;margin-top:auto;
-  background:linear-gradient(135deg,#6d28d9,#9333ea);border:none;border-radius:12px;
-  color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;letter-spacing:.05em;position:relative;overflow:hidden;
-  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px}
-.gen-btn::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,#7c3aed,#a855f7);opacity:0;transition:opacity .2s}
-.gen-btn:hover:not(:disabled)::before{opacity:1}
-.gen-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 32px rgba(124,58,237,.45)}
-.gen-btn:active:not(:disabled){transform:none}
-.gen-btn:disabled{opacity:.5;cursor:not-allowed}
-.gen-btn span{position:relative;z-index:1}
-.spinner{
-  width:15px;height:15px;border:2px solid rgba(255,255,255,.3);
-  border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;
-  display:none;position:relative;z-index:1;flex-shrink:0}
-.gen-btn.loading .spinner{display:block}
+/* TEXT RESULT */
+.text-result{font-size:13px;line-height:1.9;color:rgba(240,238,255,0.85);white-space:pre-wrap;border-left:2px solid rgba(124,58,237,0.4);padding-left:16px;margin-bottom:12px}
+.char-info{font-family:var(--mono);font-size:10px;color:var(--dimmer);margin-bottom:14px}
+.char-info.over{color:#fca5a5}
+.hashtag-row{display:flex;flex-wrap:wrap;gap:6px;padding-top:14px;border-top:1px solid var(--border)}
+.hashtag{background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.18);border-radius:100px;padding:4px 12px;font-size:11px;color:#c4b5fd;font-family:var(--mono)}
+
+/* THREAD RESULT */
+.thread-container{display:flex;flex-direction:column;gap:12px}
+.thread-item{display:flex;gap:14px;padding:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;position:relative}
+.thread-num{width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:#c4b5fd;flex-shrink:0;margin-top:2px}
+.thread-text{font-size:13px;line-height:1.8;color:rgba(240,238,255,0.85);flex:1}
+.thread-chars{font-family:var(--mono);font-size:9px;color:var(--dimmer);margin-top:6px}
+.thread-line{position:absolute;left:27px;bottom:-12px;width:1px;height:12px;background:rgba(124,58,237,0.2)}
+
+/* VISUAL RESULT */
+.visual-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(124,58,237,0.2);margin-bottom:12px}
+.visual-actions{display:flex;gap:8px}
+.dl-btn{padding:7px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(124,58,237,0.35)}
+
+/* LOADING */
+.loading{display:none;align-items:center;justify-content:center;gap:12px;padding:28px;color:var(--dim);font-size:13px}
+.loading.show{display:flex}
+.spinner{width:20px;height:20px;border-radius:50%;border:2px solid rgba(124,58,237,0.15);border-top-color:#7c3aed;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* RIGHT */
-.right{position:relative;display:flex;flex-direction:column;padding:26px 30px;overflow:hidden;gap:0}
+/* ERROR */
+.error{background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);border-radius:12px;padding:12px 16px;color:#fda4af;font-size:13px;display:none;margin-top:10px}
+.error.show{display:block}
 
-.plat-bg-icon{
-  position:absolute;right:-20px;bottom:-20px;pointer-events:none;
-  opacity:.045;transition:opacity .4s;color:var(--ps)}
-.plat-bg-icon svg{width:380px;height:380px}
+/* DIVIDER */
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);margin:20px 0}
 
-.empty{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:13px;color:var(--t3);text-align:center}
-.empty-box{
-  width:52px;height:52px;border:1px solid var(--border);border-radius:13px;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(18,11,40,.5);margin-bottom:4px}
-.empty h3{font-size:16px;font-weight:700;color:var(--t2)}
-.empty p{font-size:13px;max-width:250px;line-height:1.65}
-
-.err-box{
-  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
-  border-radius:10px;padding:11px 14px;font-size:13px;color:#fca5a5;
-  display:none;margin-bottom:14px;flex-shrink:0}
-.err-box.show{display:block}
-
-.output{display:none;flex-direction:column;gap:18px;flex:1;min-height:0;overflow-y:auto}
-.output::-webkit-scrollbar{width:3px}
-.output::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.output.show{display:flex;animation:fadeUp .35s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-.out-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.out-badge{
-  display:flex;align-items:center;gap:7px;padding:5px 13px 5px 8px;
-  background:rgba(124,58,237,.12);border:1px solid rgba(168,85,247,.25);border-radius:20px}
-.out-badge svg{width:16px;height:16px;color:var(--ps)}
-.out-badge span{font-size:12px;font-weight:700;color:var(--pk)}
-.out-actions{display:flex;gap:6px}
-.action-btn{
-  padding:6px 13px;background:rgba(18,11,40,.8);border:1px solid var(--border);
-  border-radius:8px;color:var(--t2);font-family:'Syne',sans-serif;
-  font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;
-  display:flex;align-items:center;gap:5px;letter-spacing:.03em}
-.action-btn:hover{border-color:var(--ps);color:var(--pk)}
-.action-btn.ok{border-color:var(--success);color:var(--success)}
-
-.content-card{
-  background:rgba(18,11,40,.65);border:1px solid var(--border);border-radius:14px;
-  padding:22px;position:relative;overflow:hidden;
-  max-height:52vh;overflow-y:auto;flex-shrink:0}
-.content-card::-webkit-scrollbar{width:3px}
-.content-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.content-card::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--ps),transparent)}
-.content-text{
-  font-family:'Fragment Mono',monospace;font-size:13.5px;line-height:1.8;
-  color:var(--t1);white-space:pre-wrap;word-break:break-word}
-.char-row{
-  display:flex;justify-content:flex-end;margin-top:10px;
-  font-size:10px;font-family:'Fragment Mono',monospace;color:var(--t3)}
-.char-row.warn{color:#f97316}
-.char-row.over{color:var(--err)}
-
-.hash-section{flex-shrink:0}
-.hash-pills{display:flex;flex-wrap:wrap;gap:6px}
-.hash-pill{
-  padding:5px 11px;background:rgba(124,58,237,.1);
-  border:1px solid rgba(124,58,237,.22);border-radius:16px;
-  font-size:12px;font-weight:600;color:var(--ps);
-  font-family:'Fragment Mono',monospace;cursor:pointer;transition:all .18s;
-  opacity:0;animation:pop .25s ease forwards}
-.hash-pill:hover{background:rgba(124,58,237,.22);border-color:var(--ps);color:var(--pk)}
-@keyframes pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
-
-.plat-hint{
-  font-size:11px;color:var(--t3);font-family:'Fragment Mono',monospace;
-  display:flex;align-items:center;gap:7px;flex-shrink:0}
-.plat-hint::before{
-  content:'';display:inline-block;width:5px;height:5px;
-  border-radius:50%;background:var(--ps);flex-shrink:0}
-
-#visualBox{flex-shrink:0;border-radius:12px;overflow:hidden;animation:fadeUp .4s ease .1s both;display:none}
-#visualBox svg{display:block;width:100%}
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 </style>
 </head>
 <body>
-<div class="bg"><div class="bg-grid"></div></div>
-
 <div class="app">
-  <header>
-    <div class="logo">
-      <div class="logo-mark">B</div>
-      BurnRate OS
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">BR</div>
+      İçerik Stüdyosu
     </div>
-    <div class="logo-sep"></div>
-    <div class="logo-tag">Social Generator</div>
-  </header>
+    <div class="sidebar-label">Modüller</div>
+    <button class="tab-btn active" onclick="switchTab('instagram')" id="tab-instagram">
+      <div class="tab-icon" style="background:rgba(244,63,94,0.12)">📸</div>
+      Instagram Görseli
+    </button>
+    <button class="tab-btn" onclick="switchTab('thread')" id="tab-thread">
+      <div class="tab-icon" style="background:rgba(124,58,237,0.12)">🧵</div>
+      Twitter Thread
+    </button>
+    <button class="tab-btn" onclick="switchTab('post')" id="tab-post">
+      <div class="tab-icon" style="background:rgba(20,184,166,0.12)">✍️</div>
+      Post Yaz
+    </button>
+    <div class="sidebar-label" style="margin-top:auto">Hakkında</div>
+    <div style="padding:12px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:14px;font-size:12px;color:var(--dim);line-height:1.6">
+      BurnRate OS sosyal medya içerik üretici. AI destekli, markanıza özel içerikler.
+    </div>
+  </div>
 
+  <!-- MAIN -->
   <div class="main">
-    <!-- LEFT PANEL -->
-    <div class="left">
 
-      <div>
-        <div class="slabel">Platform</div>
-        <div class="plat-grid">
-          <div class="plat-card active" data-p="twitter">
-            <svg class="plat-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            <div class="plat-name">Twitter / X</div>
+    <!-- INSTAGRAM TAB -->
+    <div id="page-instagram">
+      <div class="page-header">
+        <div class="page-title">📸 Instagram Görseli</div>
+        <div class="page-sub">Panel ve özellikleri yansıtan premium görseller üret</div>
+      </div>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start">
+        <div>
+          <div class="card">
+            <div class="card-title">Görsel Tipi</div>
+            <div class="pills" id="ig-type-pills">
+              <div class="pill active" data-val="feature_showcase" onclick="selectPill(this,'ig-type')">🌟 Özellik Showcase</div>
+              <div class="pill" data-val="dashboard_preview" onclick="selectPill(this,'ig-type')">📊 Dashboard Preview</div>
+              <div class="pill" data-val="stats_highlight" onclick="selectPill(this,'ig-type')">📈 İstatistik Vurgu</div>
+              <div class="pill" data-val="tips_card" onclick="selectPill(this,'ig-type')">💡 İpucu Kartı</div>
+              <div class="pill" data-val="before_after" onclick="selectPill(this,'ig-type')">⚡ Önce/Sonra</div>
+              <div class="pill" data-val="announcement" onclick="selectPill(this,'ig-type')">🎯 Duyuru</div>
+              <div class="pill" data-val="v21_teaser" onclick="selectPill(this,'ig-type')">🚀 v2.1 Teaser</div>
+            </div>
           </div>
-          <div class="plat-card" data-p="linkedin">
-            <svg class="plat-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-            </svg>
-            <div class="plat-name">LinkedIn</div>
+          <div class="card">
+            <div class="card-title">Konu & İçerik</div>
+            <div class="field">
+              <label>Öne Çıkan Özellik</label>
+              <select id="ig-feature">
+                <option value="ai_advisor">🤖 AI Finansal Danışman</option>
+                <option value="investment">📈 Canlı Yatırım Takibi</option>
+                <option value="subscriptions">⚔️ Abonelik Yönetimi</option>
+                <option value="monthly_summary">📋 Aylık Özet & PDF</option>
+                <option value="challenge">🎯 30 Günlük Meydan Okuma</option>
+                <option value="budget">📊 Bütçe Planlama</option>
+                <option value="debt">🤝 Borç Takibi</option>
+                <option value="general">💜 Genel Uygulama</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Renk Teması</label>
+              <select id="ig-theme">
+                <option value="purple">💜 Royal Purple</option>
+                <option value="teal">🩵 Ocean Teal</option>
+                <option value="rose">🌹 Rose Red</option>
+                <option value="amber">🟡 Amber Gold</option>
+                <option value="dark">⚫ Ultra Dark</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ekstra Mesaj (opsiyonel)</label>
+              <textarea id="ig-extra" rows="2" placeholder="Görselde vurgulanmasını istediğin özel bir şey..."></textarea>
+            </div>
           </div>
-          <div class="plat-card" data-p="instagram">
-            <svg class="plat-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-            </svg>
-            <div class="plat-name">Instagram</div>
-          </div>
-          <div class="plat-card" data-p="threads">
-            <svg class="plat-icon" viewBox="0 0 192 192" fill="currentColor">
-              <path d="M141.537 88.988a66.667 66.667 0 00-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.502 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.105 34.568.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.206 17.11 97.015 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.19 0h-.38C68.956.195 47.372 9.642 32.99 28.08 20.206 44.407 13.652 67.408 13.412 96v.5c.24 28.592 6.794 51.593 19.578 67.92 14.382 18.438 35.966 27.885 64.174 28.08h.386c24.922-.172 42.554-6.703 57.048-21.155 18.963-18.929 18.392-42.692 12.142-57.27-4.484-10.454-13.033-18.945-25.203-24.087zM98.44 129.507c-10.44.588-21.286-4.098-21.82-14.135-.397-7.442 5.296-15.746 22.461-16.735 1.966-.113 3.895-.169 5.79-.169 6.235 0 12.068.606 17.37 1.765-1.978 24.702-13.58 28.713-23.801 29.274z"/>
-            </svg>
-            <div class="plat-name">Threads</div>
+          <button class="gen-btn" onclick="generateInstagram()" id="ig-btn">✨ Görsel Üret</button>
+          <div class="loading" id="ig-loading"><div class="spinner"></div>Görsel hazırlanıyor...</div>
+          <div class="error" id="ig-error"></div>
+        </div>
+        <div>
+          <div class="result-wrap" id="ig-result">
+            <div class="result-header">
+              <div class="result-title">📸 Instagram Görseli</div>
+              <div class="result-btns">
+                <button class="regen-btn" onclick="generateInstagram()">↺ Yeniden</button>
+                <button class="dl-btn" onclick="downloadVisual('ig-visual','burnrate-instagram')">📥 PNG İndir</button>
+              </div>
+            </div>
+            <div class="visual-wrap" id="ig-visual"></div>
+            <div style="margin-top:12px">
+              <div class="card-title">Caption</div>
+              <div class="text-result" id="ig-caption"></div>
+              <div class="hashtag-row" id="ig-hashtags"></div>
+            </div>
           </div>
         </div>
       </div>
-
-      <div>
-        <div class="slabel">Konu</div>
-        <div class="sel-wrap">
-          <select id="topicSel">
-            <option value="v2_1_teaser">v2.1 Teaser — Yakında geliyor</option>
-            <option value="feature_ai">AI Finansal Danışman</option>
-            <option value="feature_invest">Canlı Yatırım Takibi</option>
-            <option value="feature_summary">Aylık Özet & PDF Rapor</option>
-            <option value="feature_challenge">30 Gün Finansal Challenge</option>
-            <option value="general_product">Genel Ürün Tanıtımı</option>
-            <option value="tips">Finansal İpucu</option>
-            <option value="engagement">Etkileşim Postu</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <div class="slabel">Ton</div>
-        <div class="tone-pills">
-          <div class="tone-pill active" data-t="heyecanli">Heyecanlı</div>
-          <div class="tone-pill" data-t="profesyonel">Profesyonel</div>
-          <div class="tone-pill" data-t="gizemli">Gizemli</div>
-          <div class="tone-pill" data-t="samimi">Samimi</div>
-          <div class="tone-pill" data-t="teknik">Teknik</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="slabel">Ekstra not (opsiyonel)</div>
-        <textarea class="extra" id="extraInput" placeholder="Özel detay, kampanya adı, tarih..."></textarea>
-      </div>
-
-      <button class="gen-btn" id="genBtn">
-        <div class="spinner"></div>
-        <span id="btnLabel">Üret</span>
-      </button>
-
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="right">
-
-      <div class="plat-bg-icon" id="platBg">
-        <svg id="platBgSvg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-        </svg>
+    <!-- THREAD TAB -->
+    <div id="page-thread" style="display:none">
+      <div class="page-header">
+        <div class="page-title">🧵 Twitter Thread</div>
+        <div class="page-sub">BurnRate OS hakkında ilgi çekici thread'ler üret</div>
       </div>
-
-      <div class="empty" id="emptyState">
-        <div class="empty-box">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-        </div>
-        <h3>Hazır</h3>
-        <p>Platform, konu ve ton seçip Üret'e bas.</p>
-      </div>
-
-      <div class="err-box" id="errBox"></div>
-
-      <div class="output" id="output">
-        <div class="out-header">
-          <div class="out-badge">
-            <svg id="badgeIcon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            <span id="badgeName">Twitter / X</span>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start">
+        <div>
+          <div class="card">
+            <div class="card-title">Thread Konusu</div>
+            <div class="pills" id="thread-topic-pills">
+              <div class="pill active" data-val="financial_freedom" onclick="selectPill(this,'thread-topic')">💸 Finansal Özgürlük</div>
+              <div class="pill" data-val="subscription_trap" onclick="selectPill(this,'thread-topic')">⚔️ Abonelik Tuzağı</div>
+              <div class="pill" data-val="investment_101" onclick="selectPill(this,'thread-topic')">📈 Yatırım 101</div>
+              <div class="pill" data-val="ai_money" onclick="selectPill(this,'thread-topic')">🤖 AI & Para</div>
+              <div class="pill" data-val="burnrate_features" onclick="selectPill(this,'thread-topic')">🚀 BurnRate Özellikleri</div>
+              <div class="pill" data-val="money_mistakes" onclick="selectPill(this,'thread-topic')">❌ Para Hataları</div>
+              <div class="pill" data-val="savings_tips" onclick="selectPill(this,'thread-topic')">💡 Tasarruf İpuçları</div>
+              <div class="pill" data-val="v21_launch" onclick="selectPill(this,'thread-topic')">🎯 v2.1 Launch</div>
+            </div>
           </div>
-          <div class="out-actions">
-            <button class="action-btn" id="regenBtn">↺ Yeniden</button>
-            <button class="action-btn" id="copyBtn">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2"/>
-                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-              </svg>
-              Kopyala
-            </button>
+          <div class="card">
+            <div class="card-title">Thread Ayarları</div>
+            <div class="field">
+              <label>Tweet Sayısı</label>
+              <select id="thread-count">
+                <option value="5">5 tweet</option>
+                <option value="7" selected>7 tweet</option>
+                <option value="10">10 tweet</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ton</label>
+              <div class="tone-pills" id="thread-tone-pills">
+                <div class="tone-pill active" data-val="engaging" onclick="selectTone(this,'thread')">🔥 Çarpıcı</div>
+                <div class="tone-pill" data-val="educational" onclick="selectTone(this,'thread')">📚 Eğitici</div>
+                <div class="tone-pill" data-val="storytelling" onclick="selectTone(this,'thread')">📖 Hikaye</div>
+                <div class="tone-pill" data-val="controversial" onclick="selectTone(this,'thread')">⚡ Tartışmalı</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Ekstra Not</label>
+              <textarea id="thread-extra" rows="2" placeholder="Thread'e eklemek istediğin spesifik bir şey..."></textarea>
+            </div>
+          </div>
+          <button class="gen-btn" onclick="generateThread()" id="thread-btn">🧵 Thread Üret</button>
+          <div class="loading" id="thread-loading"><div class="spinner"></div>Thread yazılıyor...</div>
+          <div class="error" id="thread-error"></div>
+        </div>
+        <div>
+          <div class="result-wrap" id="thread-result">
+            <div class="result-header">
+              <div class="result-title">🧵 Thread</div>
+              <div class="result-btns">
+                <button class="regen-btn" onclick="generateThread()">↺ Yeniden</button>
+                <button class="copy-btn" onclick="copyThread()">⎘ Tümünü Kopyala</button>
+              </div>
+            </div>
+            <div class="thread-container" id="thread-items"></div>
           </div>
         </div>
-
-        <div class="content-card">
-          <div class="content-text" id="contentText"></div>
-          <div class="char-row" id="charRow"></div>
-        </div>
-
-        <div class="hash-section">
-          <div class="slabel">Hashtag'ler</div>
-          <div class="hash-pills" id="hashPills"></div>
-        </div>
-
-        <div class="plat-hint" id="platHint"></div>
-        <div id="visualBox"></div>
-        <button onclick="downloadPNG()" id="downloadBtn" style="display:none;margin-top:12px;width:100%;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;font-family:sans-serif;font-size:13px;font-weight:700;cursor:pointer;">📥 PNG İndir</button>
       </div>
-
     </div>
+
+    <!-- POST TAB -->
+    <div id="page-post" style="display:none">
+      <div class="page-header">
+        <div class="page-title">✍️ Post Yaz</div>
+        <div class="page-sub">Tüm platformlar için özelleştirilmiş içerik üret</div>
+      </div>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start">
+        <div>
+          <div class="card">
+            <div class="card-title">Platform</div>
+            <div class="pills" id="post-platform-pills">
+              <div class="pill active" data-val="twitter" onclick="selectPill(this,'post-platform')">𝕏 Twitter/X</div>
+              <div class="pill" data-val="linkedin" onclick="selectPill(this,'post-platform')">💼 LinkedIn</div>
+              <div class="pill" data-val="instagram" onclick="selectPill(this,'post-platform')">📸 Instagram</div>
+              <div class="pill" data-val="threads" onclick="selectPill(this,'post-platform')">🧵 Threads</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">İçerik Ayarları</div>
+            <div class="field">
+              <label>Konu</label>
+              <select id="post-topic">
+                <option value="v2_1_teaser">🚀 v2.1 Yakında</option>
+                <option value="feature_ai">🤖 AI Danışman</option>
+                <option value="feature_invest">📈 Yatırım Takibi</option>
+                <option value="feature_summary">📋 Aylık Özet</option>
+                <option value="feature_challenge">🎯 Meydan Okuma</option>
+                <option value="general">💜 Genel Tanıtım</option>
+                <option value="tips">💡 Finansal İpucu</option>
+                <option value="engagement">💬 Etkileşim</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ton</label>
+              <div class="tone-pills" id="post-tone-pills">
+                <div class="tone-pill active" data-val="heyecanli" onclick="selectTone(this,'post')">🔥 Heyecanlı</div>
+                <div class="tone-pill" data-val="profesyonel" onclick="selectTone(this,'post')">💼 Profesyonel</div>
+                <div class="tone-pill" data-val="gizemli" onclick="selectTone(this,'post')">🌙 Gizemli</div>
+                <div class="tone-pill" data-val="samimi" onclick="selectTone(this,'post')">😊 Samimi</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Ekstra Not</label>
+              <textarea id="post-extra" rows="2" placeholder="Özellikle vurgulanmasını istediğin bir şey..."></textarea>
+            </div>
+          </div>
+          <button class="gen-btn" onclick="generatePost()" id="post-btn">✨ Post Üret</button>
+          <div class="loading" id="post-loading"><div class="spinner"></div>Yazılıyor...</div>
+          <div class="error" id="post-error"></div>
+        </div>
+        <div>
+          <div class="result-wrap" id="post-result">
+            <div class="result-header">
+              <div class="result-title" id="post-result-title">Post</div>
+              <div class="result-btns">
+                <button class="regen-btn" onclick="generatePost()">↺ Yeniden</button>
+                <button class="copy-btn" onclick="copyPost()" id="post-copy-btn">⎘ Kopyala</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="text-result" id="post-text"></div>
+              <div class="char-info" id="post-chars"></div>
+              <div class="hashtag-row" id="post-hashtags"></div>
+            </div>
+            <div id="post-visual-section" style="display:none;margin-top:16px">
+              <div class="result-header">
+                <div class="result-title">Eşleşen Görsel</div>
+                <div class="result-btns">
+                  <button class="dl-btn" onclick="downloadVisual('post-visual','burnrate-post')">📥 PNG İndir</button>
+                </div>
+              </div>
+              <div class="visual-wrap" id="post-visual"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-const SVG_PATHS = {
-  twitter:'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.261 5.634 5.904-5.634zm-1.161 17.52h1.833L7.084 4.126H5.117z',
-  linkedin:'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
-  instagram:'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z',
-  threads:'M141.537 88.988a66.667 66.667 0 00-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.502 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.105 34.568.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.206 17.11 97.015 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.19 0h-.38C68.956.195 47.372 9.642 32.99 28.08 20.206 44.407 13.652 67.408 13.412 96v.5c.24 28.592 6.794 51.593 19.578 67.92 14.382 18.438 35.966 27.885 64.174 28.08h.386c24.922-.172 42.554-6.703 57.048-21.155 18.963-18.929 18.392-42.692 12.142-57.27-4.484-10.454-13.033-18.945-25.203-24.087zM98.44 129.507c-10.44.588-21.286-4.098-21.82-14.135-.397-7.442 5.296-15.746 22.461-16.735 1.966-.113 3.895-.169 5.79-.169 6.235 0 12.068.606 17.37 1.765-1.978 24.702-13.58 28.713-23.801 29.274z'
-}
-const THREADS_VIEWBOX = '0 0 192 192'
+// STATE
+let igType = 'feature_showcase'
+let threadTopic = 'financial_freedom'
+let threadTone = 'engaging'
+let postPlatform = 'twitter'
+let postTone = 'heyecanli'
 
-const LABELS = {twitter:'Twitter / X',linkedin:'LinkedIn',instagram:'Instagram',threads:'Threads'}
-const LIMITS = {twitter:280,linkedin:3000,instagram:2200,threads:500}
-const HINTS = {
-  twitter:'Maks. 280 karakter · kısa ve vurucu',
-  linkedin:'Profesyonel ağ · 150–350 kelime ideal',
-  instagram:'Görsel odaklı · 100–200 kelime + CTA',
-  threads:'Maks. 500 karakter · samimi ve sohbet tarzı'
-}
-
-let st = {platform:'twitter',topic:'v2_1_teaser',tone:'heyecanli',extra:'',loading:false}
-let lastData = null
-
-// Platform cards
-document.querySelectorAll('.plat-card').forEach(c=>{
-  c.addEventListener('click',()=>{
-    document.querySelectorAll('.plat-card').forEach(x=>x.classList.remove('active'))
-    c.classList.add('active')
-    st.platform = c.dataset.p
-    updateBgIcon(st.platform)
+// TAB SWITCH
+function switchTab(tab) {
+  ['instagram','thread','post'].forEach(t => {
+    document.getElementById(`page-${t}`).style.display = t===tab?'block':'none'
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab)
   })
-})
-
-// Topic
-document.getElementById('topicSel').addEventListener('change',e=>st.topic=e.target.value)
-
-// Tone
-document.querySelectorAll('.tone-pill').forEach(p=>{
-  p.addEventListener('click',()=>{
-    document.querySelectorAll('.tone-pill').forEach(x=>x.classList.remove('active'))
-    p.classList.add('active')
-    st.tone = p.dataset.t
-  })
-})
-
-// Extra
-document.getElementById('extraInput').addEventListener('input',e=>st.extra=e.target.value)
-
-function updateBgIcon(p){
-  const svg = document.getElementById('platBgSvg')
-  const vb = p==='threads' ? THREADS_VIEWBOX : '0 0 24 24'
-  svg.setAttribute('viewBox', vb)
-  svg.innerHTML = `<path d="${SVG_PATHS[p]}"/>`
 }
 
-function setBadge(p){
-  const icon = document.getElementById('badgeIcon')
-  const vb = p==='threads' ? THREADS_VIEWBOX : '0 0 24 24'
-  icon.setAttribute('viewBox', vb)
-  icon.innerHTML = `<path d="${SVG_PATHS[p]}"/>`
-  document.getElementById('badgeName').textContent = LABELS[p]
+// PILL SELECT
+function selectPill(el, group) {
+  document.querySelectorAll(`#${group}-pills .pill`).forEach(p=>p.classList.remove('active'))
+  el.classList.add('active')
+  if(group==='ig-type') igType = el.dataset.val
+  if(group==='thread-topic') threadTopic = el.dataset.val
+  if(group==='post-platform') postPlatform = el.dataset.val
 }
 
-function updateCharRow(text,p){
-  const el = document.getElementById('charRow')
-  const limit = LIMITS[p], len = text.length
-  el.textContent = `${len} / ${limit} karakter`
-  el.className = 'char-row'
-  if(len > limit) el.classList.add('over')
-  else if(len > limit*.85) el.classList.add('warn')
+function selectTone(el, group) {
+  el.closest('.tone-pills').querySelectorAll('.tone-pill').forEach(p=>p.classList.remove('active'))
+  el.classList.add('active')
+  if(group==='thread') threadTone = el.dataset.val
+  if(group==='post') postTone = el.dataset.val
 }
 
-async function generate(){
-  if(st.loading) return
-  st.loading = true
-  const btn = document.getElementById('genBtn')
-  btn.classList.add('loading'); btn.disabled = true
-  document.getElementById('btnLabel').textContent = 'Üretiliyor...'
-  document.getElementById('errBox').classList.remove('show')
-  document.getElementById('emptyState').style.display = 'none'
-  document.getElementById('output').classList.remove('show')
-
-  try{
-    const res = await fetch('/api/social',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({platform:st.platform,topic:st.topic,tone:st.tone,extra:st.extra})
-    })
-    const data = await res.json()
-    if(!res.ok) throw new Error(data.error||'Sunucu hatası')
-    lastData = data
-    showOutput(data)
-  }catch(e){
-    const eb = document.getElementById('errBox')
-    eb.textContent = '⚠ '+e.message
-    eb.classList.add('show')
-    document.getElementById('emptyState').style.display = 'flex'
-  }finally{
-    st.loading = false
-    btn.classList.remove('loading'); btn.disabled = false
-    document.getElementById('btnLabel').textContent = 'Üret'
+// BUILD INSTAGRAM VISUAL
+function buildInstagramVisual(content, type, feature, theme) {
+  const themes = {
+    purple: {ac:'#7c3aed',ac2:'#4c1d95',r:'124,58,237',bg1:'rgba(109,40,217,0.35)',bg2:'rgba(76,29,149,0.2)',text:'#c4b5fd'},
+    teal: {ac:'#14b8a6',ac2:'#0f766e',r:'20,184,166',bg1:'rgba(20,184,166,0.3)',bg2:'rgba(15,118,110,0.18)',text:'#5eead4'},
+    rose: {ac:'#f43f5e',ac2:'#be123c',r:'244,63,94',bg1:'rgba(244,63,94,0.3)',bg2:'rgba(190,18,60,0.18)',text:'#fda4af'},
+    amber: {ac:'#f59e0b',ac2:'#d97706',r:'245,158,11',bg1:'rgba(245,158,11,0.3)',bg2:'rgba(217,119,6,0.18)',text:'#fde68a'},
+    dark: {ac:'#6366f1',ac2:'#4338ca',r:'99,102,241',bg1:'rgba(67,56,202,0.25)',bg2:'rgba(49,46,129,0.15)',text:'#a5b4fc'},
   }
-}
-
-function showOutput(data){
-  setBadge(st.platform)
-
-  // Typewriter
-  const el = document.getElementById('contentText')
-  el.textContent = ''
-  const text = data.content || ''
-  let i = 0
-  const speed = Math.max(8, Math.min(25, 1800/text.length))
-  ;(function tick(){
-    if(i<text.length){ el.textContent += text[i++]; setTimeout(tick,speed) }
-    else updateCharRow(text, st.platform)
-  })()
-
-  // Hashtags
-  const pills = document.getElementById('hashPills')
-  pills.innerHTML = ''
-  ;(data.hashtags||[]).forEach((tag,i)=>{
-    const pill = document.createElement('div')
-    pill.className = 'hash-pill'
-    pill.style.animationDelay = i*55+'ms'
-    const t = tag.startsWith('#') ? tag : '#'+tag
-    pill.textContent = t
-    pill.title = 'Kopyala'
-    pill.addEventListener('click',()=>{
-      navigator.clipboard.writeText(t)
-      const orig = pill.textContent
-      pill.textContent = '✓'
-      setTimeout(()=>pill.textContent=orig, 1000)
-    })
-    pills.appendChild(pill)
-  })
-
-  document.getElementById('platHint').textContent = HINTS[st.platform]
-  document.getElementById('output').classList.add('show')
-
-  const visualDiv = document.getElementById('visualBox')
-  if(visualDiv){
-    visualDiv.innerHTML = buildVisual(data.content, st.topic, st.platform)
-    visualDiv.style.display = 'block'
+  const features = {
+    ai_advisor: {icon:'🤖',title:'AI Finansal Danışman',sub:'Gerçek verilerinle çalışır'},
+    investment: {icon:'📈',title:'Canlı Yatırım Takibi',sub:'5 saniyede bir güncelleme'},
+    subscriptions: {icon:'⚔️',title:'Abonelik Yönetimi',sub:'Ölü abonelikleri tespit eder'},
+    monthly_summary: {icon:'📋',title:'Aylık Özet & PDF',sub:'Finansal raporunuz hazır'},
+    challenge: {icon:'🎯',title:'30 Günlük Meydan Okuma',sub:'Finansal alışkanlık kazan'},
+    budget: {icon:'📊',title:'Bütçe Planlama',sub:'Kategori bazlı limitler'},
+    debt: {icon:'🤝',title:'Borç Takibi',sub:'Alacak & verecek yönetimi'},
+    general: {icon:'💜',title:'BurnRate OS',sub:'Finansal komuta merkezin'},
   }
-  document.getElementById('downloadBtn').style.display = 'block'
-}
+  const t = themes[theme]||themes.purple
+  const f = features[feature]||features.general
 
-function buildVisual(content, topic, platform){
-  const visuals = {
-    v2_1_teaser:{emoji:'⚡',tag:'V2.1 YAKINDA',ac:'#6366f1',bg1:'rgba(67,56,202,0.4)',bg2:'rgba(99,102,241,0.2)'},
-    feature_ai:{emoji:'🤖',tag:'YENİ ÖZELLİK',ac:'#8b5cf6',bg1:'rgba(109,40,217,0.4)',bg2:'rgba(139,92,246,0.2)'},
-    feature_invest:{emoji:'📈',tag:'CANLI TAKİP',ac:'#10b981',bg1:'rgba(16,185,129,0.35)',bg2:'rgba(5,150,105,0.2)'},
-    feature_summary:{emoji:'📋',tag:'YENİ ÖZELLİK',ac:'#14b8a6',bg1:'rgba(20,184,166,0.35)',bg2:'rgba(15,118,110,0.2)'},
-    feature_challenge:{emoji:'🎯',tag:'30 GÜN',ac:'#f43f5e',bg1:'rgba(244,63,94,0.35)',bg2:'rgba(190,18,60,0.2)'},
-    general_product:{emoji:'💜',tag:'BURNRATE OS',ac:'#6366f1',bg1:'rgba(67,56,202,0.4)',bg2:'rgba(99,102,241,0.2)'},
-    tips:{emoji:'💡',tag:'FİNANSAL İPUCU',ac:'#f59e0b',bg1:'rgba(245,158,11,0.35)',bg2:'rgba(217,119,6,0.2)'},
-    engagement:{emoji:'💬',tag:'ETKİLEŞİM',ac:'#06b6d4',bg1:'rgba(6,182,212,0.35)',bg2:'rgba(8,145,178,0.2)'},
+  // Dashboard mock elements
+  const mockCards = `
+    <rect x="30" y="260" width="140" height="80" rx="12" fill="rgba(255,255,255,0.04)" stroke="${t.ac}" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="50" y="285" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="8" letter-spacing="1">NET BAKİYE</text>
+    <text x="50" y="310" fill="${t.ac}" font-family="sans-serif" font-size="18" font-weight="800">₺48.500</text>
+    <text x="50" y="328" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="9">↑ Pozitif</text>
+    
+    <rect x="185" y="260" width="140" height="80" rx="12" fill="rgba(255,255,255,0.04)" stroke="${t.ac}" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="205" y="285" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="8" letter-spacing="1">PORTFÖY</text>
+    <text x="205" y="310" fill="#10b981" font-family="sans-serif" font-size="18" font-weight="800">₺27.793</text>
+    <text x="205" y="328" fill="#6ee7b7" font-family="monospace" font-size="9">+6.9% ↑</text>
+    
+    <rect x="340" y="260" width="140" height="80" rx="12" fill="rgba(255,255,255,0.04)" stroke="${t.ac}" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="360" y="285" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="8" letter-spacing="1">TASARRUF</text>
+    <text x="360" y="310" fill="#f59e0b" font-family="sans-serif" font-size="18" font-weight="800">%97</text>
+    <text x="360" y="328" fill="#fde68a" font-family="monospace" font-size="9">Mükemmel ✓</text>
+  `
+
+  const typeLayouts = {
+    feature_showcase: `
+      <text x="250" y="168" text-anchor="middle" font-size="44">${f.icon}</text>
+      <text x="250" y="210" text-anchor="middle" fill="#f0eeff" font-family="sans-serif" font-size="22" font-weight="800">${f.title}</text>
+      <text x="250" y="234" text-anchor="middle" fill="rgba(240,238,255,0.45)" font-family="monospace" font-size="12">${f.sub}</text>
+      ${mockCards}
+    `,
+    dashboard_preview: `
+      <text x="250" y="155" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="10" letter-spacing="2">DASHBOARD PREVİEW</text>
+      ${mockCards}
+      <rect x="30" y="360" width="450" height="100" rx="12" fill="rgba(255,255,255,0.03)" stroke="${t.ac}" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="50" y="385" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="8">Harcama Dağılımı</text>
+      <circle cx="100" cy="430" r="30" fill="none" stroke="${t.ac}" stroke-width="8" stroke-dasharray="120 69" stroke-linecap="round"/>
+      <circle cx="100" cy="430" r="30" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="50 139" stroke-dashoffset="-120" stroke-linecap="round"/>
+    `,
+    stats_highlight: `
+      <text x="250" y="150" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="10" letter-spacing="2">BU AY</text>
+      <text x="250" y="210" text-anchor="middle" fill="${t.ac}" font-family="sans-serif" font-size="64" font-weight="800" letter-spacing="-3">%97</text>
+      <text x="250" y="240" text-anchor="middle" fill="rgba(240,238,255,0.5)" font-family="sans-serif" font-size="16">tasarruf oranı</text>
+      <rect x="80" y="265" width="340" height="6" rx="3" fill="rgba(255,255,255,0.06)"/>
+      <rect x="80" y="265" width="330" height="6" rx="3" fill="${t.ac}" filter="url(#glow)"/>
+      ${mockCards}
+    `,
+    tips_card: `
+      <rect x="40" y="130" width="420" height="220" rx="18" fill="rgba(255,255,255,0.03)" stroke="${t.ac}" stroke-opacity="0.25" stroke-width="1"/>
+      <text x="250" y="168" text-anchor="middle" font-size="32">💡</text>
+      <text x="250" y="200" text-anchor="middle" fill="#f0eeff" font-family="sans-serif" font-size="16" font-weight="700">Günün İpucu</text>
+      <text x="250" y="228" text-anchor="middle" fill="rgba(240,238,255,0.6)" font-family="sans-serif" font-size="13">Aboneliklerinizi düzenli kontrol edin.</text>
+      <text x="250" y="248" text-anchor="middle" fill="rgba(240,238,255,0.6)" font-family="sans-serif" font-size="13">Ortalama kullanıcı aylık ₺847 israf eder.</text>
+      <text x="250" y="280" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="11">BurnRate OS ile takip et →</text>
+      ${mockCards}
+    `,
+    announcement: `
+      <rect x="60" y="120" width="380" height="50" rx="25" fill="${t.ac}" fill-opacity="0.15" stroke="${t.ac}" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="250" y="153" text-anchor="middle" fill="${t.text}" font-family="monospace" font-size="11" letter-spacing="2">DUYURU</text>
+      <text x="250" y="215" text-anchor="middle" fill="#f0eeff" font-family="sans-serif" font-size="24" font-weight="800">${f.title}</text>
+      <text x="250" y="243" text-anchor="middle" fill="rgba(240,238,255,0.45)" font-family="sans-serif" font-size="14">artık BurnRate OS'ta mevcut</text>
+      <text x="250" y="275" text-anchor="middle" font-size="36">${f.icon}</text>
+      ${mockCards}
+    `,
+    before_after: `
+      <text x="130" y="150" text-anchor="middle" fill="rgba(255,69,58,0.7)" font-family="monospace" font-size="10" letter-spacing="1">ÖNCE</text>
+      <rect x="30" y="160" width="200" height="160" rx="14" fill="rgba(255,69,58,0.06)" stroke="rgba(255,69,58,0.2)" stroke-width="1"/>
+      <text x="130" y="195" text-anchor="middle" fill="#fca5a5" font-family="sans-serif" font-size="13">😟 Para nereye gidiyor?</text>
+      <text x="130" y="220" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="11">Harcamalar takipsiz</text>
+      <text x="130" y="240" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="11">Abonelikler unutulmuş</text>
+      <text x="130" y="260" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="sans-serif" font-size="11">Tasarruf yok</text>
+      <text x="370" y="150" text-anchor="middle" fill="${t.text}" fill-opacity="0.7" font-family="monospace" font-size="10" letter-spacing="1">SONRA</text>
+      <rect x="270" y="160" width="200" height="160" rx="14" fill="rgba(${t.r},0.08)" stroke="${t.ac}" stroke-opacity="0.25" stroke-width="1"/>
+      <text x="370" y="195" text-anchor="middle" fill="${t.text}" font-family="sans-serif" font-size="13">😊 Her şey kontrol altında</text>
+      <text x="370" y="220" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="11">AI danışman aktif</text>
+      <text x="370" y="240" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="11">%97 tasarruf oranı</text>
+      <text x="370" y="260" text-anchor="middle" fill="#6ee7b7" font-family="sans-serif" font-size="11">₺48.500 net bakiye</text>
+      <text x="250" y="240" text-anchor="middle" fill="${t.ac}" font-family="sans-serif" font-size="20" font-weight="800">→</text>
+      ${mockCards}
+    `,
+    v21_teaser: `
+      <text x="250" y="150" text-anchor="middle" fill="${t.text}" fill-opacity="0.5" font-family="monospace" font-size="10" letter-spacing="3">BURNRATE OS</text>
+      <text x="250" y="210" text-anchor="middle" fill="${t.ac}" font-family="sans-serif" font-size="56" font-weight="800" letter-spacing="-2">v2.1</text>
+      <text x="250" y="245" text-anchor="middle" fill="rgba(240,238,255,0.6)" font-family="sans-serif" font-size="18">yakında geliyor.</text>
+      <circle cx="250" cy="280" r="4" fill="${t.ac}" opacity="0.8"/>
+      <circle cx="266" cy="280" r="3" fill="${t.ac}" opacity="0.4"/>
+      <circle cx="280" cy="280" r="2" fill="${t.ac}" opacity="0.2"/>
+      ${mockCards}
+    `
   }
-  const v = visuals[topic] || visuals.general_product
-  const maxLen = 160
-  const short = content.length > maxLen ? content.substring(0, maxLen) + '...' : content
-  const words = short.split(' ')
-  let lines = [], line = ''
-  words.forEach(w => { if((line+' '+w).length > 40){lines.push(line.trim());line=w}else line+=' '+w })
-  if(line.trim()) lines.push(line.trim())
-  lines = lines.slice(0, 5)
-  const lsvg = lines.map((l,i) => `<text x="340" y="${210+i*30}" text-anchor="middle" fill="rgba(238,242,255,0.88)" font-family="sans-serif" font-size="14" font-weight="400">${l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</text>`).join('')
 
-  // Grid lines (vertical + horizontal, subtle)
-  const gridV = [136,204,272,340,408,476,544].map(x =>
-    `<line x1="${x}" y1="0" x2="${x}" y2="420" stroke="${v.ac}" stroke-opacity="0.04" stroke-width="1"/>`).join('')
-  const gridH = [84,168,252,336].map(y =>
-    `<line x1="0" y1="${y}" x2="680" y2="${y}" stroke="${v.ac}" stroke-opacity="0.04" stroke-width="1"/>`).join('')
+  const layout = typeLayouts[type] || typeLayouts.feature_showcase
 
-  // Corner accents
-  const corners = `
-<line x1="0" y1="0" x2="28" y2="0" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="0" y1="0" x2="0" y2="28" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="680" y1="0" x2="652" y2="0" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="680" y1="0" x2="680" y2="28" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="0" y1="420" x2="28" y2="420" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="0" y1="420" x2="0" y2="392" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="680" y1="420" x2="652" y2="420" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>
-<line x1="680" y1="420" x2="680" y2="392" stroke="${v.ac}" stroke-opacity="0.6" stroke-width="1.5"/>`
-
-  return `<svg width="100%" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="100%" viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
 <defs>
-<radialGradient id="rg1" cx="20%" cy="20%"><stop offset="0%" stop-color="${v.bg1}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
-<radialGradient id="rg2" cx="80%" cy="80%"><stop offset="0%" stop-color="${v.bg2}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
-<linearGradient id="acline" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="transparent"/><stop offset="30%" stop-color="${v.ac}" stop-opacity="0.5"/><stop offset="70%" stop-color="${v.ac}" stop-opacity="0.5"/><stop offset="100%" stop-color="transparent"/></linearGradient>
+<radialGradient id="bg1" cx="20%" cy="15%"><stop offset="0%" stop-color="${t.bg1}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+<radialGradient id="bg2" cx="80%" cy="85%"><stop offset="0%" stop-color="${t.bg2}"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
 </defs>
-<rect width="680" height="420" fill="#04040f"/>
-<rect width="680" height="420" fill="url(#rg1)"/>
-<rect width="680" height="420" fill="url(#rg2)"/>
-${gridV}${gridH}
-<line x1="0" y1="405" x2="680" y2="405" stroke="url(#acline)" stroke-width="1"/>
-<text x="340" y="58" text-anchor="middle" fill="${v.ac}" fill-opacity="0.5" font-family="monospace" font-size="10" letter-spacing="4">BURNRATE OS</text>
-<rect x="262" y="72" width="156" height="24" rx="12" fill="${v.ac}" fill-opacity="0.1"/>
-<rect x="262" y="72" width="156" height="24" rx="12" fill="none" stroke="${v.ac}" stroke-opacity="0.35" stroke-width="1"/>
-<text x="340" y="89" text-anchor="middle" fill="${v.ac}" font-family="monospace" font-size="9" letter-spacing="2.5">${v.tag}</text>
-<text x="340" y="162" text-anchor="middle" font-size="36">${v.emoji}</text>
-${lsvg}
-<text x="340" y="398" text-anchor="middle" fill="${v.ac}" fill-opacity="0.28" font-family="monospace" font-size="9" letter-spacing="1.5">app.burnrate-os.com</text>
-<rect x="0.5" y="0.5" width="679" height="419" fill="none" stroke="${v.ac}" stroke-opacity="0.1" stroke-width="1"/>
-${corners}
+<rect width="500" height="600" fill="#030308"/>
+<rect width="500" height="600" fill="url(#bg1)"/>
+<rect width="500" height="600" fill="url(#bg2)"/>
+${Array.from({length:9},(_,i)=>`<line x1="${i*62}" y1="0" x2="${i*62}" y2="600" stroke="${t.ac}" stroke-opacity="0.03" stroke-width="1"/>`).join('')}
+${Array.from({length:11},(_,i)=>`<line x1="0" y1="${i*60}" x2="500" y2="${i*60}" stroke="${t.ac}" stroke-opacity="0.03" stroke-width="1"/>`).join('')}
+<line x1="60" y1="1" x2="440" y2="1" stroke="${t.ac}" stroke-opacity="0.35" stroke-width="1"/>
+<line x1="60" y1="599" x2="440" y2="599" stroke="${t.ac}" stroke-opacity="0.15" stroke-width="1"/>
+<circle cx="20" cy="20" r="3" fill="${t.ac}" opacity="0.25"/>
+<circle cx="480" cy="20" r="3" fill="${t.ac}" opacity="0.25"/>
+<circle cx="20" cy="580" r="3" fill="${t.ac}" opacity="0.25"/>
+<circle cx="480" cy="580" r="3" fill="${t.ac}" opacity="0.25"/>
+${layout}
+<text x="250" y="572" text-anchor="middle" fill="${t.ac}" fill-opacity="0.28" font-family="monospace" font-size="10" letter-spacing="1">app.burnrate-os.com</text>
+<rect x="0.5" y="0.5" width="499" height="599" fill="none" stroke="${t.ac}" stroke-opacity="0.1" stroke-width="1"/>
 </svg>`
 }
 
-function downloadPNG(){
-  const svg = document.querySelector('#visualBox svg')
+// INSTAGRAM GENERATE
+async function generateInstagram() {
+  const feature = document.getElementById('ig-feature').value
+  const theme = document.getElementById('ig-theme').value
+  const extra = document.getElementById('ig-extra').value
+  const btn = document.getElementById('ig-btn')
+  const loading = document.getElementById('ig-loading')
+  const result = document.getElementById('ig-result')
+  const error = document.getElementById('ig-error')
+
+  btn.disabled = true
+  loading.classList.add('show')
+  result.classList.remove('show')
+  error.classList.remove('show')
+
+  // Görseli oluştur
+  document.getElementById('ig-visual').innerHTML = buildInstagramVisual('', igType, feature, theme)
+
+  // Caption üret
+  try {
+    const featureLabels = {
+      ai_advisor:'AI Finansal Danışman — gerçek verilerinle çalışan yapay zeka danışman',
+      investment:'Canlı Yatırım Takibi — hisse ve kripto 5 saniyede bir güncelleme',
+      subscriptions:'Abonelik Yönetimi — ölü abonelikleri tespit et ve iptal et',
+      monthly_summary:'Aylık Özet & PDF Rapor — finansal raporunu tek tıkla indir',
+      challenge:'30 Günlük Finansal Meydan Okuma — rozet sistemi ve AI görevleri',
+      budget:'Bütçe Planlama — kategori bazlı harcama limitleri',
+      debt:'Borç Takibi — alacak ve verecek yönetimi',
+      general:'BurnRate OS — finansal komuta merkezin'
+    }
+    const typeLabels = {
+      feature_showcase:'özellik showcase',
+      dashboard_preview:'dashboard önizleme',
+      stats_highlight:'istatistik vurgu',
+      tips_card:'ipucu kartı',
+      before_after:'önce/sonra karşılaştırma',
+      announcement:'duyuru',
+      v21_teaser:'v2.1 teaser'
+    }
+
+    const res = await fetch('/api/social', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        platform:'instagram',
+        topic:'general_product',
+        tone:'heyecanli',
+        extra:`Bu bir ${typeLabels[igType]} görseli için Instagram caption. Öne çıkan özellik: ${featureLabels[feature]}. ${extra?'Ekstra: '+extra:''} Caption 150-200 kelime olsun, emoji kullan, call-to-action ekle.`
+      })
+    })
+    const data = await res.json()
+    if(data.error) throw new Error(data.error)
+
+    document.getElementById('ig-caption').textContent = data.content
+    const hashtagList = document.getElementById('ig-hashtags')
+    hashtagList.innerHTML = ''
+    if(data.hashtags) {
+      data.hashtags.forEach(tag=>{
+        const el = document.createElement('span')
+        el.className = 'hashtag'
+        el.textContent = tag.startsWith('#')?tag:'#'+tag
+        hashtagList.appendChild(el)
+      })
+    }
+    result.classList.add('show')
+  } catch(e) {
+    error.textContent = 'Hata: '+e.message
+    error.classList.add('show')
+    // Görseli yine de göster
+    result.classList.add('show')
+    document.getElementById('ig-caption').textContent = 'Caption üretilemedi. Görseli kullanabilirsiniz.'
+  }
+
+  btn.disabled = false
+  loading.classList.remove('show')
+}
+
+// THREAD GENERATE
+async function generateThread() {
+  const count = document.getElementById('thread-count').value
+  const extra = document.getElementById('thread-extra').value
+  const btn = document.getElementById('thread-btn')
+  const loading = document.getElementById('thread-loading')
+  const result = document.getElementById('thread-result')
+  const error = document.getElementById('thread-error')
+
+  const topicLabels = {
+    financial_freedom:'Finansal özgürlük nedir ve nasıl elde edilir',
+    subscription_trap:'Abonelik tuzağı — farkında olmadan nasıl para kaybediyoruz',
+    investment_101:'Yatırıma başlamak için bilmen gereken 7 şey',
+    ai_money:'Yapay zeka para yönetimini nasıl değiştiriyor',
+    burnrate_features:'BurnRate OS ile finansal hayatını nasıl dönüştürebilirsin',
+    money_mistakes:'Türk gençlerin yaptığı en yaygın para hataları',
+    savings_tips:'Her ay daha fazla para biriktirmek için kanıtlanmış yöntemler',
+    v21_launch:'BurnRate OS v2.1 — neler geliyor ve neden önemli'
+  }
+
+  const toneLabels = {
+    engaging:'çarpıcı, hook ile başla, merak uyandır, her tweet bağımsız ama bütünü tamamlasın',
+    educational:'eğitici, somut veriler kullan, örnekler ver, öğretici ol',
+    storytelling:'hikaye anlat, kişisel deneyim gibi yaz, duygusal bağ kur',
+    controversial:'tartışmalı bir bakış açısı sun, karşı görüş ver, düşündür'
+  }
+
+  btn.disabled = true
+  loading.classList.add('show')
+  result.classList.remove('show')
+  error.classList.remove('show')
+
+  try {
+    const res = await fetch('/api/social', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        platform:'twitter',
+        topic:'engagement',
+        tone:'heyecanli',
+        extra:`${count} tweet'lik bir Twitter thread yaz. Konu: ${topicLabels[threadTopic]}. Ton: ${toneLabels[threadTone]}. Her tweet maksimum 270 karakter olsun. ${extra?'Ekstra: '+extra:''} 
+
+SADECE JSON formatında yanıt ver:
+{
+  "tweets": ["tweet 1", "tweet 2", "tweet 3"...],
+  "hashtags": ["tag1", "tag2", "tag3"]
+}`
+      })
+    })
+    const data = await res.json()
+    if(data.error) throw new Error(data.error)
+
+    // Parse tweets
+    let tweets = []
+    try {
+      const text = typeof data === 'string' ? data : JSON.stringify(data)
+      const match = text.match(/"tweets"\s*:\s*\[(.*?)\]/s)
+      if(match) {
+        tweets = JSON.parse('['+match[1]+']')
+      } else if(data.content) {
+        // Fallback: satırlara böl
+        tweets = data.content.split('\n').filter(t=>t.trim().length>10).slice(0,parseInt(count))
+      }
+    } catch {
+      tweets = data.content ? data.content.split('\n').filter(t=>t.trim()).slice(0,parseInt(count)) : []
+    }
+
+    const container = document.getElementById('thread-items')
+    container.innerHTML = ''
+    tweets.forEach((tweet,i) => {
+      const div = document.createElement('div')
+      div.className = 'thread-item'
+      div.innerHTML = `
+        <div class="thread-num">${i+1}</div>
+        <div style="flex:1">
+          <div class="thread-text">${tweet}</div>
+          <div class="thread-chars">${tweet.length}/280 karakter</div>
+        </div>
+        <button onclick="copyTweet(this)" style="background:transparent;border:1px solid rgba(124,58,237,0.2);border-radius:8px;color:rgba(196,181,253,0.6);padding:4px 10px;font-size:10px;cursor:pointer;flex-shrink:0;align-self:flex-start">⎘</button>
+      `
+      if(i < tweets.length-1) {
+        const line = document.createElement('div')
+        line.className = 'thread-line'
+        div.appendChild(line)
+      }
+      container.appendChild(div)
+    })
+
+    result.classList.add('show')
+  } catch(e) {
+    error.textContent = 'Hata: '+e.message
+    error.classList.add('show')
+  }
+
+  btn.disabled = false
+  loading.classList.remove('show')
+}
+
+// POST GENERATE
+async function generatePost() {
+  const topic = document.getElementById('post-topic').value
+  const extra = document.getElementById('post-extra').value
+  const btn = document.getElementById('post-btn')
+  const loading = document.getElementById('post-loading')
+  const result = document.getElementById('post-result')
+  const error = document.getElementById('post-error')
+  const limits = {twitter:280,linkedin:3000,instagram:2200,threads:500}
+  const platformNames = {twitter:'𝕏 Twitter/X',linkedin:'💼 LinkedIn',instagram:'📸 Instagram',threads:'🧵 Threads'}
+
+  btn.disabled = true
+  loading.classList.add('show')
+  result.classList.remove('show')
+  error.classList.remove('show')
+
+  try {
+    const res = await fetch('/api/social', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({platform:postPlatform, topic, tone:postTone, extra})
+    })
+    const data = await res.json()
+    if(data.error) throw new Error(data.error)
+
+    document.getElementById('post-result-title').textContent = platformNames[postPlatform]
+    document.getElementById('post-text').textContent = data.content
+    const charLen = data.content.length
+    const limit = limits[postPlatform]
+    const charEl = document.getElementById('post-chars')
+    charEl.textContent = `${charLen} / ${limit} karakter`
+    charEl.className = 'char-info'+(charLen>limit?' over':'')
+
+    const hashtagList = document.getElementById('post-hashtags')
+    hashtagList.innerHTML = ''
+    if(data.hashtags) {
+      data.hashtags.forEach(tag=>{
+        const el = document.createElement('span')
+        el.className = 'hashtag'
+        el.textContent = tag.startsWith('#')?tag:'#'+tag
+        hashtagList.appendChild(el)
+      })
+    }
+
+    // Görsel ekle
+    const visualSection = document.getElementById('post-visual-section')
+    const topicMap = {
+      v2_1_teaser:'v21_teaser', feature_ai:'feature_showcase',
+      feature_invest:'feature_showcase', feature_summary:'feature_showcase',
+      feature_challenge:'feature_showcase', general:'feature_showcase',
+      tips:'tips_card', engagement:'stats_highlight'
+    }
+    const featureMap = {
+      v2_1_teaser:'general', feature_ai:'ai_advisor', feature_invest:'investment',
+      feature_summary:'monthly_summary', feature_challenge:'challenge',
+      general:'general', tips:'general', engagement:'general'
+    }
+    document.getElementById('post-visual').innerHTML = buildInstagramVisual(data.content, topicMap[topic]||'feature_showcase', featureMap[topic]||'general', 'purple')
+    visualSection.style.display = 'block'
+
+    result.classList.add('show')
+  } catch(e) {
+    error.textContent = 'Hata: '+e.message
+    error.classList.add('show')
+  }
+
+  btn.disabled = false
+  loading.classList.remove('show')
+}
+
+// COPY FUNCTIONS
+function copyTweet(btn) {
+  const text = btn.parentElement.querySelector('.thread-text').textContent
+  navigator.clipboard.writeText(text)
+  btn.textContent = '✓'
+  setTimeout(()=>btn.textContent='⎘',2000)
+}
+
+function copyThread() {
+  const tweets = Array.from(document.querySelectorAll('.thread-text')).map((t,i)=>`${i+1}/ ${t.textContent}`).join('\n\n')
+  const hashtags = Array.from(document.querySelectorAll('#thread-result .hashtag')).map(h=>h.textContent).join(' ')
+  navigator.clipboard.writeText(tweets+(hashtags?'\n\n'+hashtags:''))
+  const btn = document.querySelector('#thread-result .copy-btn')
+  btn.textContent = '✓ Kopyalandı!'
+  setTimeout(()=>btn.textContent='⎘ Tümünü Kopyala',2000)
+}
+
+function copyPost() {
+  const text = document.getElementById('post-text').textContent
+  const tags = Array.from(document.querySelectorAll('#post-hashtags .hashtag')).map(h=>h.textContent).join(' ')
+  navigator.clipboard.writeText(text+(tags?'\n\n'+tags:''))
+  const btn = document.getElementById('post-copy-btn')
+  btn.textContent = '✓ Kopyalandı!'
+  setTimeout(()=>btn.textContent='⎘ Kopyala',2000)
+}
+
+// PNG DOWNLOAD
+function downloadVisual(containerId, filename) {
+  const svg = document.querySelector(`#${containerId} svg`)
   if(!svg) return
   const svgData = new XMLSerializer().serializeToString(svg)
   const canvas = document.createElement('canvas')
-  canvas.width = 1360
-  canvas.height = 840
+  canvas.width = 1080
+  canvas.height = 1296
   const ctx = canvas.getContext('2d')
   const img = new Image()
-  const blob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'})
+  const blob = new Blob([svgData],{type:'image/svg+xml;charset=utf-8'})
   const url = URL.createObjectURL(blob)
   img.onload = function(){
-    ctx.drawImage(img, 0, 0, 1360, 840)
+    ctx.drawImage(img,0,0,1080,1296)
     URL.revokeObjectURL(url)
     const a = document.createElement('a')
-    a.download = 'burnrate-social-' + Date.now() + '.png'
+    a.download = filename+'-'+Date.now()+'.png'
     a.href = canvas.toDataURL('image/png')
     a.click()
   }
   img.src = url
 }
-
-// Copy button
-document.getElementById('copyBtn').addEventListener('click',()=>{
-  if(!lastData) return
-  const tags = (lastData.hashtags||[]).map(t=>t.startsWith('#')?t:'#'+t).join(' ')
-  navigator.clipboard.writeText(lastData.content + (tags ? '\n\n'+tags : ''))
-  const btn = document.getElementById('copyBtn')
-  btn.classList.add('ok')
-  btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Kopyalandı'
-  setTimeout(()=>{
-    btn.classList.remove('ok')
-    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Kopyala'
-  }, 2200)
-})
-
-document.getElementById('regenBtn').addEventListener('click', generate)
-document.getElementById('genBtn').addEventListener('click', generate)
-
-updateBgIcon('twitter')
 </script>
 </body>
 </html>
