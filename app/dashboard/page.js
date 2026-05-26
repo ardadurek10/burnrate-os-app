@@ -2415,20 +2415,10 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',backdropFilter:'blur(6px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setEditingInv(null)}>
           <div onClick={e=>e.stopPropagation()} style={{background:'#0d1f17',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'20px',padding:'32px',width:'100%',maxWidth:'440px',boxShadow:'0 24px 60px rgba(0,0,0,0.5)'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
-              <div style={{color:'#fff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>📈 {lang==='tr'?'Yatırımı Düzenle':'Edit Investment'}</div>
+              <div style={{color:'#fff',fontSize:'18px',fontWeight:700,fontFamily:FONT}}>✏️ Pozisyonu Güncelle</div>
               <button onClick={()=>setEditingInv(null)} style={{background:'transparent',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'20px',cursor:'pointer'}}>×</button>
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
-              <div>
-                <div style={{color:'rgba(255,255,255,0.45)',fontSize:'11px',fontWeight:600,fontFamily:FONT,marginBottom:'6px',letterSpacing:'0.06em'}}>{lang==='tr'?'SEMBOL':'SYMBOL'}</div>
-                <input value={editingInv.symbol||''} onChange={e=>setEditingInv({...editingInv,symbol:e.target.value.toUpperCase()})}
-                  style={{width:'100%',background:'rgba(16,185,129,0.07)',border:'1px solid rgba(16,185,129,0.18)',borderRadius:'10px',padding:'10px 14px',color:'#fff',fontSize:'14px',fontFamily:MONO,boxSizing:'border-box',outline:'none'}} />
-              </div>
-              <div>
-                <div style={{color:'rgba(255,255,255,0.45)',fontSize:'11px',fontWeight:600,fontFamily:FONT,marginBottom:'6px',letterSpacing:'0.06em'}}>{lang==='tr'?'İSİM':'NAME'}</div>
-                <input value={editingInv.name||''} onChange={e=>setEditingInv({...editingInv,name:e.target.value})}
-                  style={{width:'100%',background:'rgba(16,185,129,0.07)',border:'1px solid rgba(16,185,129,0.18)',borderRadius:'10px',padding:'10px 14px',color:'#fff',fontSize:'14px',fontFamily:FONT,boxSizing:'border-box',outline:'none'}} />
-              </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                 <div>
                   <div style={{color:'rgba(255,255,255,0.45)',fontSize:'11px',fontWeight:600,fontFamily:FONT,marginBottom:'6px',letterSpacing:'0.06em'}}>{lang==='tr'?'ADET':'SHARES'}</div>
@@ -2445,16 +2435,16 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
             <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'24px'}}>
               <button onClick={()=>setEditingInv(null)} style={{padding:'10px 20px',borderRadius:'10px',fontSize:'13px',color:'rgba(255,255,255,0.35)',background:'transparent',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'İptal':'Cancel'}</button>
               <button onClick={async()=>{
-                const {symbol,name,shares,buy_price} = editingInv
-                if(!symbol||!name||!shares||!buy_price) return
-                const updateData = {symbol,name,shares:parseFloat(shares),buy_price:parseFloat(buy_price)}
+                const {shares,buy_price} = editingInv
+                if(!shares||!buy_price) return
+                const updateData = {shares:parseFloat(shares),buy_price:parseFloat(buy_price)}
                 try {
                   await fetch(`https://cgfcdtjyhphppucnldor.supabase.co/rest/v1/investments?id=eq.${editingInv.id}`,{
                     method:'PATCH',
                     headers:{apikey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118',Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118','Content-Type':'application/json','Prefer':'return=representation'},
                     body:JSON.stringify(updateData)
                   })
-                  setInvestments(prev=>prev.map(i=>i.id===editingInv.id?{...i,...updateData}:i))
+                  setInvestments(prev=>prev.map(i=>i.id===editingInv.id?{...i,shares:Number(editingInv.shares),buy_price:Number(editingInv.buy_price)}:i))
                   setEditingInv(null)
                 } catch(e) {}
               }} style={{padding:'10px 24px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
