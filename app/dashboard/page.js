@@ -2444,7 +2444,8 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
                     headers:{apikey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118',Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118','Content-Type':'application/json','Prefer':'return=representation'},
                     body:JSON.stringify(updateData)
                   })
-                  setInvestments(prev=>prev.map(i=>i.id===editingInv.id?{...i,shares:Number(editingInv.shares),buy_price:Number(editingInv.buy_price)}:i))
+                  const updated = {...editingInv, shares: Number(editingInv.shares), buy_price: Number(editingInv.buy_price)}
+                  setInvestments(prev => prev.map(i => i.id === updated.id ? updated : i))
                   setEditingInv(null)
                 } catch(e) {}
               }} style={{padding:'10px 24px',borderRadius:'10px',fontSize:'13px',fontWeight:600,background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',border:'none',cursor:'pointer',fontFamily:FONT}}>{lang==='tr'?'Kaydet':'Save'}</button>
