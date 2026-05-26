@@ -904,7 +904,7 @@ return (
         {page==='subscriptions' && <SubsPage theme={THEMES.subscriptions} subs={subs} setSubs={setSubs} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} userPlan={userPlan} />}
         {page==='spending' && <SpendingPage theme={THEMES.spending} expenses={expenses} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='investments' && <InvestmentsPage theme={THEMES.investments} investments={investments} setInvestments={setInvestments} userId={user.id} onRefresh={() => loadData(user.id)} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
-        {page==='balance' && <BalancePage theme={THEMES.balance} income={income} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
+        {page==='balance' && <BalancePage theme={THEMES.balance} income={income} setIncome={setIncome} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} userId={user.id} onRefresh={() => loadData(user.id)} currency={currency} currencyRate={currencyRate} currencySymbol={currencySymbol} lang={lang} />}
         {page==='goals' && <GoalsPage theme={THEMES.goals} expenses={expenses} totalExp={totalExp} totalSubs={totalSubs} totalIncome={totalIncome} userId={user.id} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
         {page==='summary' && (canAccess('summary',userPlan) ? <MonthlySummaryPage theme={THEMES.summary} totalIncome={totalIncome} totalExp={totalExp} totalSubs={totalSubs} netBal={netBal} subs={subs} expenses={expenses} income={income} lang={lang} /> : <LockedPage moduleId="summary" userPlan={userPlan} onUpgrade={()=>setUpgradeModal('summary')} lang={lang} />)}
         {page==='ai' && <AIPage theme={DYNAMIC_THEME} user={user} subs={subs} expenses={expenses} income={income} investments={investments} lang={lang} userPlan={userPlan} onGoToSettings={()=>setPage('settings')} />}
@@ -2463,9 +2463,10 @@ function InvestmentsPage({ theme, investments, setInvestments, userId, onRefresh
 }
 
 
-function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
+function BalancePage({ theme, income, setIncome, totalIncome, totalExp, totalSubs, netBal, userId, onRefresh, currency='TRY', currencyRate=1, currencySymbol='₺', lang='en' }) {
   const [form, setForm] = useState({source:'',amount:'',income_date:''})
   const [adding, setAdding] = useState(false)
+  const [editingIncome, setEditingIncome] = useState(null)
   async function addIncome() {
     if (!form.source||!form.amount) return
     await supabaseInsert('income',{...form,amount:parseFloat(form.amount),user_id:userId})
@@ -2554,17 +2555,86 @@ function BalancePage({ theme, income, totalIncome, totalExp, totalSubs, netBal, 
           <thead><tr><TH>{lang==='tr'?'Kaynak':'Source'}</TH><TH>{lang==='tr'?'Miktar':'Amount'}</TH><TH>{lang==='tr'?'Tarih':'Date'}</TH><TH></TH></tr></thead>
           <tbody>
             {income.length===0 ? <tr><td colSpan={4} style={{textAlign:'center',padding:'60px 20px'}}><div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}><div style={{fontSize:'36px',opacity:0.6}}>💰</div><div style={{color:'rgba(255,255,255,0.35)',fontSize:'14px',fontWeight:500,fontFamily:FONT}}>Henüz gelir girilmedi</div><div style={{color:'rgba(255,255,255,0.18)',fontSize:'12px',fontFamily:FONT}}>İlk gelirini eklemek için + butonuna tıkla</div></div></td></tr>
-            : income.map(i=>(
-              <tr key={i.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
-                <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{i.source}</td>
-                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+{currencySymbol}{(Number(i.amount)/currencyRate).toFixed(2)}</td>
-                <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{i.income_date||'—'}</td>
-                <td style={{padding:'12px 0'}}><button onClick={()=>del(i.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button></td>
+            : income.map(inc=>(
+              <tr key={inc.id} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',transition:'background 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,58,237,0.05)';e.currentTarget.style.borderRadius='8px'}} onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
+                <td style={{padding:'12px 0',color:'#f5f5f7',fontSize:'13px',fontWeight:500,fontFamily:FONT}}>{inc.source}</td>
+                <td style={{padding:'12px 0',...VAL,color:theme.text,fontSize:'13px'}}>+{currencySymbol}{(Number(inc.amount)/currencyRate).toFixed(2)}</td>
+                <td style={{padding:'12px 0',color:'rgba(255,255,255,0.28)',fontSize:'12px',fontFamily:FONT}}>{inc.income_date||'—'}</td>
+                <td style={{padding:'12px 0',display:'flex',alignItems:'center',gap:'4px'}}>
+                  <button onClick={()=>setEditingIncome(inc)}
+                    onMouseEnter={e=>e.currentTarget.style.color='#67e8f9'}
+                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}
+                    style={{background:'transparent',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.3)',fontSize:'14px',padding:'4px 8px',transition:'color 0.15s'}}>✏️</button>
+                  <button onClick={()=>del(inc.id)} style={{fontSize:'12px',padding:'5px 12px',borderRadius:'8px',color:'rgba(255,255,255,0.28)',background:'transparent',border:'1px solid rgba(255,255,255,0.07)',cursor:'pointer',fontFamily:FONT}}>×</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </Card>
+
+      {editingIncome && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setEditingIncome(null)}>
+          <div style={{background:'#0a0414',border:'1px solid rgba(6,182,212,0.25)',borderRadius:'24px',maxWidth:'500px',width:'100%',padding:'28px',boxShadow:'0 0 60px rgba(6,182,212,0.1)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
+              <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>✏️ Geliri Düzenle</div>
+              <button onClick={()=>setEditingIncome(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(6,182,212,0.5)',marginBottom:'7px'}}>KAYNAK</div>
+                <select value={editingIncome.source||''} onChange={e=>setEditingIncome({...editingIncome,source:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'#0d0820',border:'1px solid rgba(6,182,212,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none',appearance:'none',backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2306b6d4' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,backgroundRepeat:'no-repeat',backgroundPosition:'right 13px center'}}>
+                  <option value="">Kaynak seç...</option>
+                  <option value="Maaş">💰 Maaş</option>
+                  <option value="Freelance">💻 Freelance</option>
+                  <option value="Ürün Satışı">🛍️ Ürün Satışı</option>
+                  <option value="Kira Geliri">🏠 Kira Geliri</option>
+                  <option value="Yatırım Getirisi">📈 Yatırım Getirisi</option>
+                  <option value="Temettü">💎 Temettü</option>
+                  <option value="Proje Ödemesi">🤝 Proje Ödemesi</option>
+                  <option value="İkramiye">🎁 İkramiye</option>
+                  <option value="Diğer">✨ Diğer</option>
+                </select>
+              </div>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(6,182,212,0.5)',marginBottom:'7px'}}>MİKTAR (₺)</div>
+                <input type="number" value={editingIncome.amount||''} onChange={e=>setEditingIncome({...editingIncome,amount:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(6,182,212,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                  onFocus={e=>{e.currentTarget.style.border='1px solid rgba(6,182,212,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(6,182,212,0.08)'}}
+                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(6,182,212,0.2)';e.currentTarget.style.boxShadow=''}}/>
+              </div>
+              <div>
+                <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(6,182,212,0.5)',marginBottom:'7px'}}>TARİH</div>
+                <input type="date" value={editingIncome.income_date||''} onChange={e=>setEditingIncome({...editingIncome,income_date:e.target.value})}
+                  style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(6,182,212,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                  onFocus={e=>{e.currentTarget.style.border='1px solid rgba(6,182,212,0.5)'}}
+                  onBlur={e=>{e.currentTarget.style.border='1px solid rgba(6,182,212,0.2)'}}/>
+              </div>
+              <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+                <button onClick={()=>setEditingIncome(null)}
+                  style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.1)',background:'transparent',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:FONT}}>
+                  İptal
+                </button>
+                <button onClick={async()=>{
+                  const SUPABASE_URL='https://cgfcdtjyhphppucnldor.supabase.co'
+                  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+                  await fetch(`${SUPABASE_URL}/rest/v1/income?id=eq.${editingIncome.id}`,{
+                    method:'PATCH',
+                    headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+                    body:JSON.stringify({source:editingIncome.source,amount:editingIncome.amount,income_date:editingIncome.income_date})
+                  })
+                  setIncome(prev=>prev.map(i=>i.id===editingIncome.id?{...i,...editingIncome}:i))
+                  setEditingIncome(null)
+                }}
+                  style={{flex:2,padding:'11px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#06b6d4,#0891b2)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 16px rgba(6,182,212,0.35)'}}>
+                  💾 Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
