@@ -3937,6 +3937,7 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
     amount: '', category: 'personal', status: 'pending',
     due_date: '', description: '', notes: ''
   })
+  const [editingDebt, setEditingDebt] = useState(null)
 
   const CATS = [
     { v: 'personal',  label: lang==='tr'?'Kişisel':'Personal',   icon: '👤' },
@@ -4336,17 +4337,85 @@ function DebtPage({ theme, userId, currency='TRY', currencyRate=1, currencySymbo
                     </div>
                   </div>
 
-                  {/* Sil */}
-                  <button onClick={()=>{if(confirm(lang==='tr'?'Bu kaydı silmek istediğinizden emin misiniz?':'Are you sure you want to delete this entry?'))deleteDebt(debt.id)}}
-                    style={{padding:'8px 16px',borderRadius:'10px',fontSize:'12px',background:'rgba(239,68,68,0.1)',color:'#fca5a5',border:'1px solid rgba(239,68,68,0.2)',cursor:'pointer',fontFamily:FONT}}>
-                    🗑️ {lang==='tr'?'Kaydı Sil':'Delete Entry'}
-                  </button>
+                  {/* Düzenle & Sil */}
+                  <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                    <button onClick={()=>setEditingDebt(debt)}
+                      onMouseEnter={e=>e.currentTarget.style.color='#fda4af'}
+                      onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}
+                      style={{background:'transparent',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.3)',fontSize:'14px',padding:'4px 8px',transition:'color 0.15s'}}>✏️</button>
+                    <button onClick={()=>{if(confirm(lang==='tr'?'Bu kaydı silmek istediğinizden emin misiniz?':'Are you sure you want to delete this entry?'))deleteDebt(debt.id)}}
+                      style={{padding:'8px 16px',borderRadius:'10px',fontSize:'12px',background:'rgba(239,68,68,0.1)',color:'#fca5a5',border:'1px solid rgba(239,68,68,0.2)',cursor:'pointer',fontFamily:FONT}}>
+                      🗑️ {lang==='tr'?'Kaydı Sil':'Delete Entry'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           )
         })}
       </div>
+
+    {editingDebt && (
+      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={e=>e.target===e.currentTarget&&setEditingDebt(null)}>
+        <div style={{background:'#0a0414',border:'1px solid rgba(236,72,153,0.25)',borderRadius:'24px',maxWidth:'500px',width:'100%',padding:'28px',boxShadow:'0 0 60px rgba(236,72,153,0.1)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
+            <div style={{color:'#f1f0ff',fontSize:'17px',fontWeight:700,fontFamily:FONT}}>✏️ Kaydı Düzenle</div>
+            <button onClick={()=>setEditingDebt(null)} style={{fontSize:'20px',color:'rgba(255,255,255,0.3)',background:'transparent',border:'none',cursor:'pointer'}}>×</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+            <div>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(236,72,153,0.5)',marginBottom:'7px'}}>KİŞİ / AÇIKLAMA</div>
+              <input value={editingDebt.person||''} onChange={e=>setEditingDebt({...editingDebt,person:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(236,72,153,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                onFocus={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(236,72,153,0.08)'}}
+                onBlur={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.2)';e.currentTarget.style.boxShadow=''}}/>
+            </div>
+            <div>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(236,72,153,0.5)',marginBottom:'7px'}}>MİKTAR (₺)</div>
+              <input type="number" value={editingDebt.amount||''} onChange={e=>setEditingDebt({...editingDebt,amount:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(236,72,153,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                onFocus={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(236,72,153,0.08)'}}
+                onBlur={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.2)';e.currentTarget.style.boxShadow=''}}/>
+            </div>
+            <div>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(236,72,153,0.5)',marginBottom:'7px'}}>NOT</div>
+              <input value={editingDebt.note||''} onChange={e=>setEditingDebt({...editingDebt,note:e.target.value})}
+                placeholder="Opsiyonel not..."
+                style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(236,72,153,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                onFocus={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.5)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(236,72,153,0.08)'}}
+                onBlur={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.2)';e.currentTarget.style.boxShadow=''}}/>
+            </div>
+            <div>
+              <div style={{fontFamily:MONO,fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(236,72,153,0.5)',marginBottom:'7px'}}>SON ÖDEME TARİHİ</div>
+              <input type="date" value={editingDebt.due_date||''} onChange={e=>setEditingDebt({...editingDebt,due_date:e.target.value})}
+                style={{width:'100%',padding:'10px 14px',borderRadius:'11px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(236,72,153,0.2)',color:'#f1f0ff',fontSize:'13px',fontFamily:FONT,outline:'none'}}
+                onFocus={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.5)'}}
+                onBlur={e=>{e.currentTarget.style.border='1px solid rgba(236,72,153,0.2)'}}/>
+            </div>
+            <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+              <button onClick={()=>setEditingDebt(null)}
+                style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.1)',background:'transparent',color:'rgba(255,255,255,0.5)',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:FONT}}>
+                İptal
+              </button>
+              <button onClick={async()=>{
+                const SUPABASE_URL='https://cgfcdtjyhphppucnldor.supabase.co'
+                const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnZmNkdGp5aHBocHB1Y25sZG9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjAxMDAsImV4cCI6MjA5MzQ5NjEwMH0.Vxu08J2BOgTkTY2FXvoKmOj5-qR__p_091CUQsJZ118'
+                await fetch(`${SUPABASE_URL}/rest/v1/debts?id=eq.${editingDebt.id}`,{
+                  method:'PATCH',
+                  headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+                  body:JSON.stringify({person:editingDebt.person,amount:editingDebt.amount,note:editingDebt.note,due_date:editingDebt.due_date})
+                })
+                setDebts(prev=>prev.map(d=>d.id===editingDebt.id?{...d,...editingDebt}:d))
+                setEditingDebt(null)
+              }}
+                style={{flex:2,padding:'11px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#ec4899,#be185d)',color:'#fff',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:FONT,boxShadow:'0 4px 16px rgba(236,72,153,0.35)'}}>
+                💾 Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   )
 }
