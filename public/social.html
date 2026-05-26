@@ -93,17 +93,12 @@ body::before{
 
 .preview-area{
   flex:1;display:flex;align-items:center;justify-content:center;
-  overflow:hidden;position:relative
-}
-.preview-area::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 55% 45% at 50% 50%,rgba(99,102,241,0.045),transparent);
-  pointer-events:none
+  overflow:hidden;position:relative;background:#06041a;padding:0;margin:0
 }
 #preview-box{
   position:relative;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 28px 70px rgba(0,0,0,0.65),0 0 50px rgba(99,102,241,0.07);
-  border-radius:10px;transform-origin:center center;transition:width 0.28s,height 0.28s
+  transform-origin:center center;transition:width 0.28s,height 0.28s;
+  flex-shrink:0
 }
 
 /* ── TOAST ── */
@@ -690,8 +685,9 @@ function scalePreview(){
   const box=document.getElementById('preview-box')
   const story=activeFmt==='9x16'
   const W=story?360:500, H=story?640:500
-  const aW=area.clientWidth-64, aH=area.clientHeight-64
-  const scale=Math.min(1,aW/W,aH/H)
+  const aW=area.clientWidth, aH=area.clientHeight
+  // Tam dolu: en/boy oranını koruyarak alanı kapla (contain — her iki kenar görünür)
+  const scale=Math.min(aW/W,aH/H)
   box.style.transform=`scale(${scale})`
 }
 
